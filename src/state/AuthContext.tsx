@@ -8,15 +8,20 @@ interface AuthState {
   accessToken: string | null;
   /** true selama sesi tersimpan masih dibaca dari AsyncStorage */
   restoring: boolean;
+  /** Mode Tamu — menjelajah dengan data contoh, tanpa sinkron Drive */
+  isGuest: boolean;
   signIn: (profile: UserProfile, accessToken: string) => Promise<void>;
   /** Mode lokal tanpa Google — data hanya di perangkat */
   signInOffline: () => Promise<void>;
+  /** Mode Tamu dengan data contoh */
+  signInGuest: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
 
 export const OFFLINE_PROFILE: UserProfile = { name: "Pengguna Lokal", email: "offline" };
+export const GUEST_PROFILE: UserProfile = { name: "Andi Pratama", email: "guest" };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -44,15 +49,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await Promise.all([saveProfile(OFFLINE_PROFILE), saveAccessToken(null)]);
   }, []);
 
+  const signInGuest = useCallback(async () => {
+    setProfile(GUEST_PROFILE);
+    setAccessToken(null);
+    await Promise.all([saveProfile(GUEST_PROFILE), saveAccessToken(null)]);
+  }, []);
+
   const signOut = useCallback(async () => {
     setProfile(null);
     setAccessToken(null);
     await Promise.all([saveProfile(null), saveAccessToken(null)]);
   }, []);
 
+  const isGuest = profile?.email === GUEST_PROFILE.email;
+
   const value = useMemo(
-    () => ({ profile, accessToken, restoring, signIn, signInOffline, signOut }),
-    [profile, accessToken, restoring, signIn, signInOffline, signOut]
+    () => ({ profile, accessToken, restoring, isGuest, signIn, signInOffline, signInGuest, signOut }),
+    [profile, accessToken, restoring, isGuest, signIn, signInOffline, signInGuest, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

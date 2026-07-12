@@ -22,6 +22,8 @@ interface AppDataState {
   addGoldPrice: (entry: GoldPriceEntry) => void;
   deleteWallet: (walletId: string) => void;
   resetAll: () => void;
+  /** Ganti seluruh data (dipakai Mode Tamu untuk memuat data contoh) */
+  replaceAll: (next: AppData) => void;
 }
 
 const AppDataContext = createContext<AppDataState | null>(null);
@@ -152,6 +154,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     persist(() => EMPTY_DATA);
   }, [persist]);
 
+  const replaceAll = useCallback(
+    (next: AppData) => {
+      persist(() => next);
+    },
+    [persist]
+  );
+
   const value = useMemo(
     () => ({
       data,
@@ -163,8 +172,9 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       addGoldPrice,
       deleteWallet,
       resetAll,
+      replaceAll,
     }),
-    [data, loading, addWallet, addTransaction, addTransactions, addTransfer, addGoldPrice, deleteWallet, resetAll]
+    [data, loading, addWallet, addTransaction, addTransactions, addTransfer, addGoldPrice, deleteWallet, resetAll, replaceAll]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
