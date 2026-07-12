@@ -7,7 +7,7 @@ import { useAppData } from "../state/AppDataContext";
 import { useAuth } from "../state/AuthContext";
 
 export function ProfileScreen() {
-  const { profile, accessToken, signOut } = useAuth();
+  const { profile, accessToken, isGuest, signOut } = useAuth();
   const { resetAll } = useAppData();
   const online = !!accessToken;
 
@@ -24,10 +24,24 @@ export function ProfileScreen() {
         <View className="flex-1">
           <Text className="font-sans-bold text-lg text-saldio-ink">{profile?.name}</Text>
           <Text className="mt-0.5 font-sans text-sm text-saldio-muted">
-            {profile?.email === "offline" ? "Tanpa akun Google" : profile?.email}
+            {isGuest
+              ? "Mode Tamu · data contoh"
+              : profile?.email === "offline"
+                ? "Tanpa akun Google"
+                : profile?.email}
           </Text>
         </View>
       </View>
+
+      {isGuest ? (
+        <View className="mt-4 flex-row items-start gap-3 rounded-2xl bg-saldio-sky p-4">
+          <Ionicons name="eye" size={18} color="#3D51E0" />
+          <Text className="flex-1 font-sans text-xs leading-4 text-saldio-blue">
+            Kamu sedang menjelajah dengan data contoh. Keluar lalu masuk dengan Google untuk mulai
+            mencatat keuanganmu sendiri — data contoh akan dibersihkan otomatis.
+          </Text>
+        </View>
+      ) : null}
 
       <View className="mt-4 flex-row items-center gap-3 rounded-2xl bg-white p-4">
         <Ionicons
@@ -52,9 +66,14 @@ export function ProfileScreen() {
           onPress={() =>
             confirmDestructive(
               "Keluar?",
-              "Data lokal tetap tersimpan di perangkat ini.",
+              isGuest
+                ? "Data contoh Mode Tamu akan dibersihkan."
+                : "Data lokal tetap tersimpan di perangkat ini.",
               "Keluar",
-              () => signOut()
+              () => {
+                if (isGuest) resetAll();
+                signOut();
+              }
             )
           }
           className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"

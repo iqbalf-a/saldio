@@ -7,12 +7,20 @@ import * as WebBrowser from "expo-web-browser";
 import { Screen } from "../components/Screen";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { GOOGLE_OAUTH } from "../lib/config";
+import { buildDemoData } from "../lib/demoData";
+import { useAppData } from "../state/AppDataContext";
 import { useAuth } from "../state/AuthContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export function OnboardingScreen() {
-  const { signIn, signInOffline } = useAuth();
+  const { signIn, signInOffline, signInGuest } = useAuth();
+  const { replaceAll } = useAppData();
+
+  const enterGuestMode = () => {
+    replaceAll(buildDemoData());
+    signInGuest();
+  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,6 +100,15 @@ export function OnboardingScreen() {
             promptAsync().finally(() => setBusy(false));
           }}
         />
+        <Pressable
+          onPress={enterGuestMode}
+          className="mt-3 h-14 flex-row items-center justify-center gap-2 rounded-full border border-saldio-border bg-white active:opacity-80"
+        >
+          <Ionicons name="eye" size={16} color="#3D51E0" />
+          <Text className="font-sans-semibold text-base text-saldio-blue">
+            Lihat Mode Tamu (data contoh)
+          </Text>
+        </Pressable>
         <Pressable onPress={signInOffline} className="mt-4 items-center active:opacity-70">
           <Text className="font-sans-medium text-sm text-saldio-soft">
             Coba dulu tanpa akun (data hanya di perangkat ini)
