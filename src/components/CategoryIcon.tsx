@@ -1,0 +1,16 @@
+import React from "react";
+import { View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { categoryByKey } from "../lib/categories";
+
+export function CategoryIcon({ category, size = 44 }: { category?: string; size?: number }) {
+  const cat = categoryByKey(category);
+  return (
+    <View
+      className="items-center justify-center rounded-2xl"
+      style={{ width: size, height: size, backgroundColor: cat.background }}
+    >
+      <Ionicons name={cat.icon as never} size={size * 0.45} color={cat.color} />
+    </View>
+  );
+}
