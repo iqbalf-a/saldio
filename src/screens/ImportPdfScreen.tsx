@@ -29,6 +29,8 @@ const SOURCE_BY_TEMPLATE: Record<string, TransactionSource> = {
   bca: "import_pdf_bca",
   mandiri: "import_pdf_mandiri",
   bank_jago: "import_pdf_bank_jago",
+  neo_bank: "import_pdf_neo_bank",
+  super_bank: "import_pdf_super_bank",
 };
 
 function StepBar({ step }: { step: Step }) {

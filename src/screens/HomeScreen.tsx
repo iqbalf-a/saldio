@@ -16,7 +16,7 @@ import {
   netWorth,
   walletBalance,
 } from "../lib/balances";
-import { WALLET_TEMPLATES } from "../lib/templates";
+import { WALLET_TEMPLATES, walletSupportsPdfImport } from "../lib/templates";
 import type { Wallet } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
 import { useAuth } from "../state/AuthContext";
@@ -35,7 +35,7 @@ function greeting(): string {
 function walletSubtitle(wallet: Wallet): string {
   const label = WALLET_TEMPLATES.find((t) => t.key === wallet.template)?.label ?? wallet.template;
   if (wallet.type === "cash" || wallet.template === "custom") return `${label} · manual`;
-  return `${label} · ${wallet.supportsPdfImport ? "impor PDF" : "manual"}`;
+  return `${label} · ${walletSupportsPdfImport(wallet) ? "impor PDF" : "manual"}`;
 }
 
 export function HomeScreen() {

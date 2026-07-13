@@ -4,10 +4,25 @@ export const WALLET_TEMPLATES: WalletTemplate[] = [
   { key: "bank_jago", label: "Bank Jago", supportsPdfImport: true },
   { key: "mandiri", label: "Mandiri", supportsPdfImport: true },
   { key: "bca", label: "BCA", supportsPdfImport: true },
-  { key: "super_bank", label: "Super Bank", supportsPdfImport: false },
-  { key: "neo_bank", label: "Neo Bank", supportsPdfImport: false },
+  { key: "super_bank", label: "Super Bank", supportsPdfImport: true },
+  { key: "neo_bank", label: "Neo Bank", supportsPdfImport: true },
   { key: "custom", label: "Kustom", supportsPdfImport: false },
 ];
+
+/**
+ * Kemampuan impor PDF ditentukan dari template terkini, bukan flag yang
+ * tersimpan di dompet — agar dompet lama ikut mendapat parser baru
+ * (mis. Neo Bank/Super Bank yang awalnya manual saja).
+ */
+export function walletSupportsPdfImport(wallet: {
+  template: WalletTemplateKey;
+  supportsPdfImport: boolean;
+  type?: string;
+}): boolean {
+  if (wallet.type === "gold") return false;
+  const template = WALLET_TEMPLATES.find((t) => t.key === wallet.template);
+  return template ? template.supportsPdfImport : wallet.supportsPdfImport;
+}
 
 export interface BadgeStyle {
   initials: string;

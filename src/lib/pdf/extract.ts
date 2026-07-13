@@ -27,7 +27,13 @@ export async function extractPdfLines(uri: string, password?: string): Promise<E
 
   const res = await fetch(uri);
   const data = await res.arrayBuffer();
-  const loadingTask = pdfjs.getDocument({ data, password });
+  const loadingTask = pdfjs.getDocument({
+    data,
+    password,
+    // Beberapa e-statement (mis. Neo Bank) memakai 14 font standar PDF yang
+    // harus dimuat terpisah — tanpa ini ekstraksi teks bisa menggantung.
+    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+  });
   let doc: Awaited<typeof loadingTask.promise>;
   try {
     doc = await loadingTask.promise;

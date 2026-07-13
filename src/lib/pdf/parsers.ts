@@ -208,6 +208,107 @@ export function parseBankJago(lines: string[]): ParsedTransaction[] {
   return out;
 }
 
+/**
+ * Neo Bank (Consolidated Statement): laporan multi-rekening — hanya bagian
+ * "Now Savings/Tabungan Now" yang diimpor (Neo Wish dilewati). Baris:
+ *   "04/01/2026 QRIS (PAYMENT) -6.397,00 1.980.943,93"
+ * yaitu tanggal penuh, deskripsi, mutasi (negatif = keluar, tanpa tanda =
+ * masuk), lalu kolom saldo. Baris terjemahan Indonesia di bawahnya dilewati.
+ */
+export function parseNeoBank(lines: string[]): ParsedTransaction[] {
+  const out: ParsedTransaction[] = [];
+  let capture = false;
+  const rowRe = /^(\d{2})\/(\d{2})\/(\d{4})\s+(.+?)\s+(-?[\d.]+,\d{2})\s+[\d.]+,\d{2}$/;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (/^Now Savings/i.test(line)) {
+      capture = true;
+      continue;
+    }
+    if (/^(Total (Credit|Debit|Balance)|Neo Wish)/i.test(line)) {
+      capture = false;
+      continue;
+    }
+    if (!capture) continue;
+    const m = line.match(rowRe);
+    if (!m) continue;
+    const day = parseInt(m[1], 10);
+    const month = parseInt(m[2], 10);
+    const year = parseInt(m[3], 10);
+    if (day < 1 || day > 31 || month < 1 || month > 12) continue;
+    const description = m[4].replace(/\s{2,}/g, " ").trim();
+    if (/Opening Balance|Saldo Awal/i.test(description)) continue;
+    const amount = parseAmount(m[5]);
+    if (!amount) continue;
+    out.push({
+      date: isoDate(year, month, day),
+      description,
+      amount,
+      direction: m[5].startsWith("-") ? "out" : "in",
+      category: guessCategory(description),
+    });
+  }
+  return out;
+}
+
+/**
+ * Super Bank: laporan terkonsolidasi multi-kantong — hanya bagian
+ * "Tabungan Utama" yang diimpor (Saku/Celengan/OVO/Deposito/Kartu Untung
+ * dilewati agar perpindahan internal tidak terhitung dobel). Hasil ekstraksi
+ * memisahkan nominal dan keterangan ke baris berdampingan:
+ *   "-Rp50.000,00 Rp1.967.216,71"   ← mutasi + saldo
+ *   "1 Jan Pengisian Celengan"      ← tanggal (tanpa tahun) + deskripsi
+ * sehingga baris nominal dipasangkan dengan baris keterangan berikutnya.
+ * Tahun diambil dari header periode laporan.
+ */
+export function parseSuperBank(lines: string[]): ParsedTransaction[] {
+  const out: ParsedTransaction[] = [];
+  const year = detectStatementYear(lines);
+  let capture = false;
+  let pending: { amount: number; direction: "in" | "out" } | null = null;
+  const amountRe = /^([+-])Rp([\d.,]+)\s+Rp[\d.,]+$/;
+  const descRe = /^(\d{1,2})\s+([A-Za-z]{3})\s+(.+)$/;
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (/^Tabungan Utama - \d/.test(line)) {
+      capture = true;
+      continue;
+    }
+    if (/^(Saku\b|Celengan$|OVO Nabung|Deposito$|Kartu Untung$)/.test(line)) {
+      capture = false;
+      continue;
+    }
+    if (!capture) continue;
+
+    const am = line.match(amountRe);
+    if (am) {
+      const amount = parseAmount(am[2]);
+      pending = amount ? { amount, direction: am[1] === "-" ? "out" : "in" } : null;
+      continue;
+    }
+
+    const dm = line.match(descRe);
+    if (dm && pending) {
+      const month = monthFromToken(dm[2]);
+      const day = parseInt(dm[1], 10);
+      const description = dm[3].replace(/\s{2,}/g, " ").trim();
+      // "1 Jan 2026" (tahun saja, tanpa deskripsi) adalah artefak kolom — bukan transaksi
+      if (month && day >= 1 && day <= 31 && !/^\d{4}$/.test(description)) {
+        out.push({
+          date: isoDate(year, month, day),
+          description,
+          amount: pending.amount,
+          direction: pending.direction,
+          category: guessCategory(description),
+        });
+        pending = null;
+      }
+    }
+  }
+  return out;
+}
+
 export function parseStatement(template: WalletTemplateKey, lines: string[]): ParsedTransaction[] {
   switch (template) {
     case "bca":
@@ -216,6 +317,10 @@ export function parseStatement(template: WalletTemplateKey, lines: string[]): Pa
       return parseMandiri(lines);
     case "bank_jago":
       return parseBankJago(lines);
+    case "neo_bank":
+      return parseNeoBank(lines);
+    case "super_bank":
+      return parseSuperBank(lines);
     default:
       return [];
   }
@@ -225,4 +330,6 @@ export const PARSER_LABELS: Partial<Record<WalletTemplateKey, string>> = {
   bca: "BCA",
   mandiri: "Mandiri",
   bank_jago: "Bank Jago",
+  neo_bank: "Neo Bank",
+  super_bank: "Super Bank",
 };

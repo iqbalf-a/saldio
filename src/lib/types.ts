@@ -27,7 +27,9 @@ export type TransactionSource =
   | "manual"
   | "import_pdf_bca"
   | "import_pdf_mandiri"
-  | "import_pdf_bank_jago";
+  | "import_pdf_bank_jago"
+  | "import_pdf_neo_bank"
+  | "import_pdf_super_bank";
 
 export interface Transaction {
   id: string;
