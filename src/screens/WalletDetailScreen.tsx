@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen, ScreenHeader } from "../components/Screen";
@@ -88,7 +88,7 @@ export function WalletDetailScreen({ route, navigation }: RootScreenProps<"Walle
     );
 
   return (
-    <Screen>
+    <Screen scroll={false}>
       <ScreenHeader
         leading={<WalletBadge name={wallet.name} template={wallet.template} type={wallet.type} size={36} />}
         title={wallet.name}
@@ -153,12 +153,17 @@ export function WalletDetailScreen({ route, navigation }: RootScreenProps<"Walle
         />
       </View>
 
-      {/* Riwayat */}
+      {/* Riwayat — hanya area ini yang bisa di-scroll */}
       <View className="mb-2 mt-6 flex-row items-center justify-between">
         <Text className="font-sans-bold text-lg text-saldio-ink">Riwayat</Text>
         <MonthPicker value={activeMonth} options={months} onChange={setMonth} />
       </View>
 
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
       {!hasAny ? (
         <EmptyState
           icon="receipt"
@@ -206,6 +211,7 @@ export function WalletDetailScreen({ route, navigation }: RootScreenProps<"Walle
           ))}
         </View>
       )}
+      </ScrollView>
     </Screen>
   );
 }
