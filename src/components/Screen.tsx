@@ -17,13 +17,13 @@ export function Screen({ children, scroll = true, padded = true }: ScreenProps) 
   const pad = padded ? "px-5" : "";
   if (!scroll) {
     return (
-      <View className={`flex-1 bg-saldio-bg ${pad}`} style={{ paddingTop: insets.top + 8 }}>
+      <View className={`flex-1 bg-saldio-bg ${pad}`} style={{ paddingTop: insets.top + 20 }}>
         {children}
       </View>
     );
   }
   return (
-    <View className="flex-1 bg-saldio-bg" style={{ paddingTop: insets.top + 8 }}>
+    <View className="flex-1 bg-saldio-bg" style={{ paddingTop: insets.top + 20 }}>
       <ScrollView
         className={`flex-1 ${pad}`}
         contentContainerStyle={{ paddingBottom: 32 }}

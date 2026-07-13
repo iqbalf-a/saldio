@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -80,7 +80,7 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
     setFilter((f) => (f === "Semua" ? "Beli" : f === "Beli" ? "Jual" : "Semua"));
 
   return (
-    <Screen>
+    <Screen scroll={false}>
       <ScreenHeader
         leading={<WalletBadge name={wallet.name} template={wallet.template} type="gold" size={36} />}
         title={wallet.name}
@@ -144,6 +144,12 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
         ) : null}
       </LinearGradient>
 
+      {/* Konten di bawah kartu emas di-scroll terpisah */}
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
       {/* Riwayat harga */}
       <View className="mt-4 rounded-3xl bg-white p-4">
         <View className="flex-row items-center justify-between">
@@ -295,6 +301,7 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
           <Text className="font-sans-semibold text-sm text-white">Catat Transaksi Emas</Text>
         </Pressable>
       ) : null}
+      </ScrollView>
     </Screen>
   );
 }
