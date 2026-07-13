@@ -11,7 +11,15 @@ export interface ExtractedPdf {
   pageCount: number;
 }
 
-export async function extractPdfLines(uri: string): Promise<ExtractedPdf> {
+/** PDF terkunci: butuh password, atau password yang diberikan salah. */
+export class PdfPasswordError extends Error {
+  constructor(public readonly wrongPassword: boolean) {
+    super(wrongPassword ? "Password PDF salah" : "PDF membutuhkan password");
+    this.name = "PdfPasswordError";
+  }
+}
+
+export async function extractPdfLines(uri: string, password?: string): Promise<ExtractedPdf> {
   const pdfjs = await import("pdfjs-dist");
   if (typeof pdfjs.GlobalWorkerOptions !== "undefined") {
     pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -19,8 +27,16 @@ export async function extractPdfLines(uri: string): Promise<ExtractedPdf> {
 
   const res = await fetch(uri);
   const data = await res.arrayBuffer();
-  const loadingTask = pdfjs.getDocument({ data });
-  const doc = await loadingTask.promise;
+  const loadingTask = pdfjs.getDocument({ data, password });
+  let doc: Awaited<typeof loadingTask.promise>;
+  try {
+    doc = await loadingTask.promise;
+  } catch (e) {
+    if ((e as Error)?.name === "PasswordException") {
+      throw new PdfPasswordError(!!password);
+    }
+    throw e;
+  }
 
   const lines: string[] = [];
   for (let p = 1; p <= doc.numPages; p++) {
