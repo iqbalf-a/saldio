@@ -10,6 +10,7 @@ import { EmptyState } from "../components/EmptyState";
 import { formatDayLabel, formatRupiah, formatSignedRupiah } from "../lib/format";
 import { groupByDay, walletBalance, walletInOut } from "../lib/balances";
 import { availableMonths, walletFeed } from "../lib/walletFeed";
+import { walletSupportsPdfImport } from "../lib/templates";
 import { confirmDestructive } from "../lib/confirm";
 import { useAppData } from "../state/AppDataContext";
 import type { RootScreenProps } from "../navigation/types";
@@ -68,6 +69,7 @@ export function WalletDetailScreen({ route, navigation }: RootScreenProps<"Walle
   }
 
   const activeMonth = months.includes(month) ? month : months[0];
+  const canImportPdf = walletSupportsPdfImport(wallet);
   const balance = walletBalance(data, wallet);
   const { inflow, outflow } = walletInOut(data, wallet.id, activeMonth);
   const monthFeed = feed.filter((t) => t.date.startsWith(activeMonth));
@@ -136,7 +138,7 @@ export function WalletDetailScreen({ route, navigation }: RootScreenProps<"Walle
           primary
           onPress={() => navigation.navigate("AddTransaction", { walletId: wallet.id })}
         />
-        {wallet.supportsPdfImport ? (
+        {canImportPdf ? (
           <ActionButton
             icon="document-text"
             label="Impor PDF"
@@ -162,15 +164,15 @@ export function WalletDetailScreen({ route, navigation }: RootScreenProps<"Walle
           icon="receipt"
           title="Belum ada transaksi"
           description={
-            wallet.supportsPdfImport
+            canImportPdf
               ? "Catat transaksi pertamamu secara manual, atau impor mutasi PDF dari aplikasi bankmu."
               : "Catat transaksi pertamamu secara manual."
           }
           actionLabel="Tambah Transaksi"
           onAction={() => navigation.navigate("AddTransaction", { walletId: wallet.id })}
-          secondaryLabel={wallet.supportsPdfImport ? "Impor Mutasi PDF" : undefined}
+          secondaryLabel={canImportPdf ? "Impor Mutasi PDF" : undefined}
           onSecondary={
-            wallet.supportsPdfImport
+            canImportPdf
               ? () => navigation.navigate("ImportPdf", { walletId: wallet.id })
               : undefined
           }

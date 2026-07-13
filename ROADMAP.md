@@ -47,7 +47,9 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 ## Ditunda sesuai spek awal (belum dijadwalkan)
 
 - Toggle bahasa Inggris
-- Parser PDF untuk bank selain BCA/Mandiri/Jago
+- ~~Parser PDF untuk bank selain BCA/Mandiri/Jago~~ — Neo Bank & Super Bank
+  sudah ditambahkan (scope diperluas atas permintaan, sampel tersedia);
+  hanya rekening utama yang diimpor dari laporan konsolidasi
 - Koneksi API bank live
 - Harga emas otomatis dari API (sekarang manual by design)
 
