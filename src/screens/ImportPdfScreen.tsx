@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, Modal, Pressable, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { Screen, ScreenHeader } from "../components/Screen";
@@ -8,7 +8,7 @@ import { WalletBadge } from "../components/WalletBadge";
 import { CATEGORIES, categoryByKey } from "../lib/categories";
 import { formatRupiah, formatShortDate, formatSignedRupiah } from "../lib/format";
 import { walletBalance } from "../lib/balances";
-import { extractPdfLines } from "../lib/pdf/extract";
+import { extractPdfLines, PdfPasswordError } from "../lib/pdf/extract";
 import { parseStatement, PARSER_LABELS } from "../lib/pdf/parsers";
 import type { ParsedTransaction } from "../lib/pdf/parseCommon";
 import type { TransactionSource } from "../lib/types";
@@ -71,6 +71,8 @@ export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPd
 
   const [step, setStep] = useState<Step>(1);
   const [file, setFile] = useState<{ uri: string; name: string } | null>(null);
+  const [password, setPassword] = useState("");
+  const [needPassword, setNeedPassword] = useState(false);
   const [stage, setStage] = useState<ParseStage>("open");
   const [pageCount, setPageCount] = useState(0);
   const [rows, setRows] = useState<ReviewRow[]>([]);
@@ -89,6 +91,8 @@ export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPd
     });
     if (result.canceled || !result.assets?.[0]) return;
     setFile({ uri: result.assets[0].uri, name: result.assets[0].name });
+    setPassword("");
+    setNeedPassword(false);
     setError(null);
   };
 
@@ -98,7 +102,10 @@ export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPd
     setError(null);
     try {
       setStage("open");
-      const { lines, pageCount: pages } = await extractPdfLines(file.uri);
+      const { lines, pageCount: pages } = await extractPdfLines(
+        file.uri,
+        password.trim() || undefined
+      );
       setPageCount(pages);
       setStage("format");
       const parsed = parseStatement(wallet.template, lines);
@@ -127,10 +134,19 @@ export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPd
       setRows(review);
       setStage("done");
       setStep(3);
-    } catch {
-      setError(
-        "Gagal membaca PDF di perangkat ini. Coba lewat Saldio versi web, atau catat transaksi secara manual."
-      );
+    } catch (e) {
+      if (e instanceof PdfPasswordError) {
+        setNeedPassword(true);
+        setError(
+          e.wrongPassword
+            ? "Password salah — periksa lagi lalu coba ulang."
+            : "PDF ini terkunci. Masukkan password dari bank (biasanya tanggal lahir, mis. HHBBTTTT)."
+        );
+      } else {
+        setError(
+          "Gagal membaca PDF di perangkat ini. Coba lewat Saldio versi web, atau catat transaksi secara manual."
+        );
+      }
       setStep(1);
     }
   };
@@ -162,6 +178,8 @@ export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPd
   const reset = () => {
     setStep(1);
     setFile(null);
+    setPassword("");
+    setNeedPassword(false);
     setRows([]);
     setError(null);
     setStage("open");
@@ -233,6 +251,24 @@ export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPd
             <View className="mt-4 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg p-4">
               <Ionicons name="alert-circle" size={16} color="#E23B3B" />
               <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red">{error}</Text>
+            </View>
+          ) : null}
+
+          {needPassword ? (
+            <View className="mt-4 rounded-2xl bg-white px-4 py-3">
+              <View className="flex-row items-center gap-1.5">
+                <Ionicons name="lock-closed" size={12} color="#3D51E0" />
+                <Text className="font-sans text-xs text-saldio-blue">Password PDF</Text>
+              </View>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Masukkan password dari bank"
+                placeholderTextColor="#8A94A6"
+                secureTextEntry
+                autoCapitalize="none"
+                className="mt-1 font-mono-medium text-base text-saldio-ink"
+              />
             </View>
           ) : null}
 

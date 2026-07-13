@@ -23,11 +23,11 @@ Contoh: `bca-2026-06.pdf`, `bank_jago-2026-07.pdf`
 
 ## Status kalibrasi parser
 
-| Bank      | Status                                            |
-| --------- | ------------------------------------------------- |
-| BCA       | ⚠️ Belum — hanya teruji dengan PDF tiruan          |
-| Mandiri   | ⚠️ Belum — hanya teruji dengan PDF tiruan          |
-| Bank Jago | ⚠️ Belum — hanya teruji dengan PDF tiruan          |
+| Bank      | Status                                                            |
+| --------- | ----------------------------------------------------------------- |
+| BCA       | ⚠️ Sampel terkunci password yang belum diketahui — belum dikalibrasi |
+| Mandiri   | ✅ Terkalibrasi — total cocok persis dengan ringkasan resmi bank    |
+| Bank Jago | ✅ Terkalibrasi — seluruh baris sampel terbaca, teruji end-to-end   |
 
 Setelah file tersedia, kalibrasi dilakukan dengan mengekstrak teksnya
 (`src/lib/pdf/extract.ts`), mencocokkan pola baris transaksi terhadap regex

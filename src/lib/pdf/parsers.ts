@@ -50,77 +50,106 @@ export function parseBca(lines: string[]): ParsedTransaction[] {
 }
 
 /**
- * Mandiri: baris diawali "DD Mmm YYYY" atau DD/MM/YYYY,
- * nominal gaya 1.234.567,89 dengan akhiran "D"/"K" (debet/kredit),
- * atau bertanda +/-.
+ * Mandiri (e-Statement Livin'): satu transaksi terpecah ke beberapa baris.
+ * Jangkar yang andal adalah baris bernomor yang diakhiri nominal + saldo:
+ *   "6 ke jagocoffee.com/ -10.000,00 17.594.645,00"
+ * Tanggal diambil dari baris "DD Mmm YYYY" terdekat sebelumnya; potongan
+ * deskripsi bisa berada sebelum baris tanggal, menempel di baris tanggal,
+ * atau menempel di baris bernomor — semuanya digabungkan.
  */
 export function parseMandiri(lines: string[]): ParsedTransaction[] {
   const out: ParsedTransaction[] = [];
-  for (const line of lines) {
-    let day: number, month: number | null, year: number, rest: string;
-    let m = line.match(/^(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})\s+(.*)$/);
-    if (m) {
-      day = parseInt(m[1], 10);
-      month = monthFromToken(m[2]);
-      year = parseInt(m[3], 10);
-      rest = m[4];
-    } else {
-      m = line.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(.*)$/);
-      if (!m) continue;
-      day = parseInt(m[1], 10);
-      month = parseInt(m[2], 10);
-      year = parseInt(m[3], 10);
-      rest = m[4];
+  const skipRe =
+    /^(e-Statement|Menara Mandiri|Nama\/|Cabang\/|Tabungan |Saldo (Awal|Akhir)|Nomor Rekening|Mata Uang|Dana (Masuk|Keluar)|No Tanggal|No Date|PT Bank|Mandiri Call|serta merupakan|Periode\/|Dicetak)/i;
+  const timeRe = /^\d{1,2}:\d{2}(:\d{2})?\s*(WIB|WITA|WIT)?\b/i;
+  const dateRe = /^(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})(?:\s+(.+))?$/;
+  const rowRe = /^\d+\s+(.*?)\s*([+-]?[\d.]+,\d{2})\s+[\d.]+,\d{2}$/;
+  // Fragmen deskripsi yang layak: bukan referensi (deretan digit panjang)
+  const fragmentOk = (s: string) => !/\d{6,}/.test(s) && !/^[\d\s#/-]+$/.test(s) && s.length <= 80;
+
+  let currentDate: string | null = null;
+  /** Fragmen sebelum baris tanggal (maks. 1, yang terakhir) */
+  let preDate: string | null = null;
+  /** Fragmen di/antara baris tanggal dan baris bernomor */
+  let pending: string[] = [];
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || timeRe.test(line)) continue;
+    if (skipRe.test(line)) {
+      // Baris header/footer memutus konteks — fragmen sebelumnya (mis.
+      // potongan nama cabang) bukan milik transaksi berikutnya.
+      preDate = null;
+      continue;
     }
-    if (!month || day < 1 || day > 31) continue;
-    const amountMatch = rest.match(/([+-]?\s*(?:Rp)?[\d.,]{4,})\s*(D|K|DB|CR)?\s*$/i);
-    if (!amountMatch) continue;
-    const amount = parseAmount(amountMatch[1]);
-    if (!amount) continue;
-    const marker = (amountMatch[2] ?? "").toUpperCase();
-    const negative = /-/.test(amountMatch[1]);
-    const description = rest.slice(0, amountMatch.index).trim().replace(/\s{2,}/g, " ");
-    if (!description || /^SALDO/i.test(description)) continue;
-    const direction: "in" | "out" =
-      marker === "D" || marker === "DB" || negative ? "out" : "in";
-    out.push({
-      date: isoDate(year, month, day),
-      description,
-      amount,
-      direction,
-      category: guessCategory(description),
-    });
+
+    const dm = line.match(dateRe);
+    if (dm) {
+      const month = monthFromToken(dm[2]);
+      const day = parseInt(dm[1], 10);
+      if (month && day >= 1 && day <= 31) {
+        currentDate = isoDate(parseInt(dm[3], 10), month, day);
+        pending = [];
+        if (preDate) pending.push(preDate);
+        if (dm[4] && fragmentOk(dm[4])) pending.push(dm[4].trim());
+        preDate = null;
+        continue;
+      }
+    }
+
+    const rm = line.match(rowRe);
+    if (rm && currentDate) {
+      const inline = rm[1].trim();
+      const description =
+        [...pending, inline].filter(Boolean).join(" ").replace(/\s{2,}/g, " ").trim() ||
+        "Transaksi";
+      const amount = parseAmount(rm[2]);
+      if (amount) {
+        out.push({
+          date: currentDate,
+          description,
+          amount,
+          direction: rm[2].startsWith("-") ? "out" : "in",
+          category: guessCategory(description),
+        });
+      }
+      pending = [];
+      preDate = null;
+      continue;
+    }
+
+    if (fragmentOk(line)) preDate = line;
   }
   return out;
 }
 
 /**
- * Bank Jago: baris diawali "DD Mmm YYYY" (atau tanpa tahun),
- * nominal bertanda eksplisit "+Rp50.000" / "-Rp50.000".
- * Contoh: "05 Jul 2026 QR 014 KOPI TUKU -Rp24.000"
+ * Bank Jago (Pockets Transactions History): satu baris utama per transaksi:
+ *   "27 Jan 2026 USAHA DAGANG QRIS Payment -3.000 13.735,95"
+ * yaitu tanggal, deskripsi, nominal bertanda +/-, lalu kolom saldo.
+ * Baris lanjutan (jam, ID#, potongan nama) tidak diawali tanggal sehingga
+ * otomatis terlewati.
  */
 export function parseBankJago(lines: string[]): ParsedTransaction[] {
-  const fallbackYear = detectStatementYear(lines);
   const out: ParsedTransaction[] = [];
-  for (const line of lines) {
-    const m = line.match(/^(\d{1,2})\s+([A-Za-z]{3,})\s*(\d{4})?\s+(.*)$/);
+  const lineRe =
+    /^(\d{1,2})\s+([A-Za-z]{3,})\s+(\d{4})\s+(.+?)\s+([+-][\d.,]+)\s+([\d.,]+)$/;
+  for (const raw of lines) {
+    const m = raw.trim().match(lineRe);
     if (!m) continue;
     const day = parseInt(m[1], 10);
     const month = monthFromToken(m[2]);
-    const year = m[3] ? parseInt(m[3], 10) : fallbackYear;
+    const year = parseInt(m[3], 10);
     if (!month || day < 1 || day > 31) continue;
-    const rest = m[4];
-    const amountMatch = rest.match(/([+-])\s*(?:Rp)?\s*([\d.,]+)\s*$/i);
-    if (!amountMatch) continue;
-    const amount = parseAmount(amountMatch[2]);
+    const amount = parseAmount(m[5]);
     if (!amount) continue;
-    const description = rest.slice(0, amountMatch.index).trim().replace(/\s{2,}/g, " ");
-    if (!description || /^SALDO/i.test(description)) continue;
+    const description = m[4].replace(/\s{2,}/g, " ").trim();
+    if (!description) continue;
     out.push({
       date: isoDate(year, month, day),
       description,
       amount,
-      direction: amountMatch[1] === "+" ? "in" : "out",
+      direction: m[5].startsWith("+") ? "in" : "out",
       category: guessCategory(description),
     });
   }
