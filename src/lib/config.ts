@@ -10,7 +10,7 @@
  * membaca file lain milik user.
  */
 export const GOOGLE_OAUTH = {
-  webClientId: "REPLACE_WITH_WEB_CLIENT_ID.apps.googleusercontent.com",
+  webClientId: "16801367088-7dg7j81f87cpjjgmmr0aae8u5csg86gf.apps.googleusercontent.com",
   androidClientId: "REPLACE_WITH_ANDROID_CLIENT_ID.apps.googleusercontent.com",
   scopes: [
     "openid",
