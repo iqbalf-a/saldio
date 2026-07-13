@@ -15,38 +15,90 @@ import {
  */
 
 /**
- * BCA: baris diawali tanggal DD/MM (tahun dari header "PERIODE"),
- * nominal gaya 1,234,567.89, penanda "DB" = keluar, "CR" = masuk.
- * Contoh: "05/07 TRSF E-BANKING DB 0507/FTSCY/WS95051 56,500.00 DB"
+ * BCA (Laporan Mutasi Rekening): baris utama diawali DD/MM (tahun dari
+ * header "PERIODE : AGUSTUS 2025"), lalu keterangan, nominal 1,234,567.89,
+ * penanda "DB" (keluar; tanpa penanda = masuk), dan kolom saldo opsional:
+ *   "25/08 TRSF E-BANKING DB 2508/FTFVA/WS95031 53,200.00 DB 6,279,339.44"
+ * Nama lawan transaksi (mis. "80777/TOKOPEDIA") berada di baris lanjutan
+ * dan ditempelkan ke keterangan agar tebakan kategori lebih akurat.
  */
 export function parseBca(lines: string[]): ParsedTransaction[] {
-  const year = detectStatementYear(lines);
+  const year = detectBcaYear(lines);
   const out: ParsedTransaction[] = [];
-  for (const line of lines) {
-    const m = line.match(/^(\d{2})\/(\d{2})\s+(.*)$/);
-    if (!m) continue;
-    const day = parseInt(m[1], 10);
-    const month = parseInt(m[2], 10);
-    if (day < 1 || day > 31 || month < 1 || month > 12) continue;
-    const rest = m[3];
-    const amountMatch = rest.match(/([\d.,]+\.\d{2}|[\d.,]{4,})\s*(DB|CR)?\s*$/i);
-    if (!amountMatch) continue;
-    const amount = parseAmount(amountMatch[1]);
-    if (!amount) continue;
-    const marker = (amountMatch[2] ?? "").toUpperCase();
-    const description = rest.slice(0, amountMatch.index).trim().replace(/\s{2,}/g, " ");
-    if (!description || /^SALDO/i.test(description)) continue;
-    const direction: "in" | "out" =
-      marker === "DB" || /\bDB\b/.test(description) ? "out" : "in";
-    out.push({
-      date: isoDate(year, month, day),
-      description,
-      amount,
-      direction,
-      category: guessCategory(description),
-    });
+  /** Transaksi terakhir yang masih menunggu nama lawan dari baris lanjutan */
+  let open: ParsedTransaction | null = null;
+
+  const finalize = () => {
+    if (open) {
+      open.category = guessCategory(open.description);
+      out.push(open);
+      open = null;
+    }
+  };
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+
+    // Batas halaman/tabel: berhenti mengait nama untuk transaksi sebelumnya
+    if (/^(Bersambung|TANGGAL KETERANGAN|SALDO AWAL|MUTASI (CR|DB)|SALDO AKHIR)/i.test(line)) {
+      finalize();
+      continue;
+    }
+
+    const row = line.match(/^(\d{2})\/(\d{2})\s+(.+)$/);
+    if (row) {
+      const day = parseInt(row[1], 10);
+      const month = parseInt(row[2], 10);
+      const rest = row[3];
+      if (day < 1 || day > 31 || month < 1 || month > 12) continue;
+      finalize();
+      if (/^SALDO/i.test(rest)) continue;
+      // Ekor baris: nominal, lalu opsional "DB", lalu opsional kolom saldo
+      const tail = rest.match(/([\d,]+\.\d{2})(\s+DB)?(\s+[\d,]+\.\d{2})?\s*$/);
+      if (!tail) continue;
+      const amount = parseAmount(tail[1]);
+      if (amount === null || amount < 0) continue;
+      const description = rest.slice(0, tail.index).trim().replace(/\s{2,}/g, " ");
+      if (!description) continue;
+      const direction: "in" | "out" =
+        !!tail[2] || /\bDB\b/.test(description) ? "out" : "in";
+      open = {
+        date: isoDate(year, month, day),
+        description,
+        amount,
+        direction,
+        category: "Lainnya",
+      };
+      continue;
+    }
+
+    // Baris lanjutan: cari nama lawan transaksi (huruf besar, tanpa deretan digit)
+    if (open) {
+      const cleaned = line.replace(/^\d+\//, "").trim();
+      const tokens = cleaned.split(/\s+/);
+      const looksLikeName =
+        cleaned.length >= 4 &&
+        /^[A-Z][A-Z0-9 .,&'()/-]*$/.test(cleaned) &&
+        !/\d{4,}/.test(cleaned) &&
+        tokens.filter((t) => t.length === 1).length <= tokens.length / 2;
+      if (looksLikeName) {
+        open.description = `${open.description} ${cleaned}`;
+        finalize();
+      }
+    }
   }
+  finalize();
   return out;
+}
+
+/** Tahun laporan BCA dari header "PERIODE : AGUSTUS 2025". */
+function detectBcaYear(lines: string[]): number {
+  for (const line of lines) {
+    const m = line.match(/PERIODE\s*:?\s*[A-Z]+\s+(20\d{2})/i);
+    if (m) return parseInt(m[1], 10);
+  }
+  return detectStatementYear(lines);
 }
 
 /**
