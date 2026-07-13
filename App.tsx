@@ -1,6 +1,6 @@
 import "./global.css";
 import React from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -30,6 +30,10 @@ const theme = {
   },
 };
 
+if (Platform.OS === "web" && typeof document !== "undefined") {
+  document.title = "Saldio";
+}
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     Geist_400Regular,
@@ -48,7 +52,7 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <AppDataProvider>
-          <NavigationContainer theme={theme}>
+          <NavigationContainer theme={theme} documentTitle={{ enabled: false }}>
             <StatusBar style="dark" />
             <RootNavigator />
           </NavigationContainer>
