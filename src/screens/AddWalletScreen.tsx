@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen, ScreenHeader } from "../components/Screen";
@@ -6,7 +6,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { TEMPLATE_BADGES, WALLET_TEMPLATES } from "../lib/templates";
 import type { WalletTemplateKey } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
-import type { RootScreenProps } from "../navigation/types";
+import type { HomeScreenProps } from "../navigation/types";
 
 type Selection = WalletTemplateKey | "gold";
 
@@ -20,7 +20,7 @@ function withDots(digits: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-export function AddWalletScreen({ navigation }: RootScreenProps<"AddWallet">) {
+export function AddWalletScreen({ navigation }: HomeScreenProps<"AddWallet">) {
   const { addWallet } = useAppData();
   const [selected, setSelected] = useState<Selection>("bank_jago");
   const [name, setName] = useState("");
@@ -80,7 +80,7 @@ export function AddWalletScreen({ navigation }: RootScreenProps<"AddWallet">) {
                   {key === "custom" ? (
                     <Ionicons name="pencil" size={18} color={badge.color} />
                   ) : (
-                    <Text className="font-sans-bold text-[15px]" style={{ color: badge.color }}>
+                    <Text className="font-sans-bold text-base" style={{ color: badge.color }}>
                       {badge.initials}
                     </Text>
                   )}
@@ -91,7 +91,7 @@ export function AddWalletScreen({ navigation }: RootScreenProps<"AddWallet">) {
                   </View>
                 ) : null}
               </View>
-              <Text className="mt-3 font-sans-semibold text-[15px] text-saldio-ink">
+              <Text className="mt-3 font-sans-semibold text-base text-saldio-ink">
                 {key === "custom" ? "Kustom" : t.label}
               </Text>
               <View className="mt-2 self-start">
@@ -126,7 +126,7 @@ export function AddWalletScreen({ navigation }: RootScreenProps<"AddWallet">) {
           <Ionicons name="server" size={18} color="#B08415" />
         </View>
         <View className="flex-1">
-          <Text className="font-sans-semibold text-[15px] text-saldio-gold-ink">Emas</Text>
+          <Text className="font-sans-semibold text-base text-saldio-gold-ink">Emas</Text>
           <Text className="mt-0.5 font-sans text-xs text-saldio-gold-ink/80">
             Dicatat dalam gram, nilai mengikuti harga per gram
           </Text>

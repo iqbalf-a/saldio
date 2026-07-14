@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, type CompositeNavigationProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Screen } from "../components/Screen";
 import { WalletBadge } from "../components/WalletBadge";
 import { EmptyState } from "../components/EmptyState";
@@ -20,9 +21,13 @@ import { WALLET_TEMPLATES, walletSupportsPdfImport } from "../lib/templates";
 import type { Wallet } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
 import { useAuth } from "../state/AuthContext";
-import type { RootStackParamList } from "../navigation/types";
+import { CARD_SHADOW, HERO_SHADOW } from "../lib/ui";
+import type { HomeStackParamList, MainTabsParamList } from "../navigation/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = CompositeNavigationProp<
+  NativeStackNavigationProp<HomeStackParamList>,
+  BottomTabNavigationProp<MainTabsParamList>
+>;
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -54,10 +59,10 @@ export function HomeScreen() {
     <View className="flex-1">
       <Screen>
         {/* Sapaan */}
-        <View className="mb-5 flex-row items-center justify-between">
+        <View className="mb-6 flex-row items-center justify-between">
           <View>
             <Text className="font-sans text-sm text-saldio-soft">{greeting()}</Text>
-            <Text className="mt-0.5 font-sans-bold text-2xl text-saldio-ink">
+            <Text className="mt-0.5 font-sans-bold text-xl text-saldio-ink">
               {profile?.name ?? "Pengguna"}
             </Text>
           </View>
@@ -65,7 +70,7 @@ export function HomeScreen() {
             onPress={() => navigation.navigate("Main", { screen: "Profil" })}
             className="h-11 w-11 items-center justify-center rounded-full bg-saldio-blue active:opacity-80"
           >
-            <Ionicons name="person" size={20} color="white" />
+            <Ionicons name="person" size={20} color="#3D51E0" />
           </Pressable>
         </View>
 
@@ -74,7 +79,7 @@ export function HomeScreen() {
           colors={["#1E2A78", "#3D51E0"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1.2, y: 1.2 }}
-          style={{ borderRadius: 24, padding: 20 }}
+          style={{ borderRadius: 24, padding: 20, ...HERO_SHADOW }}
         >
           <View className="flex-row items-center justify-between">
             <Text className="font-sans text-sm text-white/75">Total Saldo</Text>
@@ -82,17 +87,17 @@ export function HomeScreen() {
               <Ionicons name={hidden ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.8)" />
             </Pressable>
           </View>
-          <Text className="mt-2 font-mono-bold text-[32px] text-white">{mask(formatRupiah(total))}</Text>
+          <Text className="mt-2 font-mono-bold text-3xl text-white">{mask(formatRupiah(total))}</Text>
           <View className="mt-4 flex-row gap-3">
-            <View className="flex-1 rounded-2xl bg-white/10 px-4 py-3">
-              <Text className="font-sans text-xs text-white/70">Aset Likuid</Text>
-              <Text className="mt-1 font-mono-semibold text-[15px] text-white">
+            <View className="flex-1 rounded-2xl bg-white/15 px-4 py-3.5">
+              <Text className="font-sans text-xs text-white/75">Aset Likuid</Text>
+              <Text className="mt-1 font-mono-semibold text-sm text-white">
                 {mask(formatRupiah(liquid))}
               </Text>
             </View>
-            <View className="flex-1 rounded-2xl bg-white/10 px-4 py-3">
-              <Text className="font-sans text-xs text-white/70">🪙 Emas</Text>
-              <Text className="mt-1 font-mono-semibold text-[15px] text-white">
+            <View className="flex-1 rounded-2xl bg-white/15 px-4 py-3.5">
+              <Text className="font-sans text-xs text-white/75">🪙 Emas</Text>
+              <Text className="mt-1 font-mono-semibold text-sm text-white">
                 {mask(formatRupiah(gold))}
               </Text>
             </View>
@@ -100,7 +105,7 @@ export function HomeScreen() {
         </LinearGradient>
 
         {/* Daftar dompet */}
-        <View className="mb-3 mt-6 flex-row items-end justify-between">
+        <View className="mb-3.5 mt-7 flex-row items-end justify-between">
           <Text className="font-sans-bold text-lg text-saldio-ink">Dompet</Text>
           <Text className="font-sans text-sm text-saldio-muted">
             {data.wallets.length} dompet
@@ -118,20 +123,21 @@ export function HomeScreen() {
             onAction={() => navigation.navigate("AddWallet")}
           />
         ) : (
-          <View className="gap-3">
+          <View className="gap-3.5">
             {data.wallets.map((w) => {
               const isGold = w.type === "gold";
               return (
                 <Pressable
                   key={w.id}
                   onPress={() => navigation.navigate("WalletDetail", { walletId: w.id })}
-                  className={`flex-row items-center gap-3 rounded-2xl p-4 active:opacity-80 ${
+                  style={CARD_SHADOW}
+                  className={`flex-row items-center gap-3 rounded-[20px] p-4 active:opacity-80 ${
                     isGold ? "bg-saldio-gold-bg" : "bg-white"
                   }`}
                 >
-                  <WalletBadge name={w.name} template={w.template} type={w.type} />
+                  <WalletBadge name={w.name} template={w.template} type={w.type} size={40} />
                   <View className="flex-1">
-                    <Text className="font-sans-semibold text-[15px] text-saldio-ink">{w.name}</Text>
+                    <Text className="font-sans-semibold text-sm text-saldio-ink">{w.name}</Text>
                     <Text className="mt-0.5 font-sans text-xs text-saldio-muted">
                       {isGold
                         ? price
@@ -141,7 +147,7 @@ export function HomeScreen() {
                     </Text>
                   </View>
                   <View className="items-end">
-                    <Text className="font-mono-semibold text-[15px] text-saldio-ink">
+                    <Text className="font-mono-semibold text-sm text-saldio-ink">
                       {mask(formatRupiah(walletBalance(data, w)))}
                     </Text>
                     {isGold ? (
@@ -160,9 +166,9 @@ export function HomeScreen() {
       {/* FAB tambah dompet */}
       <Pressable
         onPress={() => navigation.navigate("AddWallet")}
-        className="absolute bottom-6 right-5 h-14 w-14 items-center justify-center rounded-full bg-saldio-blue shadow-lg active:opacity-85"
+        className="absolute bottom-6 right-5 h-[52px] w-[52px] items-center justify-center rounded-full bg-saldio-blue shadow-lg active:opacity-85"
       >
-        <Ionicons name="add" size={28} color="white" />
+        <Ionicons name="add" size={26} color="white" />
       </Pressable>
     </View>
   );

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen, ScreenHeader } from "../components/Screen";
+import { ActionMenu } from "../components/ActionMenu";
 import { WalletBadge } from "../components/WalletBadge";
 import { MonthPicker } from "../components/MonthPicker";
 import { TransactionRow } from "../components/TransactionRow";
@@ -12,8 +13,9 @@ import { groupByDay, walletBalance, walletInOut } from "../lib/balances";
 import { availableMonths, walletFeed } from "../lib/walletFeed";
 import { walletSupportsPdfImport } from "../lib/templates";
 import { confirmDestructive } from "../lib/confirm";
+import { HERO_SHADOW } from "../lib/ui";
 import { useAppData } from "../state/AppDataContext";
-import type { RootScreenProps } from "../navigation/types";
+import type { HomeScreenProps } from "../navigation/types";
 import { GoldWalletView } from "./GoldWalletView";
 
 function ActionButton({
@@ -34,23 +36,24 @@ function ActionButton({
       onPress={onPress}
       disabled={disabled}
       className={`items-center ${disabled ? "opacity-40" : "active:opacity-75"}`}
-      style={{ width: 84 }}
+      style={{ width: 76 }}
     >
       <View
-        className={`h-14 w-14 items-center justify-center rounded-full ${
+        className={`h-12 w-12 items-center justify-center rounded-full ${
           primary ? "bg-saldio-blue" : "bg-white"
         }`}
       >
-        <Ionicons name={icon as never} size={22} color={primary ? "white" : "#3D51E0"} />
+        <Ionicons name={icon as never} size={20} color={primary ? "white" : "#3D51E0"} />
       </View>
-      <Text className="mt-2 font-sans-medium text-xs text-saldio-soft">{label}</Text>
+      <Text className="mt-1.5 font-sans-medium text-xs text-saldio-soft">{label}</Text>
     </Pressable>
   );
 }
 
-export function WalletDetailScreen({ route, navigation }: RootScreenProps<"WalletDetail">) {
+export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"WalletDetail">) {
   const { data, deleteWallet } = useAppData();
   const wallet = data.wallets.find((w) => w.id === route.params.walletId);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const feed = useMemo(
     () => (wallet ? walletFeed(data, wallet.id) : []),
@@ -93,10 +96,16 @@ export function WalletDetailScreen({ route, navigation }: RootScreenProps<"Walle
         leading={<WalletBadge name={wallet.name} template={wallet.template} type={wallet.type} size={36} />}
         title={wallet.name}
         right={
-          <Pressable onPress={onDelete} hitSlop={8} className="active:opacity-70">
+          <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} className="active:opacity-70">
             <Ionicons name="ellipsis-horizontal" size={20} color="#8A94A6" />
           </Pressable>
         }
+      />
+
+      <ActionMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        items={[{ label: "Hapus Dompet", icon: "trash", destructive: true, onPress: onDelete }]}
       />
 
       {/* Kartu saldo */}
@@ -104,10 +113,10 @@ export function WalletDetailScreen({ route, navigation }: RootScreenProps<"Walle
         colors={["#1E2A78", "#3D51E0"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1.2, y: 1.2 }}
-        style={{ borderRadius: 24, padding: 20 }}
+        style={{ borderRadius: 24, padding: 20, ...HERO_SHADOW }}
       >
         <Text className="font-sans text-sm text-white/75">Saldo saat ini</Text>
-        <Text className="mt-2 font-mono-bold text-[32px] text-white">{formatRupiah(balance)}</Text>
+        <Text className="mt-2 font-mono-bold text-3xl text-white">{formatRupiah(balance)}</Text>
         {hasAny ? (
           <View className="mt-3 flex-row gap-4">
             <View className="flex-row items-center gap-1">

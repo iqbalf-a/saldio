@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { CARD_SHADOW } from "../lib/ui";
 
 interface ScreenProps {
   children: React.ReactNode;
@@ -50,13 +51,14 @@ export function ScreenHeader({ title, leading, right, onBack }: HeaderProps) {
     <View className="mb-4 flex-row items-center gap-3">
       <Pressable
         onPress={onBack ?? (() => navigation.goBack())}
-        className="h-11 w-11 items-center justify-center rounded-full bg-white active:opacity-70"
+        style={CARD_SHADOW}
+        className="h-11 w-11 items-center justify-center rounded-2xl bg-white active:opacity-70"
       >
         <Ionicons name="chevron-back" size={20} color="#101736" />
       </Pressable>
       {leading}
       {title ? (
-        <Text className="flex-1 font-sans-bold text-xl text-saldio-ink" numberOfLines={1}>
+        <Text className="flex-1 font-sans-bold text-lg text-saldio-ink" numberOfLines={1}>
           {title}
         </Text>
       ) : (

@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Screen, ScreenHeader } from "../components/Screen";
+import { ActionMenu } from "../components/ActionMenu";
 import { WalletBadge } from "../components/WalletBadge";
 import { EmptyState } from "../components/EmptyState";
 import { TrendLine } from "../components/charts/TrendLine";
@@ -20,15 +21,16 @@ import { goldGrams, goldValue, latestGoldPrice } from "../lib/balances";
 import { confirmDestructive } from "../lib/confirm";
 import type { Wallet } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
-import type { RootStackParamList } from "../navigation/types";
+import type { HomeStackParamList } from "../navigation/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<HomeStackParamList>;
 type TxFilter = "Semua" | "Beli" | "Jual";
 
 export function GoldWalletView({ wallet }: { wallet: Wallet }) {
   const navigation = useNavigation<Nav>();
   const { data, deleteWallet } = useAppData();
   const [filter, setFilter] = useState<TxFilter>("Semua");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const grams = goldGrams(data, wallet);
   const value = goldValue(data, wallet);
@@ -85,10 +87,16 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
         leading={<WalletBadge name={wallet.name} template={wallet.template} type="gold" size={36} />}
         title={wallet.name}
         right={
-          <Pressable onPress={onDelete} hitSlop={8} className="active:opacity-70">
+          <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} className="active:opacity-70">
             <Ionicons name="ellipsis-horizontal" size={20} color="#8A94A6" />
           </Pressable>
         }
+      />
+
+      <ActionMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        items={[{ label: "Hapus Dompet", icon: "trash", destructive: true, onPress: onDelete }]}
       />
 
       {/* Kartu emas */}
@@ -96,19 +104,19 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
         colors={["#C9A227", "#8A6A10"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.6, y: 1.4 }}
-        style={{ borderRadius: 24, padding: 20 }}
+        style={{ borderRadius: 24, padding: 20, boxShadow: "0px 12px 28px rgba(138, 106, 16, 0.3)" }}
       >
         <View className="flex-row items-start justify-between">
           <View>
             <Text className="font-sans text-sm text-white/80">Total emas</Text>
             <View className="mt-1 flex-row items-baseline gap-1.5">
-              <Text className="font-mono-bold text-[34px] text-white">{formatGrams(grams, false)}</Text>
-              <Text className="font-sans-semibold text-lg text-white/80">g</Text>
+              <Text className="font-mono-bold text-3xl text-white">{formatGrams(grams, false)}</Text>
+              <Text className="font-sans-semibold text-base text-white/80">g</Text>
             </View>
           </View>
           <View className="items-end">
             <Text className="font-sans text-sm text-white/80">Nilai saat ini</Text>
-            <Text className="mt-1 font-mono-bold text-lg text-white">
+            <Text className="mt-1 font-mono-bold text-base text-white">
               {price ? formatRupiah(value) : "—"}
             </Text>
           </View>
@@ -266,7 +274,7 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
                     <Ionicons name={isBuy ? "cart" : "hand-left"} size={18} color={isBuy ? "#B08415" : "#E23B3B"} />
                   </View>
                   <View className="flex-1">
-                    <Text className="font-sans-semibold text-[15px] text-saldio-ink" numberOfLines={1}>
+                    <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
                       {t.note || (isBuy ? "Beli emas" : "Jual emas")}
                     </Text>
                     <View className="mt-1 flex-row items-center gap-1.5">

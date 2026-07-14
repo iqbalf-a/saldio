@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Screen } from "../components/Screen";
 import { WalletBadge } from "../components/WalletBadge";
 import { DonutChart } from "../components/charts/DonutChart";
@@ -19,9 +19,10 @@ import {
   walletBalance,
 } from "../lib/balances";
 import { useAppData } from "../state/AppDataContext";
-import type { RootStackParamList } from "../navigation/types";
+import { HERO_SHADOW } from "../lib/ui";
+import type { MainTabsParamList } from "../navigation/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = BottomTabNavigationProp<MainTabsParamList>;
 
 const DONUT_COLORS = ["#3D51E0", "#C9A227", "#8B5CF6", "#E8740C", "#94A3B8", "#16A34A", "#E23B3B", "#0EA5E9"];
 
@@ -51,7 +52,7 @@ export function AssetsScreen() {
 
   return (
     <Screen>
-      <Text className="mb-4 font-sans-bold text-2xl text-saldio-ink">Semua Aset</Text>
+      <Text className="mb-4 font-sans-bold text-xl text-saldio-ink">Semua Aset</Text>
 
       {data.wallets.length === 0 ? (
         <EmptyState
@@ -61,7 +62,7 @@ export function AssetsScreen() {
           title="Belum ada aset"
           description="Tambahkan dompet untuk melihat komposisi dan tren kekayaanmu."
           actionLabel="Tambah Dompet"
-          onAction={() => navigation.navigate("AddWallet")}
+          onAction={() => navigation.navigate("Main", { screen: "Beranda" })}
         />
       ) : (
         <>
@@ -70,15 +71,15 @@ export function AssetsScreen() {
             colors={["#1E2A78", "#3D51E0"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1.2, y: 1.2 }}
-            style={{ borderRadius: 24, padding: 20 }}
+            style={{ borderRadius: 24, padding: 20, ...HERO_SHADOW }}
           >
             <Text className="font-sans text-sm text-white/75">Total Aset + Emas</Text>
-            <Text className="mt-2 font-mono-bold text-[30px] text-white">{formatRupiah(total)}</Text>
+            <Text className="mt-2 font-mono-bold text-3xl text-white">{formatRupiah(total)}</Text>
             <View className="my-4 h-px bg-white/20" />
             <View className="flex-row justify-between">
               <View>
                 <Text className="font-sans text-xs text-white/70">Aset Likuid</Text>
-                <Text className="mt-1 font-mono-semibold text-[15px] text-white">
+                <Text className="mt-1 font-mono-semibold text-sm text-white">
                   {formatRupiah(liquid)}
                 </Text>
               </View>
@@ -86,7 +87,7 @@ export function AssetsScreen() {
                 <Text className="font-sans text-xs text-white/70">
                   🪙 Emas ({formatGrams(grams, false)} g)
                 </Text>
-                <Text className="mt-1 font-mono-semibold text-[15px] text-white">
+                <Text className="mt-1 font-mono-semibold text-sm text-white">
                   {formatRupiah(gold)}
                 </Text>
               </View>
@@ -140,7 +141,9 @@ export function AssetsScreen() {
             {composition.map((c) => (
               <Pressable
                 key={c.wallet.id}
-                onPress={() => navigation.navigate("WalletDetail", { walletId: c.wallet.id })}
+                onPress={() =>
+                  navigation.navigate("Main", { screen: "Beranda" })
+                }
                 className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
               >
                 <WalletBadge
@@ -149,7 +152,7 @@ export function AssetsScreen() {
                   type={c.wallet.type}
                   size={40}
                 />
-                <Text className="flex-1 font-sans-semibold text-[15px] text-saldio-ink">
+                <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">
                   {c.wallet.name}
                 </Text>
                 <Text className="font-mono-semibold text-sm text-saldio-ink">

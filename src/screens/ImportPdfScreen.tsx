@@ -13,7 +13,7 @@ import { parseStatement, PARSER_LABELS } from "../lib/pdf/parsers";
 import type { ParsedTransaction } from "../lib/pdf/parseCommon";
 import type { TransactionSource } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
-import type { RootScreenProps } from "../navigation/types";
+import type { HomeScreenProps } from "../navigation/types";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -67,7 +67,7 @@ function StageRow({ label, state }: { label: string; state: "done" | "active" | 
   );
 }
 
-export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPdf">) {
+export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPdf">) {
   const { data, addTransactions } = useAppData();
   const wallet = data.wallets.find((w) => w.id === route.params.walletId);
 
@@ -211,7 +211,7 @@ export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPd
           <View className="flex-row items-center gap-3 rounded-2xl bg-white p-4">
             <WalletBadge name={wallet.name} template={wallet.template} type={wallet.type} size={40} />
             <View className="flex-1">
-              <Text className="font-sans-semibold text-[15px] text-saldio-ink">{wallet.name}</Text>
+              <Text className="font-sans-semibold text-base text-saldio-ink">{wallet.name}</Text>
               <Text className="mt-0.5 font-sans text-xs text-saldio-muted">
                 Parser mutasi {parserLabel} akan digunakan
               </Text>
@@ -341,13 +341,13 @@ export function ImportPdfScreen({ route, navigation }: RootScreenProps<"ImportPd
                       {r.selected ? <Ionicons name="checkmark" size={14} color="white" /> : null}
                     </View>
                     <Text
-                      className="flex-1 font-sans-semibold text-[13px] text-saldio-ink"
+                      className="flex-1 font-sans-semibold text-sm text-saldio-ink"
                       numberOfLines={1}
                     >
                       {r.description}
                     </Text>
                     <Text
-                      className={`font-mono-semibold text-[13px] ${
+                      className={`font-mono-semibold text-sm ${
                         r.direction === "in" ? "text-saldio-green" : "text-saldio-red"
                       }`}
                     >

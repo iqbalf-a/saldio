@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Text, View } from "react-native";
 import { formatSignedGrams, formatSignedRupiah } from "../lib/format";
 import type { Transaction } from "../lib/types";
@@ -44,9 +44,9 @@ export function TransactionRow({ tx, walletTag, walletTagColor }: Props) {
 
   return (
     <View className="flex-row items-center gap-3 py-3">
-      <CategoryIcon category={category} />
+      <CategoryIcon category={category} size={40} />
       <View className="flex-1">
-        <Text className="font-sans-semibold text-[15px] text-saldio-ink" numberOfLines={1}>
+        <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
           {tx.note || category || "Transaksi"}
         </Text>
         <View className="mt-1 flex-row items-center gap-1.5">
@@ -61,7 +61,7 @@ export function TransactionRow({ tx, walletTag, walletTagColor }: Props) {
           <SourceChip source={tx.source} />
         </View>
       </View>
-      <Text className={`font-mono-semibold text-sm ${amountColor}`}>{amountText}</Text>
+      <Text className={`font-mono-semibold text-[12px] ${amountColor}`}>{amountText}</Text>
     </View>
   );
 }

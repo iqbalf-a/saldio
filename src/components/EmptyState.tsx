@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -35,7 +35,7 @@ export function EmptyState({
       >
         <Ionicons name={icon as never} size={36} color={iconColor} />
       </View>
-      <Text className="mt-6 font-sans-bold text-lg text-saldio-ink">{title}</Text>
+      <Text className="mt-6 font-sans-bold text-base text-saldio-ink">{title}</Text>
       <Text className="mt-2 text-center font-sans text-sm leading-5 text-saldio-muted">
         {description}
       </Text>

@@ -5,17 +5,24 @@ const MONTHS_LONG = [
 ];
 const WEEKDAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
-/** Format Rupiah gaya Indonesia: Rp8.450.000 (pemisah ribuan titik). */
+/**
+ * Format Rupiah gaya Indonesia: Rp8.450.000 (pemisah ribuan titik).
+ * Sen ditampilkan hanya bila ada, dengan koma desimal: Rp1.978.190,60.
+ */
 export function formatRupiah(amount: number): string {
   const sign = amount < 0 ? "-" : "";
-  const abs = Math.round(Math.abs(amount));
-  return `${sign}Rp${withThousands(abs)}`;
+  // Bersihkan debu floating-point lalu pisahkan rupiah & sen
+  const cents = Math.round(Math.abs(amount) * 100);
+  const whole = Math.floor(cents / 100);
+  const fraction = cents % 100;
+  const suffix = fraction > 0 ? `,${String(fraction).padStart(2, "0")}` : "";
+  return `${sign}Rp${withThousands(whole)}${suffix}`;
 }
 
-/** Format dengan tanda eksplisit: +Rp5.000.000 / -Rp45.000 */
+/** Format dengan tanda eksplisit: +Rp5.000.000 / -Rp45.000 / +Rp0,98 */
 export function formatSignedRupiah(amount: number): string {
   const prefix = amount >= 0 ? "+" : "-";
-  return `${prefix}Rp${withThousands(Math.round(Math.abs(amount)))}`;
+  return `${prefix}${formatRupiah(Math.abs(amount))}`;
 }
 
 function withThousands(n: number): string {

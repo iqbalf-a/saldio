@@ -7,6 +7,16 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      // Skala tipografi kompak — layar HP terasa lega, sesuai arah desain
+      fontSize: {
+        xs: ["11px", { lineHeight: "15px" }],
+        sm: ["13px", { lineHeight: "18px" }],
+        base: ["14px", { lineHeight: "20px" }],
+        lg: ["16px", { lineHeight: "22px" }],
+        xl: ["18px", { lineHeight: "24px" }],
+        "2xl": ["20px", { lineHeight: "26px" }],
+        "3xl": ["24px", { lineHeight: "30px" }],
+      },
       colors: {
         saldio: {
           navy: "#1E2A78",
