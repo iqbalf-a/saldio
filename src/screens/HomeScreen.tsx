@@ -67,7 +67,7 @@ export function HomeScreen() {
             </Text>
           </View>
           <Pressable
-            onPress={() => navigation.navigate("Main", { screen: "Profil" })}
+            onPress={() => navigation.navigate("Profil")}
             className="h-11 w-11 items-center justify-center rounded-full bg-saldio-blue active:opacity-80"
           >
             <Ionicons name="person" size={20} color="#3D51E0" />
