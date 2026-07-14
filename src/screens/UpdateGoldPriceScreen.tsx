@@ -3,10 +3,11 @@ import { Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen, ScreenHeader } from "../components/Screen";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { DatePickerField } from "../components/DatePickerField";
 import { formatRupiah, toISODate } from "../lib/format";
 import { latestGoldPrice } from "../lib/balances";
 import { useAppData } from "../state/AppDataContext";
-import type { RootScreenProps } from "../navigation/types";
+import type { HomeScreenProps } from "../navigation/types";
 
 function digitsOnly(s: string): string {
   return s.replace(/\D/g, "");
@@ -15,7 +16,7 @@ function withDots(digits: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-export function UpdateGoldPriceScreen({ navigation }: RootScreenProps<"UpdateGoldPrice">) {
+export function UpdateGoldPriceScreen({ navigation }: HomeScreenProps<"UpdateGoldPrice">) {
   const { data, addGoldPrice } = useAppData();
   const current = latestGoldPrice(data);
   const [priceDigits, setPriceDigits] = useState("");
@@ -53,16 +54,8 @@ export function UpdateGoldPriceScreen({ navigation }: RootScreenProps<"UpdateGol
         </View>
       </View>
 
-      <Text className="mb-2 mt-5 font-sans-semibold text-sm text-saldio-soft">Tanggal (TTTT-BB-HH)</Text>
-      <View className="rounded-2xl bg-white px-4 py-3">
-        <TextInput
-          value={date}
-          onChangeText={setDate}
-          placeholder="2026-07-12"
-          placeholderTextColor="#8A94A6"
-          className="font-mono-medium text-base text-saldio-ink"
-        />
-      </View>
+      <Text className="mb-2 mt-5 font-sans-semibold text-sm text-saldio-soft">Tanggal</Text>
+      <DatePickerField value={date} onChange={setDate} accent="gold" />
 
       <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-white p-4">
         <Ionicons name="information-circle" size={16} color="#B08415" />

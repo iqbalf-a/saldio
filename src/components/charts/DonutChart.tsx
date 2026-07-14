@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, View } from "react-native";
-import Svg, { Circle, G } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 
 export interface DonutSlice {
   label: string;
@@ -49,22 +49,20 @@ export function DonutChart({ slices, size = 140, strokeWidth = 22, centerTop, ce
 
   return (
     <View style={{ width: size, height: size }} className="items-center justify-center">
-      <Svg width={size} height={size}>
-        {/* Mulai dari jam 12 */}
-        <G rotation={-90} originX={center} originY={center}>
-          {total === 0 ? (
-            <Circle
-              cx={center}
-              cy={center}
-              r={radius}
-              stroke="#E6EAF2"
-              strokeWidth={strokeWidth}
-              fill="none"
-            />
-          ) : (
-            rendered
-          )}
-        </G>
+      {/* Diputar -90° agar irisan pertama mulai dari jam 12 */}
+      <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
+        {total === 0 ? (
+          <Circle
+            cx={center}
+            cy={center}
+            r={radius}
+            stroke="#E6EAF2"
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+        ) : (
+          rendered
+        )}
       </Svg>
       <View className="absolute items-center">
         {centerTop ? <Text className="font-sans-bold text-xl text-saldio-ink">{centerTop}</Text> : null}

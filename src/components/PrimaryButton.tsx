@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { ActivityIndicator, Pressable, Text } from "react-native";
 
 interface Props {
@@ -16,7 +16,7 @@ export function PrimaryButton({ label, onPress, disabled, loading, variant = "pr
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      className={`h-14 items-center justify-center rounded-full ${bg} active:opacity-80`}
+      className={`h-[52px] items-center justify-center rounded-full ${bg} active:opacity-80`}
     >
       {loading ? (
         <ActivityIndicator color="white" />

@@ -64,7 +64,7 @@ export function OnboardingScreen() {
             <Ionicons name="wallet" size={28} color="white" />
           </View>
           <Text className="mt-5 font-sans-bold text-3xl text-white">Saldio</Text>
-          <Text className="mt-2 font-sans text-[15px] leading-6 text-white/80">
+          <Text className="mt-2 font-sans text-base leading-6 text-white/80">
             Catat semua dompet, rekening bank, dan emasmu di satu tempat. Data tersimpan di Google
             Drive milikmu — Saldio tidak punya server sendiri.
           </Text>

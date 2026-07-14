@@ -1,9 +1,12 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-export type RootStackParamList = {
-  Onboarding: undefined;
-  Main: NavigatorScreenParams<MainTabsParamList> | undefined;
+/**
+ * Layar detail & form bersarang di dalam tab Beranda agar bottom tab bar
+ * tetap terlihat di semua layar.
+ */
+export type HomeStackParamList = {
+  Home: undefined;
   AddWallet: undefined;
   WalletDetail: { walletId: string };
   AddTransaction: { walletId?: string };
@@ -13,11 +16,16 @@ export type RootStackParamList = {
 };
 
 export type MainTabsParamList = {
-  Beranda: undefined;
+  Beranda: NavigatorScreenParams<HomeStackParamList> | undefined;
   Riwayat: undefined;
   Aset: undefined;
   Profil: undefined;
 };
 
-export type RootScreenProps<T extends keyof RootStackParamList> =
-  NativeStackScreenProps<RootStackParamList, T>;
+export type RootStackParamList = {
+  Onboarding: undefined;
+  Main: NavigatorScreenParams<MainTabsParamList> | undefined;
+};
+
+export type HomeScreenProps<T extends keyof HomeStackParamList> =
+  NativeStackScreenProps<HomeStackParamList, T>;

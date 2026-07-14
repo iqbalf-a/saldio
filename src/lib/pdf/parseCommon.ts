@@ -18,6 +18,8 @@ export function monthFromToken(token: string): number | null {
 /**
  * Parse nominal dari berbagai gaya penulisan mutasi bank:
  * "1.234.567,89" (ID), "1,234,567.89" (EN), "1.234.567", "Rp1.234.567".
+ * Sen dipertahankan apa adanya (tanpa pembulatan) agar saldo cocok persis
+ * dengan catatan bank.
  */
 export function parseAmount(raw: string): number | null {
   let s = raw.replace(/rp/i, "").replace(/\s/g, "").replace(/[+-]/g, "");
@@ -35,7 +37,7 @@ export function parseAmount(raw: string): number | null {
   }
   const intVal = parseInt(integerPart.replace(/[.,]/g, ""), 10);
   if (Number.isNaN(intVal)) return null;
-  return intVal + (cents >= 50 ? 1 : 0);
+  return Math.round(intVal * 100 + cents) / 100;
 }
 
 export function isoDate(year: number, month: number, day: number): string {

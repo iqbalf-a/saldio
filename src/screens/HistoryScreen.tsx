@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Screen } from "../components/Screen";
 import { MonthPicker } from "../components/MonthPicker";
 import { TransactionRow } from "../components/TransactionRow";
@@ -11,16 +9,12 @@ import { badgeForWallet } from "../lib/templates";
 import { availableMonths, walletFeed } from "../lib/walletFeed";
 import type { Transaction, Transfer } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
-import type { RootStackParamList } from "../navigation/types";
-
-type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 type FeedItem =
   | { kind: "tx"; date: string; key: string; tx: Transaction }
   | { kind: "transfer"; date: string; key: string; tr: Transfer };
 
 export function HistoryScreen() {
-  const navigation = useNavigation<Nav>();
   const { data } = useAppData();
   const [walletFilter, setWalletFilter] = useState<string>("all");
 
@@ -93,7 +87,7 @@ export function HistoryScreen() {
     <Screen padded={false}>
       <View className="px-5">
         <View className="mb-4 flex-row items-center justify-between">
-          <Text className="font-sans-bold text-2xl text-saldio-ink">Riwayat Transaksi</Text>
+          <Text className="font-sans-bold text-xl text-saldio-ink">Riwayat Transaksi</Text>
           <MonthPicker value={activeMonth} options={months} onChange={setMonth} />
         </View>
       </View>
@@ -129,7 +123,7 @@ export function HistoryScreen() {
               <Ionicons name="arrow-down" size={13} color="#16A34A" />
               <Text className="font-sans text-xs text-saldio-soft">Masuk</Text>
             </View>
-            <Text className="mt-1 font-mono-semibold text-base text-saldio-green">
+            <Text className="mt-1 font-mono-semibold text-sm text-saldio-green">
               {formatRupiah(inflow)}
             </Text>
           </View>
@@ -138,7 +132,7 @@ export function HistoryScreen() {
               <Ionicons name="arrow-up" size={13} color="#E23B3B" />
               <Text className="font-sans text-xs text-saldio-soft">Keluar</Text>
             </View>
-            <Text className="mt-1 font-mono-semibold text-base text-saldio-red">
+            <Text className="mt-1 font-mono-semibold text-sm text-saldio-red">
               {formatRupiah(outflow)}
             </Text>
           </View>
@@ -175,7 +169,7 @@ export function HistoryScreen() {
                           <Ionicons name="swap-horizontal" size={18} color="#3D51E0" />
                         </View>
                         <View className="flex-1">
-                          <Text className="font-sans-semibold text-[15px] text-saldio-ink" numberOfLines={1}>
+                          <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
                             Transfer {walletName(item.tr.fromWalletId).split(" ")[0]} →{" "}
                             {walletName(item.tr.toWalletId).split(" ")[0]}
                           </Text>

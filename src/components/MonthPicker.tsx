@@ -41,7 +41,7 @@ export function MonthPicker({ value, options, onChange }: Props) {
                   }`}
                 >
                   <Text
-                    className={`font-sans-semibold text-[15px] ${
+                    className={`font-sans-semibold text-base ${
                       item === value ? "text-saldio-blue" : "text-saldio-ink"
                     }`}
                   >

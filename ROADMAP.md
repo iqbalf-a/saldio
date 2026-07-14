@@ -22,7 +22,7 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 
 ## Fase 3 — Melengkapi yang setengah jadi
 
-- [ ] Date picker sungguhan (ganti input teks `TTTT-BB-HH`)
+- [x] Date picker sungguhan (kalender bottom-sheet setema, aksen biru/emas; chip Hari ini/Kemarin dipertahankan)
 - [x] Kalibrasi parser dengan PDF asli BCA / Mandiri / Bank Jago — ketiganya tervalidasi cocok dengan ringkasan resmi tiap statement; dukungan PDF ber-password ikut ditambahkan
 - [ ] Solusi impor PDF di Android native (pdfjs tidak jalan di Hermes): opsi WebView tersembunyi, library native, atau arahan resmi "impor lewat versi web"
 - [ ] Unit test: parser PDF (`src/lib/pdf/`), kalkulasi saldo (`src/lib/balances.ts`), formatter Rupiah/tanggal

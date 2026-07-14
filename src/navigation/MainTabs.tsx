@@ -1,13 +1,38 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { HomeScreen } from "../screens/HomeScreen";
 import { HistoryScreen } from "../screens/HistoryScreen";
 import { AssetsScreen } from "../screens/AssetsScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
-import type { MainTabsParamList } from "./types";
+import { AddWalletScreen } from "../screens/AddWalletScreen";
+import { WalletDetailScreen } from "../screens/WalletDetailScreen";
+import { AddTransactionScreen } from "../screens/AddTransactionScreen";
+import { TransferScreen } from "../screens/TransferScreen";
+import { ImportPdfScreen } from "../screens/ImportPdfScreen";
+import { UpdateGoldPriceScreen } from "../screens/UpdateGoldPriceScreen";
+import type { HomeStackParamList, MainTabsParamList } from "./types";
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+
+/** Stack di dalam tab Beranda — tab bar tetap terlihat di semua layar ini. */
+function HomeStackNavigator() {
+  return (
+    <HomeStack.Navigator
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F1F4F9" } }}
+    >
+      <HomeStack.Screen name="Home" component={HomeScreen} />
+      <HomeStack.Screen name="AddWallet" component={AddWalletScreen} />
+      <HomeStack.Screen name="WalletDetail" component={WalletDetailScreen} />
+      <HomeStack.Screen name="AddTransaction" component={AddTransactionScreen} />
+      <HomeStack.Screen name="Transfer" component={TransferScreen} />
+      <HomeStack.Screen name="ImportPdf" component={ImportPdfScreen} />
+      <HomeStack.Screen name="UpdateGoldPrice" component={UpdateGoldPriceScreen} />
+    </HomeStack.Navigator>
+  );
+}
 
 const TAB_ICONS: Record<keyof MainTabsParamList, string> = {
   Beranda: "home",
@@ -26,24 +51,24 @@ export function MainTabs() {
         tabBarStyle: {
           backgroundColor: "#FFFFFF",
           borderTopColor: "#E6EAF2",
-          height: 72,
-          paddingTop: 8,
-          paddingBottom: 12,
+          height: 66,
+          paddingTop: 7,
+          paddingBottom: 10,
         },
         tabBarLabelStyle: {
           fontFamily: "Geist_500Medium",
-          fontSize: 11,
+          fontSize: 10,
         },
         tabBarIcon: ({ color, focused }) => (
           <Ionicons
             name={(focused ? TAB_ICONS[route.name] : `${TAB_ICONS[route.name]}-outline`) as never}
-            size={22}
+            size={20}
             color={color}
           />
         ),
       })}
     >
-      <Tab.Screen name="Beranda" component={HomeScreen} />
+      <Tab.Screen name="Beranda" component={HomeStackNavigator} />
       <Tab.Screen name="Riwayat" component={HistoryScreen} />
       <Tab.Screen name="Aset" component={AssetsScreen} />
       <Tab.Screen name="Profil" component={ProfileScreen} />

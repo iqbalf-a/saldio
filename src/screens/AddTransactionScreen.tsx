@@ -2,12 +2,13 @@ import React, { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Screen, ScreenHeader } from "../components/Screen";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { DatePickerField } from "../components/DatePickerField";
 import { WalletBadge } from "../components/WalletBadge";
 import { CATEGORIES } from "../lib/categories";
 import { toISODate } from "../lib/format";
 import type { TransactionType } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
-import type { RootScreenProps } from "../navigation/types";
+import type { HomeScreenProps } from "../navigation/types";
 
 function digitsOnly(s: string): string {
   return s.replace(/\D/g, "");
@@ -48,48 +49,7 @@ function TypeToggle({
   );
 }
 
-function DateField({ value, onChange }: { value: string; onChange: (iso: string) => void }) {
-  const today = toISODate(new Date());
-  const yesterday = toISODate(new Date(Date.now() - 86400000));
-  return (
-    <View>
-      <View className="flex-row gap-2">
-        {[
-          { label: "Hari ini", iso: today },
-          { label: "Kemarin", iso: yesterday },
-        ].map((opt) => (
-          <Pressable
-            key={opt.label}
-            onPress={() => onChange(opt.iso)}
-            className={`rounded-full px-4 py-2 ${
-              value === opt.iso ? "bg-saldio-sky" : "bg-white"
-            }`}
-          >
-            <Text
-              className={`font-sans-semibold text-xs ${
-                value === opt.iso ? "text-saldio-blue" : "text-saldio-soft"
-              }`}
-            >
-              {opt.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-      <View className="mt-2 rounded-2xl bg-white px-4 py-3">
-        <Text className="font-sans text-xs text-saldio-muted">Tanggal (TTTT-BB-HH)</Text>
-        <TextInput
-          value={value}
-          onChangeText={onChange}
-          placeholder="2026-07-12"
-          placeholderTextColor="#8A94A6"
-          className="mt-1 font-mono-medium text-base text-saldio-ink"
-        />
-      </View>
-    </View>
-  );
-}
-
-export function AddTransactionScreen({ route, navigation }: RootScreenProps<"AddTransaction">) {
+export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"AddTransaction">) {
   const { data, addTransaction } = useAppData();
   const wallets = data.wallets;
   const [walletId, setWalletId] = useState(route.params?.walletId ?? wallets[0]?.id);
@@ -248,7 +208,7 @@ export function AddTransactionScreen({ route, navigation }: RootScreenProps<"Add
       </View>
 
       <Text className="mb-2 mt-5 font-sans-semibold text-sm text-saldio-soft">Tanggal</Text>
-      <DateField value={date} onChange={setDate} />
+      <DatePickerField value={date} onChange={setDate} accent={isGold ? "gold" : "blue"} />
 
       <View className="mt-8">
         <PrimaryButton
