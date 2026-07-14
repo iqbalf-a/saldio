@@ -62,7 +62,7 @@ export function AssetsScreen() {
           title="Belum ada aset"
           description="Tambahkan dompet untuk melihat komposisi dan tren kekayaanmu."
           actionLabel="Tambah Dompet"
-          onAction={() => navigation.navigate("Main", { screen: "Beranda" })}
+          onAction={() => navigation.navigate("Beranda", { screen: "AddWallet" })}
         />
       ) : (
         <>
@@ -142,7 +142,10 @@ export function AssetsScreen() {
               <Pressable
                 key={c.wallet.id}
                 onPress={() =>
-                  navigation.navigate("Main", { screen: "Beranda" })
+                  navigation.navigate("Beranda", {
+                    screen: "WalletDetail",
+                    params: { walletId: c.wallet.id },
+                  })
                 }
                 className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
               >
