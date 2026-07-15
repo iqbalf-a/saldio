@@ -1,5 +1,5 @@
-import React from "react";
-import { Pressable, Text, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
@@ -14,9 +14,30 @@ type Nav = BottomTabNavigationProp<MainTabsParamList>;
 export function ProfileScreen() {
   const navigation = useNavigation<Nav>();
   const { profile, accessToken, isGuest, signOut } = useAuth();
-  const { resetAll } = useAppData();
+  const { resetAll, lastSyncTimestamp, manualSync } = useAppData();
   const confirm = useConfirm();
   const online = !!accessToken;
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    await manualSync();
+    setSyncing(false);
+  }, [manualSync]);
+
+  /** Format timestamp ke "X detik/menit/jam lalu" dalam Bahasa Indonesia. */
+  const formatSyncTime = (ts: number | null): string => {
+    if (!ts) return "Belum pernah";
+    const diff = Date.now() - ts;
+    const sec = Math.floor(diff / 1000);
+    if (sec < 60) return `${sec} detik lalu`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min} menit lalu`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr} jam lalu`;
+    const day = Math.floor(hr / 24);
+    return `${day} hari lalu`;
+  };
 
   return (
     <Screen>
@@ -62,10 +83,23 @@ export function ProfileScreen() {
           </Text>
           <Text className="mt-0.5 font-sans text-xs leading-4 text-saldio-muted">
             {online
-              ? "Data otomatis dicadangkan ke Drive milikmu setiap ada perubahan."
+              ? `Terakhir disinkron: ${formatSyncTime(lastSyncTimestamp)}`
               : "Data hanya tersimpan di perangkat ini. Masuk dengan Google untuk mencadangkan ke Drive."}
           </Text>
         </View>
+        {online && (
+          <Pressable
+            onPress={handleSync}
+            disabled={syncing}
+            className="rounded-xl bg-saldio-sky px-3 py-2 active:opacity-70"
+          >
+            {syncing ? (
+              <ActivityIndicator size="small" color="#3D51E0" />
+            ) : (
+              <Ionicons name="sync" size={18} color="#3D51E0" />
+            )}
+          </Pressable>
+        )}
       </View>
 
       <View className="mt-6 gap-3">
