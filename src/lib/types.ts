@@ -63,6 +63,8 @@ export interface AppData {
   wallets: Wallet[];
   transactions: Transaction[];
   goldPriceLog: GoldPriceEntry[];
+  /** ISO timestamp kapan data terakhir diubah. Dipakai untuk deteksi konflik multi-perangkat. */
+  lastModified?: string;
 }
 
 export const EMPTY_DATA: AppData = {
