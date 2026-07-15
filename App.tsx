@@ -1,5 +1,5 @@
 import "./global.css";
-import React from "react";
+import React, { useEffect } from "react";
 import { Platform, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
@@ -17,9 +17,9 @@ import {
   GeistMono_600SemiBold,
   GeistMono_700Bold,
 } from "@expo-google-fonts/geist-mono";
-import { AuthProvider } from "./src/state/AuthContext";
-import { AppDataProvider } from "./src/state/AppDataContext";
-import { ConfirmProvider } from "./src/components/ConfirmModal";
+import { AuthProvider, useAuth } from "./src/state/AuthContext";
+import { AppDataProvider, useAppData } from "./src/state/AppDataContext";
+import { ConfirmProvider, useConfirm } from "./src/components/ConfirmModal";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 
 const theme = {
@@ -33,6 +33,29 @@ const theme = {
 
 if (Platform.OS === "web" && typeof document !== "undefined") {
   document.title = "Saldio";
+}
+
+/** Menangani token Google Drive kedaluwarsa — tampilkan modal login ulang. */
+function AuthErrorHandler() {
+  const { authError, clearAuthError } = useAppData();
+  const { signOut } = useAuth();
+  const confirm = useConfirm();
+
+  useEffect(() => {
+    if (authError) {
+      confirm({
+        title: "Sesi Berakhir",
+        message: "Sesi Google Drive telah berakhir. Silakan login ulang untuk melanjutkan sinkronisasi.",
+        confirmLabel: "Login Ulang",
+        onConfirm: () => {
+          clearAuthError();
+          signOut();
+        },
+      });
+    }
+  }, [authError, confirm, clearAuthError, signOut]);
+
+  return null;
 }
 
 export default function App() {
@@ -54,6 +77,7 @@ export default function App() {
       <AuthProvider>
         <AppDataProvider>
           <ConfirmProvider>
+            <AuthErrorHandler />
             <NavigationContainer theme={theme} documentTitle={{ enabled: false }}>
               <StatusBar style="dark" />
               <RootNavigator />
