@@ -18,7 +18,7 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 - [ ] Tangani token kedaluwarsa (±1 jam): deteksi 401 dari Drive → prompt login ulang, jangan telan error diam-diam
 - [ ] Indikator status sinkron di Profil ("Terakhir disinkron …", ikon error saat gagal)
 - [ ] Tombol "Sinkron sekarang" manual
-- [ ] Strategi konflik multi-perangkat (minimal: bandingkan timestamp, tawarkan pilih versi — bukan last-write-wins buta)
+- [x] Strategi konflik multi-perangkat (minimal: bandingkan timestamp, tawarkan pilih versi — bukan last-write-wins buta)
 
 ## Fase 3 — Melengkapi yang setengah jadi
 
