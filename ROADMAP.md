@@ -14,18 +14,18 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 
 ## Fase 2 — Sinkronisasi Google yang tahan lama
 
-- [ ] Isi client ID OAuth (Web + Android) di `src/lib/config.ts`
-- [ ] Tangani token kedaluwarsa (±1 jam): deteksi 401 dari Drive → prompt login ulang, jangan telan error diam-diam
-- [ ] Indikator status sinkron di Profil ("Terakhir disinkron …", ikon error saat gagal)
-- [ ] Tombol "Sinkron sekarang" manual
-- [x] Strategi konflik multi-perangkat (minimal: bandingkan timestamp, tawarkan pilih versi — bukan last-write-wins buta)
+- [x] Isi client ID OAuth Web di `src/lib/config.ts` (Android ditunda — fokus web dulu)
+- [x] Tangani token kedaluwarsa (±1 jam): deteksi 401 dari Drive → prompt login ulang, jangan telan error diam-diam
+- [x] Indikator status sinkron di Profil ("Terakhir disinkron …", tombol manual)
+- [x] Tombol "Sinkron sekarang" manual
+- [x] Strategi konflik multi-perangkat (bandingkan timestamp, tawarkan pilih versi — bukan last-write-wins buta)
 
 ## Fase 3 — Melengkapi yang setengah jadi
 
 - [x] Date picker sungguhan (kalender bottom-sheet setema, aksen biru/emas; chip Hari ini/Kemarin dipertahankan)
 - [x] Kalibrasi parser dengan PDF asli BCA / Mandiri / Bank Jago — ketiganya tervalidasi cocok dengan ringkasan resmi tiap statement; dukungan PDF ber-password ikut ditambahkan
 - [ ] Solusi impor PDF di Android native (pdfjs tidak jalan di Hermes): opsi WebView tersembunyi, library native, atau arahan resmi "impor lewat versi web"
-- [ ] Unit test: parser PDF (`src/lib/pdf/`), kalkulasi saldo (`src/lib/balances.ts`), formatter Rupiah/tanggal
+- [ ] Unit test: parser PDF (`src/lib/pdf/`), formatter Rupiah/tanggal
 
 ## Fase 4 — Fitur finansial lanjutan
 
@@ -52,6 +52,7 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
   hanya rekening utama yang diimpor dari laporan konsolidasi
 - Koneksi API bank live
 - Harga emas otomatis dari API (sekarang manual by design)
+- Android OAuth client ID (ditunda — build APK belum diprioritaskan)
 
 ## Catatan teknis yang sudah diputuskan
 
@@ -59,3 +60,4 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 - Font Geist dari `@expo-google-fonts/geist` (bukan file lokal)
 - Data di Google Drive `appDataFolder` (scope `drive.appdata`), cache lokal AsyncStorage, debounce upload 2 detik
 - Deploy web: `vercel.json` → `expo export --platform web` → `dist/` + rewrite SPA
+- Konflik multi-perangkat: `lastModified` di `AppData`, deteksi via `lastSyncTimestamp`, modal pilihan versi lokal vs Drive
