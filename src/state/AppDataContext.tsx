@@ -37,19 +37,65 @@ interface AppDataState {
   resetAll: () => void;
   /** Ganti seluruh data (dipakai Mode Tamu untuk memuat data contoh) */
   replaceAll: (next: AppData) => void;
+
+  // --- Konflik multi-perangkat ---
+  /** Data remote yang berkonflik dengan data lokal. null = tidak ada konflik. */
+  conflictRemote: AppData | null;
+  /** Selesaikan konflik: true = gunakan data lokal, false = gunakan data remote. */
+  resolveConflict: (useLocal: boolean) => void;
 }
 
 const AppDataContext = createContext<AppDataState | null>(null);
+
+/** Stamp lastModified ke AppData. */
+function stampModified(d: AppData): AppData {
+  return { ...d, lastModified: new Date().toISOString() };
+}
+
+/** Cek apakah data berubah sejak timestamp tertentu. */
+function modifiedSince(d: AppData, since: number | null): boolean {
+  if (!since) return true; // pertama kali — anggap berubah
+  if (!d.lastModified) return false; // data lama tanpa lastModified — tidak dianggap berubah
+  return new Date(d.lastModified).getTime() > since;
+}
 
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<AppData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
   const [lastSyncTimestamp, setLastSyncTimestamp] = useState<number | null>(null);
+  // Konflik state — simpan data remote saat konflik terdeteksi
+  const [conflictRemote, setConflictRemote] = useState<AppData | null>(null);
+  // Simpan snapshot data lokal saat konflik agar bisa restore jika user pilih remote
+  const conflictLocalRef = useRef<AppData>(EMPTY_DATA);
   const { accessToken } = useAuth();
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearAuthError = useCallback(() => setAuthError(false), []);
+
+  // --- Conflict resolution ---
+  const resolveConflict = useCallback(
+    (useLocal: boolean) => {
+      if (!conflictRemote) return;
+      if (useLocal) {
+        // User pilih data lokal — upload ke Drive
+        const local = conflictLocalRef.current;
+        setData(local);
+        if (accessToken) {
+          uploadToDrive(accessToken, local).then(() => {
+            setLastSyncTimestamp(Date.now());
+          }).catch(() => {});
+        }
+      } else {
+        // User pilih data remote — timpa lokal
+        setData(conflictRemote);
+        saveData(conflictRemote).catch(() => {});
+        setLastSyncTimestamp(Date.now());
+      }
+      setConflictRemote(null);
+    },
+    [conflictRemote, accessToken],
+  );
 
   // Muat cache lokal dulu (offline-first), lalu coba tarik dari Drive.
   useEffect(() => {
@@ -64,9 +110,19 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         try {
           const remote = await downloadFromDrive(accessToken);
           if (remote && !cancelled) {
-            setData(remote);
-            setLastSyncTimestamp(Date.now());
-            await saveData(remote);
+            const localChanged = modifiedSince(local, lastSyncTimestamp);
+            const remoteChanged = modifiedSince(remote, lastSyncTimestamp);
+            if (localChanged && remoteChanged && lastSyncTimestamp !== null) {
+              // Konflik: keduanya berubah sejak sync terakhir
+              conflictLocalRef.current = local;
+              setConflictRemote(remote);
+            } else if (remoteChanged || !localChanged) {
+              // Remote berubah atau lokal tidak berubah — pakai remote
+              setData(remote);
+              setLastSyncTimestamp(Date.now());
+              await saveData(remote);
+            }
+            // else: lokal berubah, remote tidak — tetap pakai lokal (akan di-upload nanti)
           }
         } catch (e) {
           if (e instanceof DriveAuthError && !cancelled) {
@@ -79,12 +135,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [accessToken]);
+  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const persist = useCallback(
     (updater: (prev: AppData) => AppData) => {
       setData((prev) => {
-        const next = updater(prev);
+        const next = stampModified(updater(prev));
         saveData(next).catch(() => {});
         if (accessToken) {
           if (syncTimer.current) clearTimeout(syncTimer.current);
@@ -251,16 +307,24 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const manualSync = useCallback(async () => {
     if (!accessToken) return;
     try {
+      const local = await loadData();
       const remote = await downloadFromDrive(accessToken);
       if (remote) {
-        setData(remote);
-        setLastSyncTimestamp(Date.now());
-        await saveData(remote);
+        const localChanged = modifiedSince(local, lastSyncTimestamp);
+        const remoteChanged = modifiedSince(remote, lastSyncTimestamp);
+        if (localChanged && remoteChanged && lastSyncTimestamp !== null) {
+          conflictLocalRef.current = local;
+          setConflictRemote(remote);
+        } else {
+          setData(remote);
+          setLastSyncTimestamp(Date.now());
+          await saveData(remote);
+        }
       }
     } catch (e) {
       if (e instanceof DriveAuthError) setAuthError(true);
     }
-  }, [accessToken]);
+  }, [accessToken, lastSyncTimestamp]);
 
   const value = useMemo(
     () => ({
@@ -270,6 +334,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       authError,
       clearAuthError,
       manualSync,
+      conflictRemote,
+      resolveConflict,
       addWallet,
       updateWallet,
       addTransaction,
@@ -285,7 +351,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       resetAll,
       replaceAll,
     }),
-    [data, loading, lastSyncTimestamp, authError, clearAuthError, manualSync, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, resetAll, replaceAll]
+    [data, loading, lastSyncTimestamp, authError, clearAuthError, manualSync, conflictRemote, resolveConflict, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, resetAll, replaceAll]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
