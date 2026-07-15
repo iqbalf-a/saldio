@@ -80,15 +80,5 @@ export function buildDemoData(): AppData {
       { date: d(18), pricePerGram: 1470000 },
       { date: d(4), pricePerGram: 1485000 },
     ],
-    transfers: [
-      {
-        id: "demo_tr1",
-        fromWalletId: "demo_w_jago",
-        toWalletId: "demo_w_tunai",
-        amount: 200000,
-        date: d(4),
-        note: "Transfer ke Tunai",
-      },
-    ],
   };
 }

@@ -9,10 +9,11 @@ export type HomeStackParamList = {
   Home: undefined;
   AddWallet: undefined;
   WalletDetail: { walletId: string };
-  AddTransaction: { walletId?: string };
-  Transfer: { fromWalletId?: string };
+  EditWallet: { walletId: string };
+  AddTransaction: { walletId?: string; transactionId?: string };
   ImportPdf: { walletId: string };
   UpdateGoldPrice: { walletId: string };
+  Backup: undefined;
 };
 
 export type MainTabsParamList = {

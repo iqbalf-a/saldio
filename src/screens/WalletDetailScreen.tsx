@@ -6,16 +6,17 @@ import { Screen, ScreenHeader } from "../components/Screen";
 import { ActionMenu } from "../components/ActionMenu";
 import { WalletBadge } from "../components/WalletBadge";
 import { MonthPicker } from "../components/MonthPicker";
-import { TransactionRow } from "../components/TransactionRow";
+import { CategoryIcon } from "../components/CategoryIcon";
 import { EmptyState } from "../components/EmptyState";
-import { formatDayLabel, formatRupiah, formatSignedRupiah } from "../lib/format";
-import { groupByDay, walletBalance, walletInOut } from "../lib/balances";
+import { formatDayLabel, formatRupiah, formatSignedGrams, formatSignedRupiah } from "../lib/format";
+import { groupByDay, walletBalance } from "../lib/balances";
 import { availableMonths, walletFeed } from "../lib/walletFeed";
 import { walletSupportsPdfImport } from "../lib/templates";
-import { confirmDestructive } from "../lib/confirm";
+import { useConfirm } from "../components/ConfirmModal";
 import { HERO_SHADOW } from "../lib/ui";
 import { useAppData } from "../state/AppDataContext";
 import type { HomeScreenProps } from "../navigation/types";
+import type { Transaction } from "../lib/types";
 import { GoldWalletView } from "./GoldWalletView";
 
 function ActionButton({
@@ -50,8 +51,75 @@ function ActionButton({
   );
 }
 
+function WalletTxRow({
+  tx,
+  category,
+  amountText,
+  amountColor,
+  onEdit,
+  onDelete,
+}: {
+  tx: Transaction;
+  category: string | undefined;
+  amountText: string;
+  amountColor: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  return (
+    <View className="flex-row items-center gap-3 py-3">
+      <CategoryIcon category={category} size={40} />
+      <View className="flex-1">
+        <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
+          {tx.note || category || "Transaksi"}
+        </Text>
+        <View className="mt-1 flex-row items-center gap-1.5">
+          <Text className="font-sans text-xs text-saldio-muted">{category ?? "Lainnya"}</Text>
+          {tx.source !== "manual" ? (
+            <View className="flex-row items-center rounded-md bg-saldio-sky px-1.5 py-0.5">
+              <Text className="font-sans-medium text-[10px] text-saldio-blue">PDF</Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+      <Text className={`font-mono-semibold text-[12px] ${amountColor}`}>{amountText}</Text>
+      <Pressable
+        onPress={() => setMenuOpen(true)}
+        className="h-8 w-8 items-center justify-center rounded-full bg-saldio-bg active:opacity-70"
+      >
+        <Ionicons name="ellipsis-horizontal" size={16} color="#8A94A6" />
+      </Pressable>
+      <ActionMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        items={[
+          {
+            label: "Edit",
+            icon: "pencil",
+            onPress: () => {
+              setMenuOpen(false);
+              onEdit();
+            },
+          },
+          {
+            label: "Hapus",
+            icon: "trash",
+            destructive: true,
+            onPress: () => {
+              setMenuOpen(false);
+              onDelete();
+            },
+          },
+        ]}
+      />
+    </View>
+  );
+}
+
 export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"WalletDetail">) {
-  const { data, deleteWallet } = useAppData();
+  const { data, deleteWallet, deleteTransaction } = useAppData();
+  const confirm = useConfirm();
   const wallet = data.wallets.find((w) => w.id === route.params.walletId);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -74,21 +142,28 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
   const activeMonth = months.includes(month) ? month : months[0];
   const canImportPdf = walletSupportsPdfImport(wallet);
   const balance = walletBalance(data, wallet);
-  const { inflow, outflow } = walletInOut(data, wallet.id, activeMonth);
+  let inflow = 0;
+  let outflow = 0;
+  for (const t of feed) {
+    if (t.date.startsWith(activeMonth)) {
+      if (t.type === "income") inflow += t.amount ?? 0;
+      else if (t.type === "expense") outflow += t.amount ?? 0;
+    }
+  }
   const monthFeed = feed.filter((t) => t.date.startsWith(activeMonth));
   const groups = groupByDay(monthFeed);
   const hasAny = feed.length > 0;
 
   const onDelete = () =>
-    confirmDestructive(
-      "Hapus dompet?",
-      `"${wallet.name}" beserta seluruh transaksinya akan dihapus. Tindakan ini tidak bisa dibatalkan.`,
-      "Hapus",
-      () => {
+    confirm({
+      title: "Hapus dompet?",
+      message: `"${wallet.name}" beserta seluruh transaksinya akan dihapus. Tindakan ini tidak bisa dibatalkan.`,
+      confirmLabel: "Hapus",
+      onConfirm: () => {
         deleteWallet(wallet.id);
         navigation.goBack();
-      }
-    );
+      },
+    });
 
   return (
     <Screen scroll={false}>
@@ -105,7 +180,25 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
       <ActionMenu
         visible={menuOpen}
         onClose={() => setMenuOpen(false)}
-        items={[{ label: "Hapus Dompet", icon: "trash", destructive: true, onPress: onDelete }]}
+        items={[
+          {
+            label: "Edit Dompet",
+            icon: "pencil",
+            onPress: () => {
+              setMenuOpen(false);
+              navigation.navigate("EditWallet", { walletId: wallet.id });
+            },
+          },
+          {
+            label: "Hapus Dompet",
+            icon: "trash",
+            destructive: true,
+            onPress: () => {
+              setMenuOpen(false);
+              onDelete();
+            },
+          },
+        ]}
       />
 
       {/* Kartu saldo */}
@@ -140,7 +233,7 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
       </LinearGradient>
 
       {/* Aksi */}
-      <View className="mt-5 flex-row justify-start gap-2">
+       <View className="mt-5 flex-row justify-start gap-2">
         <ActionButton
           icon="add"
           label="Transaksi"
@@ -154,12 +247,6 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
             onPress={() => navigation.navigate("ImportPdf", { walletId: wallet.id })}
           />
         ) : null}
-        <ActionButton
-          icon="swap-horizontal"
-          label="Transfer"
-          disabled={data.wallets.filter((w) => w.type !== "gold").length < 2}
-          onPress={() => navigation.navigate("Transfer", { fromWalletId: wallet.id })}
-        />
       </View>
 
       {/* Riwayat — hanya area ini yang bisa di-scroll */}
@@ -213,9 +300,35 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
                   {formatSignedRupiah(g.subtotal)}
                 </Text>
               </View>
-              {g.items.map((t) => (
-                <TransactionRow key={t.id} tx={t} />
-              ))}
+              {g.items.map((t) => {
+                const isGoldTx = t.type === "buy_gold" || t.type === "sell_gold";
+                const isIncome = t.type === "income";
+                const category = isGoldTx ? "Emas" : t.category;
+                const amountText = isGoldTx
+                  ? formatSignedGrams(t.type === "buy_gold" ? t.grams ?? 0 : -(t.grams ?? 0))
+                  : formatSignedRupiah(isIncome ? t.amount ?? 0 : -(t.amount ?? 0));
+                const amountColor = isGoldTx
+                  ? t.type === "buy_gold" ? "text-saldio-green" : "text-saldio-red"
+                  : isIncome ? "text-saldio-green" : "text-saldio-red";
+                return (
+                  <WalletTxRow
+                    key={t.id}
+                    tx={t}
+                    category={category}
+                    amountText={amountText}
+                    amountColor={amountColor}
+                    onEdit={() => navigation.navigate("AddTransaction", { walletId: wallet.id, transactionId: t.id })}
+                    onDelete={() =>
+                      confirm({
+                        title: "Hapus transaksi?",
+                        message: `"${t.note || category || "Transaksi"}" akan dihapus permanen.`,
+                        confirmLabel: "Hapus",
+                        onConfirm: () => deleteTransaction(t.id),
+                      })
+                    }
+                  />
+                );
+              })}
             </View>
           ))}
         </View>

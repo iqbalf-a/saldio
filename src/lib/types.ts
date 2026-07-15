@@ -44,20 +44,13 @@ export interface Transaction {
   category?: string;
   note?: string;
   source: TransactionSource;
+  /** ID batch impor PDF — untuk undo per batch */
+  importBatch?: string;
 }
 
 export interface GoldPriceEntry {
   date: string;
   pricePerGram: number;
-}
-
-export interface Transfer {
-  id: string;
-  fromWalletId: string;
-  toWalletId: string;
-  amount: number;
-  date: string;
-  note?: string;
 }
 
 export interface WalletTemplate {
@@ -70,14 +63,12 @@ export interface AppData {
   wallets: Wallet[];
   transactions: Transaction[];
   goldPriceLog: GoldPriceEntry[];
-  transfers: Transfer[];
 }
 
 export const EMPTY_DATA: AppData = {
   wallets: [],
   transactions: [],
   goldPriceLog: [],
-  transfers: [],
 };
 
 export interface UserProfile {

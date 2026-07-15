@@ -12,6 +12,8 @@ import { extractPdfLines, PdfPasswordError } from "../lib/pdf/extract";
 import { parseStatement, PARSER_LABELS } from "../lib/pdf/parsers";
 import type { ParsedTransaction } from "../lib/pdf/parseCommon";
 import type { TransactionSource } from "../lib/types";
+import { newId } from "../lib/ids";
+import { useConfirm } from "../components/ConfirmModal";
 import { useAppData } from "../state/AppDataContext";
 import type { HomeScreenProps } from "../navigation/types";
 
@@ -68,7 +70,8 @@ function StageRow({ label, state }: { label: string; state: "done" | "active" | 
 }
 
 export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPdf">) {
-  const { data, addTransactions } = useAppData();
+  const { data, addTransactions, deleteTransactionsByBatch } = useAppData();
+  const confirm = useConfirm();
   const wallet = data.wallets.find((w) => w.id === route.params.walletId);
 
   const [step, setStep] = useState<Step>(1);
@@ -81,6 +84,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
   const [error, setError] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [imported, setImported] = useState({ count: 0, skipped: 0, inflow: 0, outflow: 0 });
+  const [lastBatchId, setLastBatchId] = useState<string | null>(null);
 
   const parserLabel = wallet ? PARSER_LABELS[wallet.template] ?? wallet.name : "";
   const selectedCount = rows.filter((r) => r.selected).length;
@@ -120,15 +124,20 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
         return;
       }
       setStage("categorize");
-      // Deteksi duplikat: cocok dengan transaksi tersimpan, atau kembar di dalam batch
+      // Deteksi duplikat: cocok dengan transaksi tersimpan berdasarkan tanggal, nominal, dan deskripsi
+      // Transfer ditemukan dengan nama counterparty agar tidak false positive
       const existing = new Set(
         data.transactions
           .filter((t) => t.walletId === wallet.id)
-          .map((t) => `${t.date}|${t.amount}|${t.type === "income" ? "in" : "out"}`)
+          .map((t) => {
+            const descMatch = t.note || t.category;
+            return `${t.date}|${t.amount}|${t.type === "income" ? "in" : "out"}|${descMatch}`;
+          })
       );
       const seen = new Set<string>();
       const review: ReviewRow[] = parsed.map((p, i) => {
-        const sig = `${p.date}|${p.amount}|${p.direction}`;
+        const descMatch = p.description.split(/[^\w\s]/)[0] || p.description;
+        const sig = `${p.date}|${p.amount}|${p.direction}|${descMatch}`;
         const duplicate = existing.has(sig) || seen.has(sig);
         seen.add(sig);
         return { ...p, key: `row_${i}`, selected: !duplicate, duplicate };
@@ -156,6 +165,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
   const doImport = () => {
     if (!wallet) return;
     const source = SOURCE_BY_TEMPLATE[wallet.template] ?? "manual";
+    const batchId = newId("batch");
     const chosen = rows.filter((r) => r.selected);
     addTransactions(
       chosen.map((r) => ({
@@ -166,6 +176,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
         category: r.category,
         note: r.description,
         source,
+        importBatch: batchId,
       }))
     );
     setImported({
@@ -174,6 +185,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
       inflow: chosen.filter((r) => r.direction === "in").reduce((s, r) => s + r.amount, 0),
       outflow: chosen.filter((r) => r.direction === "out").reduce((s, r) => s + r.amount, 0),
     });
+    setLastBatchId(batchId);
     setStep(4);
   };
 
@@ -439,6 +451,25 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
             <Pressable onPress={reset} className="mt-4 active:opacity-70">
               <Text className="font-sans-semibold text-sm text-saldio-blue">Impor PDF Lain</Text>
             </Pressable>
+            {lastBatchId ? (
+              <Pressable
+                onPress={() =>
+                  confirm({
+                    title: "Batalkan impor ini?",
+                    message: `${imported.count} transaksi yang baru diimpor akan dihapus permanen.`,
+                    confirmLabel: "Batalkan",
+                    onConfirm: () => {
+                      deleteTransactionsByBatch(lastBatchId);
+                      setLastBatchId(null);
+                      reset();
+                    },
+                  })
+                }
+                className="mt-4 active:opacity-70"
+              >
+                <Text className="font-sans-semibold text-sm text-saldio-red">Batalkan Impor Ini</Text>
+              </Pressable>
+            ) : null}
           </View>
         </>
       )}

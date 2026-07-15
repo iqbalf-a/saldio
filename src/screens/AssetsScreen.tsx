@@ -9,7 +9,9 @@ import { WalletBadge } from "../components/WalletBadge";
 import { DonutChart } from "../components/charts/DonutChart";
 import { TrendLine } from "../components/charts/TrendLine";
 import { EmptyState } from "../components/EmptyState";
+import { CategoryIcon } from "../components/CategoryIcon";
 import { formatGrams, formatRupiah, monthShortLabel } from "../lib/format";
+import { categoryByKey } from "../lib/categories";
 import {
   goldTotal,
   liquidTotal,
@@ -25,6 +27,173 @@ import type { MainTabsParamList } from "../navigation/types";
 type Nav = BottomTabNavigationProp<MainTabsParamList>;
 
 const DONUT_COLORS = ["#3D51E0", "#C9A227", "#8B5CF6", "#E8740C", "#94A3B8", "#16A34A", "#E23B3B", "#0EA5E9"];
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Makanan: "#E86A33",
+  Transportasi: "#2F6BFF",
+  Belanja: "#8B5CF6",
+  Tagihan: "#D9A400",
+  Hiburan: "#E23B3B",
+  Gaji: "#16A34A",
+  Emas: "#B08415",
+  Lainnya: "#64748B",
+};
+
+function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
+  const now = new Date();
+  const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevYM = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+
+  const currentMonthTxs = useMemo(
+    () => data.transactions.filter((t) => t.date.startsWith(currentYM)),
+    [data.transactions, currentYM]
+  );
+  const prevMonthTxs = useMemo(
+    () => data.transactions.filter((t) => t.date.startsWith(prevYM)),
+    [data.transactions, prevYM]
+  );
+
+  const currentMonth = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    for (const t of currentMonthTxs) {
+      if (t.type === "income") income += t.amount ?? 0;
+      else if (t.type === "expense") expense += t.amount ?? 0;
+    }
+    return { income, expense };
+  }, [currentMonthTxs]);
+
+  const prevMonth = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    for (const t of prevMonthTxs) {
+      if (t.type === "income") income += t.amount ?? 0;
+      else if (t.type === "expense") expense += t.amount ?? 0;
+    }
+    return { income, expense };
+  }, [prevMonthTxs]);
+
+  const categoryBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of currentMonthTxs) {
+      if (t.type !== "expense") continue;
+      const cat = t.category || "Lainnya";
+      map.set(cat, (map.get(cat) ?? 0) + (t.amount ?? 0));
+    }
+    return [...map.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [currentMonthTxs]);
+
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dayOfMonth = now.getDate();
+  const avgDaily = dayOfMonth > 0 ? currentMonth.expense / dayOfMonth : 0;
+
+  const changePct = (curr: number, prev: number) => {
+    if (prev === 0) return curr > 0 ? null : null;
+    return Math.round(((curr - prev) / prev) * 1000) / 10;
+  };
+
+  const expenseChange = changePct(currentMonth.expense, prevMonth.expense);
+  const incomeChange = changePct(currentMonth.income, prevMonth.income);
+
+  return (
+    <View className="mt-4 rounded-3xl bg-white p-5">
+      <Text className="font-sans-bold text-base text-saldio-ink">Insight Keuangan</Text>
+      <Text className="mt-0.5 font-sans text-xs text-saldio-muted">Bulan ini</Text>
+
+      {/* Pemasukan vs Pengeluaran */}
+      <View className="mt-4 flex-row gap-3">
+        <View className="flex-1 rounded-2xl bg-saldio-green-bg p-3.5">
+          <View className="flex-row items-center gap-1">
+            <Ionicons name="arrow-down" size={12} color="#16A34A" />
+            <Text className="font-sans text-xs text-saldio-green">Pemasukan</Text>
+          </View>
+          <Text className="mt-1 font-mono-semibold text-sm text-saldio-green">
+            {formatRupiah(currentMonth.income)}
+          </Text>
+          {incomeChange !== null ? (
+            <Text className="mt-0.5 font-sans text-[10px] text-saldio-muted">
+              {incomeChange >= 0 ? "+" : ""}{String(incomeChange).replace(".", ",")}% vs bulan lalu
+            </Text>
+          ) : null}
+        </View>
+        <View className="flex-1 rounded-2xl bg-saldio-red-bg p-3.5">
+          <View className="flex-row items-center gap-1">
+            <Ionicons name="arrow-up" size={12} color="#E23B3B" />
+            <Text className="font-sans text-xs text-saldio-red">Pengeluaran</Text>
+          </View>
+          <Text className="mt-1 font-mono-semibold text-sm text-saldio-red">
+            {formatRupiah(currentMonth.expense)}
+          </Text>
+          {expenseChange !== null ? (
+            <Text className="mt-0.5 font-sans text-[10px] text-saldio-muted">
+              {expenseChange >= 0 ? "+" : ""}{String(expenseChange).replace(".", ",")}% vs bulan lalu
+            </Text>
+          ) : null}
+        </View>
+      </View>
+
+      {/* Rata-rata pengeluaran harian */}
+      <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-saldio-bg p-3.5">
+        <Ionicons name="calendar" size={16} color="#3D51E0" />
+        <View className="flex-1">
+          <Text className="font-sans text-xs text-saldio-soft">Rata-rata pengeluaran harian</Text>
+          <Text className="mt-0.5 font-mono-semibold text-sm text-saldio-ink">
+            {formatRupiah(avgDaily)}
+          </Text>
+        </View>
+        <Text className="font-sans text-[10px] text-saldio-muted">
+          {dayOfMonth}/{daysInMonth} hari
+        </Text>
+      </View>
+
+      {/* Pengeluaran per kategori */}
+      {categoryBreakdown.length > 0 ? (
+        <View className="mt-4">
+          <Text className="font-sans-semibold text-sm text-saldio-ink">Pengeluaran per kategori</Text>
+          <View className="mt-3 gap-2.5">
+            {categoryBreakdown.map(([cat, amount]) => {
+              const maxAmount = categoryBreakdown[0][1];
+              const pctBar = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
+              const color = CATEGORY_COLORS[cat] || "#64748B";
+              return (
+                <View key={cat}>
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-2">
+                      <CategoryIcon category={cat} size={24} />
+                      <Text className="font-sans text-xs text-saldio-ink">{cat}</Text>
+                    </View>
+                    <Text className="font-mono-medium text-xs text-saldio-ink">{formatRupiah(amount)}</Text>
+                  </View>
+                  <View className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-saldio-bg">
+                    <View className="h-full rounded-full" style={{ width: `${pctBar}%`, backgroundColor: color }} />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Selisih */}
+      <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-saldio-sky p-3.5">
+        <View className="flex-row items-center gap-2">
+          <Ionicons name="wallet" size={16} color="#3D51E0" />
+          <Text className="font-sans text-xs text-saldio-blue">Selisih bulan ini</Text>
+        </View>
+        <Text
+          className={`font-mono-semibold text-sm ${
+            currentMonth.income - currentMonth.expense >= 0 ? "text-saldio-green" : "text-saldio-red"
+          }`}
+        >
+          {formatRupiah(currentMonth.income - currentMonth.expense)}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 export function AssetsScreen() {
   const navigation = useNavigation<Nav>();
@@ -135,6 +304,9 @@ export function AssetsScreen() {
               />
             </View>
           </View>
+
+          {/* Financial Insights */}
+          <FinancialInsights data={data} />
 
           {/* Daftar dompet ringkas */}
           <View className="mt-4 gap-3">
