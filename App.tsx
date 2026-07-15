@@ -1,9 +1,9 @@
 import "./global.css";
 import React, { useEffect } from "react";
-import { Platform, View } from "react-native";
+import { Modal, Platform, Pressable, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useFonts,
   Geist_400Regular,
@@ -21,9 +21,7 @@ import { AuthProvider, useAuth } from "./src/state/AuthContext";
 import { AppDataProvider, useAppData } from "./src/state/AppDataContext";
 import { ConfirmProvider, useConfirm } from "./src/components/ConfirmModal";
 import { RootNavigator } from "./src/navigation/RootNavigator";
-import { Modal, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const theme = {
   ...DefaultTheme,
