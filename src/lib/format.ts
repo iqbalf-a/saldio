@@ -29,10 +29,9 @@ function withThousands(n: number): string {
   return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-/** Gram emas: 12,5 g (koma desimal Indonesia). */
+/** Gram emas: 12,5 g (koma desimal Indonesia). Simpan nilai asli tanpa pembulatan. */
 export function formatGrams(grams: number, withUnit = true): string {
-  const rounded = Math.round(grams * 100) / 100;
-  const s = String(rounded).replace(".", ",");
+  const s = String(grams).replace(".", ",");
   return withUnit ? `${s} g` : s;
 }
 

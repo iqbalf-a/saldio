@@ -1,14 +1,21 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Screen } from "../components/Screen";
-import { confirmDestructive } from "../lib/confirm";
+import { useConfirm } from "../components/ConfirmModal";
 import { useAppData } from "../state/AppDataContext";
 import { useAuth } from "../state/AuthContext";
+import type { MainTabsParamList } from "../navigation/types";
+
+type Nav = BottomTabNavigationProp<MainTabsParamList>;
 
 export function ProfileScreen() {
+  const navigation = useNavigation<Nav>();
   const { profile, accessToken, isGuest, signOut } = useAuth();
   const { resetAll } = useAppData();
+  const confirm = useConfirm();
   const online = !!accessToken;
 
   return (
@@ -63,18 +70,27 @@ export function ProfileScreen() {
 
       <View className="mt-6 gap-3">
         <Pressable
+          onPress={() => navigation.navigate("Beranda", { screen: "Backup" })}
+          className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
+        >
+          <Ionicons name="cloud-download" size={20} color="#3D51E0" />
+          <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">Backup & Restore</Text>
+          <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
+        </Pressable>
+
+        <Pressable
           onPress={() =>
-            confirmDestructive(
-              "Keluar?",
-              isGuest
+            confirm({
+              title: "Keluar?",
+              message: isGuest
                 ? "Data contoh Mode Tamu akan dibersihkan."
                 : "Data lokal tetap tersimpan di perangkat ini.",
-              "Keluar",
-              () => {
+              confirmLabel: "Keluar",
+              onConfirm: () => {
                 if (isGuest) resetAll();
                 signOut();
-              }
-            )
+              },
+            })
           }
           className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
         >
@@ -85,12 +101,12 @@ export function ProfileScreen() {
 
         <Pressable
           onPress={() =>
-            confirmDestructive(
-              "Hapus semua data?",
-              "Seluruh dompet, transaksi, dan riwayat harga akan dihapus permanen dari perangkat ini.",
-              "Hapus Semua",
-              () => resetAll()
-            )
+            confirm({
+              title: "Hapus semua data?",
+              message: "Seluruh dompet, transaksi, dan riwayat harga akan dihapus permanen dari perangkat ini.",
+              confirmLabel: "Hapus Semua",
+              onConfirm: () => resetAll(),
+            })
           }
           className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
         >

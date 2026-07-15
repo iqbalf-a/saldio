@@ -19,6 +19,7 @@ import {
 } from "@expo-google-fonts/geist-mono";
 import { AuthProvider } from "./src/state/AuthContext";
 import { AppDataProvider } from "./src/state/AppDataContext";
+import { ConfirmProvider } from "./src/components/ConfirmModal";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 
 const theme = {
@@ -52,10 +53,12 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <AppDataProvider>
-          <NavigationContainer theme={theme} documentTitle={{ enabled: false }}>
-            <StatusBar style="dark" />
-            <RootNavigator />
-          </NavigationContainer>
+          <ConfirmProvider>
+            <NavigationContainer theme={theme} documentTitle={{ enabled: false }}>
+              <StatusBar style="dark" />
+              <RootNavigator />
+            </NavigationContainer>
+          </ConfirmProvider>
         </AppDataProvider>
       </AuthProvider>
     </SafeAreaProvider>

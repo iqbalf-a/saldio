@@ -1,14 +1,15 @@
-import { Alert, Platform } from "react-native";
+/**
+ * Legacy confirmDestructive — sekarang diarahkan ke ConfirmModal via context.
+ * Import useConfirm di komponen, atau pakai fungsi ini dari non-component code.
+ */
+let _confirmFn: ((opts: { title: string; message: string; confirmLabel?: string; onConfirm: () => void }) => void) | null = null;
 
-/** Konfirmasi destruktif yang bekerja di native (Alert) dan web (window.confirm). */
+export function setGlobalConfirm(fn: typeof _confirmFn) {
+  _confirmFn = fn;
+}
+
 export function confirmDestructive(title: string, message: string, confirmLabel: string, onConfirm: () => void) {
-  if (Platform.OS === "web") {
-    // eslint-disable-next-line no-alert
-    if (typeof window !== "undefined" && window.confirm(`${title}\n\n${message}`)) onConfirm();
-    return;
+  if (_confirmFn) {
+    _confirmFn({ title, message, confirmLabel, onConfirm });
   }
-  Alert.alert(title, message, [
-    { text: "Batal", style: "cancel" },
-    { text: confirmLabel, style: "destructive", onPress: onConfirm },
-  ]);
 }

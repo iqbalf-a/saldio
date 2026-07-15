@@ -6,7 +6,6 @@ import type {
   AppData,
   GoldPriceEntry,
   Transaction,
-  Transfer,
   Wallet,
 } from "../lib/types";
 import { EMPTY_DATA } from "../lib/types";
@@ -16,11 +15,17 @@ interface AppDataState {
   data: AppData;
   loading: boolean;
   addWallet: (wallet: Omit<Wallet, "id" | "createdAt">) => Wallet;
+  updateWallet: (id: string, wallet: Partial<Wallet>) => void;
   addTransaction: (tx: Omit<Transaction, "id">) => void;
   addTransactions: (txs: Array<Omit<Transaction, "id">>) => void;
-  addTransfer: (transfer: Omit<Transfer, "id">) => void;
+  updateTransaction: (id: string, tx: Partial<Transaction>) => void;
+  deleteTransaction: (id: string) => void;
+  deleteTransactionsBySource: (source: Transaction["source"]) => void;
+  deleteTransactionsByBatch: (batchId: string) => void;
   addGoldPrice: (entry: GoldPriceEntry) => void;
+  deleteGoldPrice: (date: string) => void;
   deleteWallet: (walletId: string) => void;
+  moveWallet: (walletId: string, direction: "up" | "down") => void;
   resetAll: () => void;
   /** Ganti seluruh data (dipakai Mode Tamu untuk memuat data contoh) */
   replaceAll: (next: AppData) => void;
@@ -113,11 +118,51 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     [persist]
   );
 
-  const addTransfer = useCallback(
-    (transfer: Omit<Transfer, "id">) => {
+  const updateTransaction = useCallback(
+    (id: string, tx: Partial<Transaction>) => {
       persist((prev) => ({
         ...prev,
-        transfers: [...prev.transfers, { ...transfer, id: newId("tr") }],
+        transactions: prev.transactions.map((t) => (t.id === id ? { ...t, ...tx } : t)),
+      }));
+    },
+    [persist]
+  );
+
+  const deleteTransaction = useCallback(
+    (id: string) => {
+      persist((prev) => ({
+        ...prev,
+        transactions: prev.transactions.filter((t) => t.id !== id),
+      }));
+    },
+    [persist]
+  );
+
+  const deleteTransactionsBySource = useCallback(
+    (source: Transaction["source"]) => {
+      persist((prev) => ({
+        ...prev,
+        transactions: prev.transactions.filter((t) => t.source !== source),
+      }));
+    },
+    [persist]
+  );
+
+  const deleteTransactionsByBatch = useCallback(
+    (batchId: string) => {
+      persist((prev) => ({
+        ...prev,
+        transactions: prev.transactions.filter((t) => t.importBatch !== batchId),
+      }));
+    },
+    [persist]
+  );
+
+  const updateWallet = useCallback(
+    (id: string, wallet: Partial<Wallet>) => {
+      persist((prev) => ({
+        ...prev,
+        wallets: prev.wallets.map((w) => (w.id === id ? { ...w, ...wallet } : w)),
       }));
     },
     [persist]
@@ -136,16 +181,38 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     [persist]
   );
 
+  const deleteGoldPrice = useCallback(
+    (date: string) => {
+      persist((prev) => ({
+        ...prev,
+        goldPriceLog: prev.goldPriceLog.filter((p) => p.date !== date),
+      }));
+    },
+    [persist]
+  );
+
   const deleteWallet = useCallback(
     (walletId: string) => {
       persist((prev) => ({
         ...prev,
         wallets: prev.wallets.filter((w) => w.id !== walletId),
         transactions: prev.transactions.filter((t) => t.walletId !== walletId),
-        transfers: prev.transfers.filter(
-          (tr) => tr.fromWalletId !== walletId && tr.toWalletId !== walletId
-        ),
       }));
+    },
+    [persist]
+  );
+
+  const moveWallet = useCallback(
+    (walletId: string, direction: "up" | "down") => {
+      persist((prev) => {
+        const idx = prev.wallets.findIndex((w) => w.id === walletId);
+        if (idx === -1) return prev;
+        const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+        if (targetIdx < 0 || targetIdx >= prev.wallets.length) return prev;
+        const next = [...prev.wallets];
+        [next[idx], next[targetIdx]] = [next[targetIdx], next[idx]];
+        return { ...prev, wallets: next };
+      });
     },
     [persist]
   );
@@ -166,15 +233,21 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       data,
       loading,
       addWallet,
+      updateWallet,
       addTransaction,
       addTransactions,
-      addTransfer,
+      updateTransaction,
+      deleteTransaction,
+      deleteTransactionsBySource,
+      deleteTransactionsByBatch,
       addGoldPrice,
+      deleteGoldPrice,
       deleteWallet,
+      moveWallet,
       resetAll,
       replaceAll,
     }),
-    [data, loading, addWallet, addTransaction, addTransactions, addTransfer, addGoldPrice, deleteWallet, resetAll, replaceAll]
+    [data, loading, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, resetAll, replaceAll]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

@@ -50,18 +50,20 @@ function TypeToggle({
 }
 
 export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"AddTransaction">) {
-  const { data, addTransaction } = useAppData();
+  const { data, addTransaction, updateTransaction } = useAppData();
+  const isEdit = !!route.params?.transactionId;
+  const existingTx = isEdit ? data.transactions.find((t) => t.id === route.params.transactionId) : null;
   const wallets = data.wallets;
-  const [walletId, setWalletId] = useState(route.params?.walletId ?? wallets[0]?.id);
+  const [walletId, setWalletId] = useState(route.params?.walletId ?? existingTx?.walletId ?? wallets[0]?.id);
   const wallet = wallets.find((w) => w.id === walletId);
   const isGold = wallet?.type === "gold";
 
-  const [txType, setTxType] = useState<string>(isGold ? "buy_gold" : "expense");
-  const [amountDigits, setAmountDigits] = useState("");
-  const [grams, setGrams] = useState("");
-  const [category, setCategory] = useState("Makanan");
-  const [note, setNote] = useState("");
-  const [date, setDate] = useState(toISODate(new Date()));
+  const [txType, setTxType] = useState<string>(existingTx?.type ?? (isGold ? "buy_gold" : "expense"));
+  const [amountDigits, setAmountDigits] = useState(existingTx?.amount ? String(existingTx.amount) : "");
+  const [grams, setGrams] = useState(existingTx?.grams ? String(existingTx.grams) : "");
+  const [category, setCategory] = useState(existingTx?.category ?? "Makanan");
+  const [note, setNote] = useState(existingTx?.note ?? "");
+  const [date, setDate] = useState(existingTx?.date ?? toISODate(new Date()));
 
   const categories = useMemo(() => CATEGORIES.filter((c) => c.key !== "Emas" && c.key !== "Transfer"), []);
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
@@ -70,32 +72,35 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
 
   const submit = () => {
     if (!canSubmit || !wallet) return;
-    if (isGold) {
-      addTransaction({
-        walletId: wallet.id,
-        date,
-        type: (txType === "sell_gold" ? "sell_gold" : "buy_gold") as TransactionType,
-        grams: parseFloat(grams.replace(",", ".")),
-        note: note.trim() || undefined,
-        source: "manual",
-      });
+    const txData = isGold
+      ? {
+          walletId: wallet.id,
+          date,
+          type: (txType === "sell_gold" ? "sell_gold" : "buy_gold") as TransactionType,
+          grams: parseFloat(grams.replace(",", ".")),
+          note: note.trim() || undefined,
+          source: "manual" as const,
+        }
+      : {
+          walletId: wallet.id,
+          date,
+          type: (txType === "income" ? "income" : "expense") as TransactionType,
+          amount: parseInt(amountDigits, 10),
+          category,
+          note: note.trim() || undefined,
+          source: "manual" as const,
+        };
+    if (isEdit && existingTx) {
+      updateTransaction(existingTx.id, txData);
     } else {
-      addTransaction({
-        walletId: wallet.id,
-        date,
-        type: (txType === "income" ? "income" : "expense") as TransactionType,
-        amount: parseInt(amountDigits, 10),
-        category,
-        note: note.trim() || undefined,
-        source: "manual",
-      });
+      addTransaction(txData);
     }
     navigation.goBack();
   };
 
   return (
     <Screen>
-      <ScreenHeader title={isGold ? "Catat Transaksi Emas" : "Tambah Transaksi"} />
+      <ScreenHeader title={isEdit ? "Edit Transaksi" : isGold ? "Catat Transaksi Emas" : "Tambah Transaksi"} />
 
       {/* Pilih dompet (jika tidak dibuka dari dompet tertentu) */}
       {!route.params?.walletId ? (

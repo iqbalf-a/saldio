@@ -24,7 +24,8 @@ export function UpdateGoldPriceScreen({ navigation }: HomeScreenProps<"UpdateGol
 
   const price = parseInt(priceDigits || "0", 10);
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
-  const canSubmit = price > 0 && validDate;
+  const dateExists = data.goldPriceLog.some((p) => p.date === date);
+  const canSubmit = price > 0 && validDate && !dateExists;
 
   return (
     <Screen>
@@ -64,6 +65,15 @@ export function UpdateGoldPriceScreen({ navigation }: HomeScreenProps<"UpdateGol
           harga ini, dan perubahannya tercatat di riwayat harga.
         </Text>
       </View>
+
+      {dateExists ? (
+        <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg p-4">
+          <Ionicons name="alert-circle" size={16} color="#E23B3B" />
+          <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red">
+            Harga untuk tanggal ini sudah ada. Pilih tanggal lain atau perbarui entri yang sudah ada.
+          </Text>
+        </View>
+      ) : null}
 
       <View className="mt-8">
         <PrimaryButton

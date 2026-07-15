@@ -5,12 +5,12 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 
 ## Fase 1 — Penyuntingan data (dampak terbesar)
 
-- [ ] Edit transaksi (nominal, kategori, catatan, tanggal)
-- [ ] Hapus transaksi (dengan konfirmasi)
-- [ ] Ubah nama dompet & saldo/gram awal
-- [ ] Hapus/koreksi transfer
-- [ ] Hapus/koreksi entri harga emas
-- [ ] Undo hasil impor PDF per batch (tandai batch id di `source`/metadata, tombol "Batalkan impor ini")
+- [x] Edit transaksi (nominal, kategori, catatan, tanggal)
+- [x] Hapus transaksi (dengan konfirmasi)
+- [x] Ubah nama dompet & saldo/gram awal
+- [x] Hapus/koreksi transfer (transfer dihapus sepenuhnya dari aplikasi)
+- [x] Hapus/koreksi entri harga emas (long press di riwayat harga)
+- [x] Undo hasil impor PDF per batch (tombol "Batalkan Impor Ini" setelah impor)
 
 ## Fase 2 — Sinkronisasi Google yang tahan lama
 
@@ -29,10 +29,10 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 
 ## Fase 4 — Fitur finansial lanjutan
 
-- [ ] Breakdown pengeluaran per kategori per bulan (chart di tab Riwayat atau Aset)
-- [ ] Pencarian transaksi (catatan/kategori)
+- [x] Breakdown pengeluaran per kategori per bulan (chart di tab Riwayat atau Aset)
+- [x] Pencarian transaksi (catatan/kategori)
 - [ ] Kategori kustom (tambah/ubah/arsip)
-- [ ] Ekspor data CSV / JSON
+- [x] Ekspor data CSV / JSON (backup export/import di tab Profil)
 - [ ] Transaksi berulang (langganan bulanan: Netflix, listrik, dll.)
 - [ ] Budget per kategori + indikator pemakaian
 

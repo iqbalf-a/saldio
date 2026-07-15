@@ -9,9 +9,10 @@ import { ProfileScreen } from "../screens/ProfileScreen";
 import { AddWalletScreen } from "../screens/AddWalletScreen";
 import { WalletDetailScreen } from "../screens/WalletDetailScreen";
 import { AddTransactionScreen } from "../screens/AddTransactionScreen";
-import { TransferScreen } from "../screens/TransferScreen";
+import { EditWalletScreen } from "../screens/EditWalletScreen";
 import { ImportPdfScreen } from "../screens/ImportPdfScreen";
 import { UpdateGoldPriceScreen } from "../screens/UpdateGoldPriceScreen";
+import { BackupScreen } from "../screens/BackupScreen";
 import type { HomeStackParamList, MainTabsParamList } from "./types";
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -26,10 +27,11 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="Home" component={HomeScreen} />
       <HomeStack.Screen name="AddWallet" component={AddWalletScreen} />
       <HomeStack.Screen name="WalletDetail" component={WalletDetailScreen} />
+      <HomeStack.Screen name="EditWallet" component={EditWalletScreen} />
       <HomeStack.Screen name="AddTransaction" component={AddTransactionScreen} />
-      <HomeStack.Screen name="Transfer" component={TransferScreen} />
       <HomeStack.Screen name="ImportPdf" component={ImportPdfScreen} />
       <HomeStack.Screen name="UpdateGoldPrice" component={UpdateGoldPriceScreen} />
+      <HomeStack.Screen name="Backup" component={BackupScreen} />
     </HomeStack.Navigator>
   );
 }

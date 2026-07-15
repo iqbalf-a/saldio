@@ -18,7 +18,7 @@ import {
   parseISODate,
 } from "../lib/format";
 import { goldGrams, goldValue, latestGoldPrice } from "../lib/balances";
-import { confirmDestructive } from "../lib/confirm";
+import { useConfirm } from "../components/ConfirmModal";
 import type { Wallet } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
 import type { HomeStackParamList } from "../navigation/types";
@@ -28,9 +28,11 @@ type TxFilter = "Semua" | "Beli" | "Jual";
 
 export function GoldWalletView({ wallet }: { wallet: Wallet }) {
   const navigation = useNavigation<Nav>();
-  const { data, deleteWallet } = useAppData();
+  const { data, deleteWallet, deleteGoldPrice } = useAppData();
+  const confirm = useConfirm();
   const [filter, setFilter] = useState<TxFilter>("Semua");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [priceMenuDate, setPriceMenuDate] = useState<string | null>(null);
 
   const grams = goldGrams(data, wallet);
   const value = goldValue(data, wallet);
@@ -45,9 +47,11 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
   const change30 = useMemo(() => {
     if (priceLog.length < 2) return null;
     const latest = priceLog[0];
-    const cutoff = parseISODate(latest.date).getTime() - 30 * 86400000;
+    const latestDate = parseISODate(latest.date);
+    latestDate.setDate(latestDate.getDate() - 30);
+    const cutoff = latestDate.toISOString().split("T")[0];
     const base =
-      [...priceLog].reverse().find((p) => parseISODate(p.date).getTime() <= cutoff) ??
+      [...priceLog].reverse().find((p) => p.date <= cutoff) ??
       priceLog[priceLog.length - 1];
     if (base.pricePerGram === 0) return null;
     const pct = ((latest.pricePerGram - base.pricePerGram) / base.pricePerGram) * 100;
@@ -68,15 +72,15 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
   );
 
   const onDelete = () =>
-    confirmDestructive(
-      "Hapus dompet?",
-      `"${wallet.name}" beserta seluruh catatan emasnya akan dihapus. Tindakan ini tidak bisa dibatalkan.`,
-      "Hapus",
-      () => {
+    confirm({
+      title: "Hapus dompet?",
+      message: `"${wallet.name}" beserta seluruh catatan emasnya akan dihapus. Tindakan ini tidak bisa dibatalkan.`,
+      confirmLabel: "Hapus",
+      onConfirm: () => {
         deleteWallet(wallet.id);
         navigation.goBack();
-      }
-    );
+      },
+    });
 
   const cycleFilter = () =>
     setFilter((f) => (f === "Semua" ? "Beli" : f === "Beli" ? "Jual" : "Semua"));
@@ -96,7 +100,25 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
       <ActionMenu
         visible={menuOpen}
         onClose={() => setMenuOpen(false)}
-        items={[{ label: "Hapus Dompet", icon: "trash", destructive: true, onPress: onDelete }]}
+        items={[
+          {
+            label: "Edit Dompet",
+            icon: "pencil",
+            onPress: () => {
+              setMenuOpen(false);
+              navigation.navigate("EditWallet", { walletId: wallet.id });
+            },
+          },
+          {
+            label: "Hapus Dompet",
+            icon: "trash",
+            destructive: true,
+            onPress: () => {
+              setMenuOpen(false);
+              onDelete();
+            },
+          },
+        ]}
       />
 
       {/* Kartu emas */}
@@ -206,7 +228,11 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
                 const prev = priceLog[i + 1];
                 const delta = prev ? p.pricePerGram - prev.pricePerGram : null;
                 return (
-                  <View key={p.date} className="flex-row items-center justify-between py-2">
+                  <Pressable
+                    key={p.date}
+                    onLongPress={() => setPriceMenuDate(p.date)}
+                    className="flex-row items-center justify-between py-2 active:opacity-70"
+                  >
                     <Text className="w-24 font-sans text-xs text-saldio-soft">
                       {formatMediumDate(p.date)}
                     </Text>
@@ -224,10 +250,41 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
                     >
                       {delta === null ? "" : formatSignedRupiah(delta).replace("Rp", "")}
                     </Text>
-                  </View>
+                  </Pressable>
                 );
               })}
             </View>
+
+            {priceMenuDate ? (
+              <ActionMenu
+                visible={!!priceMenuDate}
+                onClose={() => setPriceMenuDate(null)}
+                items={[
+                  {
+                    label: "Edit Harga",
+                    icon: "pencil",
+                    onPress: () => {
+                      setPriceMenuDate(null);
+                      navigation.navigate("UpdateGoldPrice", { walletId: wallet.id });
+                    },
+                  },
+                  {
+                    label: "Hapus Harga",
+                    icon: "trash",
+                    destructive: true,
+                    onPress: () => {
+                      setPriceMenuDate(null);
+                      confirm({
+                        title: "Hapus entri harga?",
+                        message: `Harga ${formatMediumDate(priceMenuDate)} akan dihapus dari riwayat.`,
+                        confirmLabel: "Hapus",
+                        onConfirm: () => deleteGoldPrice(priceMenuDate),
+                      });
+                    },
+                  },
+                ]}
+              />
+            ) : null}
           </>
         )}
       </View>

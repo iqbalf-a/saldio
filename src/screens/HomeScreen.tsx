@@ -8,6 +8,7 @@ import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Screen } from "../components/Screen";
 import { WalletBadge } from "../components/WalletBadge";
 import { EmptyState } from "../components/EmptyState";
+import { ActionMenu } from "../components/ActionMenu";
 import { formatGrams, formatRupiah } from "../lib/format";
 import {
   goldGrams,
@@ -45,9 +46,10 @@ function walletSubtitle(wallet: Wallet): string {
 
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
-  const { data } = useAppData();
+  const { data, moveWallet } = useAppData();
   const { profile } = useAuth();
   const [hidden, setHidden] = useState(false);
+  const [walletMenuId, setWalletMenuId] = useState<string | null>(null);
 
   const total = netWorth(data);
   const liquid = liquidTotal(data);
@@ -124,39 +126,67 @@ export function HomeScreen() {
           />
         ) : (
           <View className="gap-3.5">
-            {data.wallets.map((w) => {
+            {data.wallets.map((w, idx) => {
               const isGold = w.type === "gold";
               return (
-                <Pressable
-                  key={w.id}
-                  onPress={() => navigation.navigate("WalletDetail", { walletId: w.id })}
-                  style={CARD_SHADOW}
-                  className={`flex-row items-center gap-3 rounded-[20px] p-4 active:opacity-80 ${
-                    isGold ? "bg-saldio-gold-bg" : "bg-white"
-                  }`}
-                >
-                  <WalletBadge name={w.name} template={w.template} type={w.type} size={40} />
-                  <View className="flex-1">
-                    <Text className="font-sans-semibold text-sm text-saldio-ink">{w.name}</Text>
-                    <Text className="mt-0.5 font-sans text-xs text-saldio-muted">
-                      {isGold
-                        ? price
-                          ? `${formatGrams(goldGrams(data, w), false)} gram · ${formatRupiah(price.pricePerGram)}/g`
-                          : `${formatGrams(goldGrams(data, w), false)} gram · harga belum diatur`
-                        : walletSubtitle(w)}
-                    </Text>
-                  </View>
-                  <View className="items-end">
-                    <Text className="font-mono-semibold text-sm text-saldio-ink">
-                      {mask(formatRupiah(walletBalance(data, w)))}
-                    </Text>
-                    {isGold ? (
-                      <Text className="mt-0.5 font-sans text-[10px] text-saldio-gold-ink">
-                        ≈ nilai saat ini
+                <View key={w.id}>
+                  <Pressable
+                    onPress={() => navigation.navigate("WalletDetail", { walletId: w.id })}
+                    onLongPress={() => setWalletMenuId(w.id)}
+                    style={CARD_SHADOW}
+                    className={`flex-row items-center gap-3 rounded-[20px] p-4 active:opacity-80 ${
+                      isGold ? "bg-saldio-gold-bg" : "bg-white"
+                    }`}
+                  >
+                    <WalletBadge name={w.name} template={w.template} type={w.type} size={40} />
+                    <View className="flex-1">
+                      <Text className="font-sans-semibold text-sm text-saldio-ink">{w.name}</Text>
+                      <Text className="mt-0.5 font-sans text-xs text-saldio-muted">
+                        {isGold
+                          ? price
+                            ? `${formatGrams(goldGrams(data, w), false)} gram · ${formatRupiah(price.pricePerGram)}/g`
+                            : `${formatGrams(goldGrams(data, w), false)} gram · harga belum diatur`
+                          : walletSubtitle(w)}
                       </Text>
-                    ) : null}
-                  </View>
-                </Pressable>
+                    </View>
+                    <View className="items-end">
+                      <Text className="font-mono-semibold text-sm text-saldio-ink">
+                        {mask(formatRupiah(walletBalance(data, w)))}
+                      </Text>
+                      {isGold ? (
+                        <Text className="mt-0.5 font-sans text-[10px] text-saldio-gold-ink">
+                          ≈ nilai saat ini
+                        </Text>
+                      ) : null}
+                    </View>
+                  </Pressable>
+                  <ActionMenu
+                    visible={walletMenuId === w.id}
+                    onClose={() => setWalletMenuId(null)}
+                    items={[
+                      ...(idx > 0
+                        ? [{
+                            label: "Pindah ke atas",
+                            icon: "arrow-up",
+                            onPress: () => {
+                              moveWallet(w.id, "up");
+                              setWalletMenuId(null);
+                            },
+                          }]
+                        : []),
+                      ...(idx < data.wallets.length - 1
+                        ? [{
+                            label: "Pindah ke bawah",
+                            icon: "arrow-down",
+                            onPress: () => {
+                              moveWallet(w.id, "down");
+                              setWalletMenuId(null);
+                            },
+                          }]
+                        : []),
+                    ]}
+                  />
+                </View>
               );
             })}
           </View>
