@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { downloadFromDrive, uploadToDrive } from "../lib/drive";
+import { downloadFromDrive, DriveAuthError, uploadToDrive } from "../lib/drive";
 import { newId } from "../lib/ids";
 import { loadData, saveData } from "../lib/storage";
 import type {
@@ -14,6 +14,14 @@ import { useAuth } from "./AuthContext";
 interface AppDataState {
   data: AppData;
   loading: boolean;
+  /** Timestamp (ms) terakhir kali sinkronisasi dengan Drive berhasil, atau null jika belum pernah. */
+  lastSyncTimestamp: number | null;
+  /** True jika terdeteksi token Google Drive kedaluwarsa (HTTP 401). */
+  authError: boolean;
+  /** Reset flag authError setelah user menanggapi. */
+  clearAuthError: () => void;
+  /** Sinkronisasi manual — tarik data dari Drive sekarang. */
+  manualSync: () => Promise<void>;
   addWallet: (wallet: Omit<Wallet, "id" | "createdAt">) => Wallet;
   updateWallet: (id: string, wallet: Partial<Wallet>) => void;
   addTransaction: (tx: Omit<Transaction, "id">) => void;
@@ -36,8 +44,12 @@ const AppDataContext = createContext<AppDataState | null>(null);
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<AppData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(false);
+  const [lastSyncTimestamp, setLastSyncTimestamp] = useState<number | null>(null);
   const { accessToken } = useAuth();
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearAuthError = useCallback(() => setAuthError(false), []);
 
   // Muat cache lokal dulu (offline-first), lalu coba tarik dari Drive.
   useEffect(() => {
@@ -53,10 +65,14 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
           const remote = await downloadFromDrive(accessToken);
           if (remote && !cancelled) {
             setData(remote);
+            setLastSyncTimestamp(Date.now());
             await saveData(remote);
           }
-        } catch {
-          // Offline atau token kedaluwarsa — pakai cache lokal.
+        } catch (e) {
+          if (e instanceof DriveAuthError && !cancelled) {
+            setAuthError(true);
+          }
+          // Offline atau error lainnya — pakai cache lokal.
         }
       }
     })();
@@ -73,7 +89,11 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         if (accessToken) {
           if (syncTimer.current) clearTimeout(syncTimer.current);
           syncTimer.current = setTimeout(() => {
-            uploadToDrive(accessToken, next).catch(() => {});
+            uploadToDrive(accessToken, next).then(() => {
+              setLastSyncTimestamp(Date.now());
+            }).catch((e) => {
+              if (e instanceof DriveAuthError) setAuthError(true);
+            });
           }, 2000);
         }
         return next;
@@ -228,10 +248,28 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     [persist]
   );
 
+  const manualSync = useCallback(async () => {
+    if (!accessToken) return;
+    try {
+      const remote = await downloadFromDrive(accessToken);
+      if (remote) {
+        setData(remote);
+        setLastSyncTimestamp(Date.now());
+        await saveData(remote);
+      }
+    } catch (e) {
+      if (e instanceof DriveAuthError) setAuthError(true);
+    }
+  }, [accessToken]);
+
   const value = useMemo(
     () => ({
       data,
       loading,
+      lastSyncTimestamp,
+      authError,
+      clearAuthError,
+      manualSync,
       addWallet,
       updateWallet,
       addTransaction,
@@ -247,7 +285,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       resetAll,
       replaceAll,
     }),
-    [data, loading, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, resetAll, replaceAll]
+    [data, loading, lastSyncTimestamp, authError, clearAuthError, manualSync, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, resetAll, replaceAll]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

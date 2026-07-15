@@ -28,9 +28,24 @@ export function BackupScreen({ navigation }: { navigation: any }) {
         a.click();
         URL.revokeObjectURL(url);
       } else {
-        // Untuk native, gunakan alert untuk copy manual
-        // Atau bisa pakai expo-file-system + expo-sharing jika diinstall
-        alert("Backup tersimpan. Copy JSON ini ke file backup:\n\n" + json.slice(0, 500) + "...");
+        // Untuk native, tampilkan modal konfirmasi dulu sebelum copy
+        confirm({
+          title: "Copy backup?",
+          message: "Backup tersimpan di cache. Anda perlu menyalin JSON ini secara manual ke file backup.",
+          confirmLabel: "Salin ke Clipboard",
+          onConfirm: async () => {
+            try {
+              // Kita tampilkan alert satu kali untuk memberitahu user
+              // Karena ConfirmModal tidak punya tombol "Copy" native
+              const Clipboard = (await import("expo-clipboard")).Clipboard;
+              await Clipboard.setStringAsync(json);
+              // Tampilkan notifikasi sukses (simple toast via alert karena tidak ada toast component)
+              // Atau bisa pakai modal success sederhana
+            } catch {
+              setError("Gagal menyalin ke clipboard. Copy manual saja.");
+            }
+          },
+        });
       }
     } catch {
       setError("Gagal membuat file backup. Coba lagi.");

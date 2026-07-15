@@ -9,12 +9,21 @@ import type { AppData } from "./types";
 const FILES_API = "https://www.googleapis.com/drive/v3/files";
 const UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
 
+/** Error khusus ketika Google Drive API mengembalikan 401 Unauthorized. */
+export class DriveAuthError extends Error {
+  constructor(message = "Token Google Drive kedaluwarsa atau tidak valid") {
+    super(message);
+    this.name = "DriveAuthError";
+  }
+}
+
 async function findDataFileId(token: string): Promise<string | null> {
   const q = encodeURIComponent(`name='${DRIVE_DATA_FILENAME}' and trashed=false`);
   const res = await fetch(
     `${FILES_API}?spaces=appDataFolder&q=${q}&fields=files(id,name)`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
+  if (res.status === 401) throw new DriveAuthError();
   if (!res.ok) throw new Error(`Drive list gagal: ${res.status}`);
   const json = await res.json();
   return json.files?.[0]?.id ?? null;
@@ -26,6 +35,7 @@ export async function downloadFromDrive(token: string): Promise<AppData | null> 
   const res = await fetch(`${FILES_API}/${fileId}?alt=media`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (res.status === 401) throw new DriveAuthError();
   if (!res.ok) throw new Error(`Drive download gagal: ${res.status}`);
   return (await res.json()) as AppData;
 }
@@ -39,6 +49,7 @@ export async function uploadToDrive(token: string, data: AppData): Promise<void>
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body,
     });
+    if (res.status === 401) throw new DriveAuthError();
     if (!res.ok) throw new Error(`Drive update gagal: ${res.status}`);
     return;
   }
@@ -58,5 +69,6 @@ export async function uploadToDrive(token: string, data: AppData): Promise<void>
     },
     body: multipart,
   });
+  if (res.status === 401) throw new DriveAuthError();
   if (!res.ok) throw new Error(`Drive create gagal: ${res.status}`);
 }
