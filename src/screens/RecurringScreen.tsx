@@ -24,7 +24,6 @@ const FREQ_ICONS: Record<RecurringFrequency, string> = {
 
 export function RecurringScreen({ navigation }: HomeScreenProps<"Recurring">) {
   const { data, addRecurring, updateRecurring, removeRecurring } = useAppData();
-  const dataWallets = data.wallets ?? [];
   const confirm = useConfirm();
   const customCats = data.customCategories ?? [];
   const cats = allCategories(customCats);

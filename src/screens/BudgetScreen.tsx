@@ -5,21 +5,20 @@ import { Screen, ScreenHeader } from "../components/Screen";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { useAppData } from "../state/AppDataContext";
 import { allCategories } from "../lib/categories";
-import { formatRupiah } from "../lib/format";
+import { currentYearMonth, formatRupiah } from "../lib/format";
 import type { HomeScreenProps } from "../navigation/types";
 
 export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
   const { data, setCategoryBudget, removeCategoryBudget } = useAppData();
   const customCats = data.customCategories ?? [];
-  const cats = allCategories(customCats);
+  const cats = useMemo(() => allCategories(customCats), [customCats]);
   const budgets = data.categoryBudgets ?? [];
 
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [limitInput, setLimitInput] = useState("");
 
   /** Hitung pengeluaran bulan ini per kategori. */
-  const now = new Date();
-  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const ym = currentYearMonth();
 
   const spentMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -34,7 +33,7 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
   const handleSave = () => {
     if (!selectedCat) return;
     const lim = parseInt(limitInput.replace(/\D/g, ""), 10);
-    if (lim <= 0) return;
+    if (!lim || lim <= 0) return;
     setCategoryBudget(selectedCat, lim);
     setSelectedCat(null);
     setLimitInput("");
@@ -88,7 +87,7 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
               <PrimaryButton
                 label="Simpan"
                 onPress={handleSave}
-                disabled={!limitInput || parseInt(limitInput.replace(/\D/g, ""), 10) <= 0}
+                disabled={!limitInput || !parseInt(limitInput.replace(/\D/g, ""), 10)}
               />
             </View>
           </View>

@@ -376,44 +376,81 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     [persist]
   );
 
+  /** Format tanggal lokal YYYY-MM-DD (bukan UTC). */
+  function localDateStr(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  /** Tanggal hari ini versi lokal. */
+  function localToday(): string {
+    return localDateStr(new Date());
+  }
+
+  /** Majukan due date sesuai frekuensi, handle month-end drift. */
   function advanceDue(current: string, freq: RecurringTransaction["frequency"]): string {
-    const d = new Date(current);
-    if (freq === "weekly") d.setDate(d.getDate() + 7);
-    else if (freq === "monthly") d.setMonth(d.getMonth() + 1);
-    else d.setFullYear(d.getFullYear() + 1);
-    return d.toISOString().slice(0, 10);
+    const [y, m, d] = current.split("-").map(Number);
+    if (freq === "weekly") {
+      return localDateStr(new Date(y, m - 1, d + 7));
+    } else if (freq === "monthly") {
+      // Clamp ke hari terakhir bulan tujuan (Jan 31 → Feb 28 → Mar 31)
+      const targetDay = Math.min(d, new Date(y, m + 1, 0).getDate());
+      return localDateStr(new Date(y, m, targetDay));
+    } else {
+      return localDateStr(new Date(y + 1, m - 1, d));
+    }
   }
 
   const generateDueRecurring = useCallback((): number => {
-    const today = new Date().toISOString().slice(0, 10);
-    let count = 0;
-    persist((prev) => {
-      const list = prev.recurringTransactions ?? [];
-      const newTxs: Transaction[] = [];
-      const updated = list.map((r) => {
-        if (!r.active || r.nextDue > today) return r;
+    const today = localToday();
+    // Hitung semua transaksi baru & update nextDue di luar updater (tanpa side-effect).
+    const list = data.recurringTransactions ?? [];
+    const newTxs: Transaction[] = [];
+    const nextDueMap = new Map<string, string>();
+
+    for (const r of list) {
+      if (!r.active || r.nextDue > today) continue;
+      // Loop untuk kejadian yang terlewat (misal: app tidak dibuka 5 hari, daily → 5 tx).
+      let due = r.nextDue;
+      let safety = 0;
+      while (due <= today && safety < 366) {
         newTxs.push({
           id: newId("tx"),
           walletId: r.walletId,
-          date: r.nextDue,
+          date: due,
           type: "expense",
           amount: r.amount,
           category: r.category,
           note: r.title,
           source: "manual",
         });
-        count++;
-        return { ...r, nextDue: advanceDue(r.nextDue, r.frequency) };
-      });
-      if (newTxs.length === 0) return prev;
-      return {
-        ...prev,
-        transactions: [...prev.transactions, ...newTxs],
-        recurringTransactions: updated,
-      };
-    });
-    return count;
-  }, [persist]);
+        due = advanceDue(due, r.frequency);
+        safety++;
+      }
+      nextDueMap.set(r.id, due);
+    }
+
+    if (newTxs.length === 0) return 0;
+
+    persist((prev) => ({
+      ...prev,
+      transactions: [...prev.transactions, ...newTxs],
+      recurringTransactions: (prev.recurringTransactions ?? []).map((r) => {
+        const next = nextDueMap.get(r.id);
+        return next ? { ...r, nextDue: next } : r;
+      }),
+    }));
+
+    return newTxs.length;
+  }, [data.recurringTransactions, persist]);
+
+  // Generate transaksi berulang yang sudah jatuh tempo saat data pertama kali siap.
+  const recurringRan = useRef(false);
+  useEffect(() => {
+    if (!loading && !recurringRan.current) {
+      recurringRan.current = true;
+      generateDueRecurring();
+    }
+  }, [loading, generateDueRecurring]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Budget per kategori ---
 

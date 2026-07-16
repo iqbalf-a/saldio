@@ -1,4 +1,5 @@
 import type { AppData, Transaction } from "./types";
+import { currentYearMonth } from "./format";
 
 /**
  * Kembalikan transaksi untuk dompet tertentu.
@@ -10,8 +11,7 @@ export function walletFeed(data: AppData, walletId: string): Transaction[] {
 
 /** Daftar bulan (YYYY-MM) yang punya data, terbaru dulu; selalu memuat bulan ini. */
 export function availableMonths(items: Array<{ date: string }>): string[] {
-  const now = new Date();
-  const current = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const current = currentYearMonth();
   const set = new Set<string>([current]);
   for (const it of items) set.add(it.date.slice(0, 7));
   return [...set].sort((a, b) => b.localeCompare(a));

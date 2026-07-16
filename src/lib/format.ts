@@ -84,6 +84,12 @@ export function toYearMonth(iso: string): string {
   return iso.slice(0, 7);
 }
 
+/** Bulan ini dalam format YYYY-MM (lokal). */
+export function currentYearMonth(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
 export function monthShortLabel(yearMonth: string): string {
   const [, m] = yearMonth.split("-").map(Number);
   return MONTHS_SHORT[m - 1];
