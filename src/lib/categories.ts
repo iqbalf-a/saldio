@@ -1,3 +1,5 @@
+import type { CustomCategory } from "./types";
+
 export interface Category {
   key: string;
   label: string;
@@ -19,8 +21,20 @@ export const CATEGORIES: Category[] = [
   { key: "Lainnya", label: "Lainnya", icon: "apps", color: "#64748B", background: "#EDF1F7" },
 ];
 
-export function categoryByKey(key?: string): Category {
-  return CATEGORIES.find((c) => c.key === key) ?? CATEGORIES[CATEGORIES.length - 1];
+/** Gabungan kategori bawaan + kategori kustom. */
+export function allCategories(custom?: CustomCategory[]): Category[] {
+  const customList: Category[] = (custom ?? []).map((c) => ({
+    key: c.key,
+    label: c.label,
+    icon: c.icon,
+    color: c.color,
+    background: c.background,
+  }));
+  return [...CATEGORIES, ...customList];
+}
+
+export function categoryByKey(key?: string, custom?: CustomCategory[]): Category {
+  return allCategories(custom).find((c) => c.key === key) ?? CATEGORIES[CATEGORIES.length - 1];
 }
 
 /** Tebak kategori dari deskripsi transaksi hasil impor PDF. */

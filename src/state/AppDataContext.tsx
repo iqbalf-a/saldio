@@ -5,6 +5,9 @@ import { loadData, saveData } from "../lib/storage";
 import type {
   AppData,
   GoldPriceEntry,
+  CustomCategory,
+  RecurringTransaction,
+  CategoryBudget,
   Transaction,
   Wallet,
 } from "../lib/types";
@@ -34,6 +37,16 @@ interface AppDataState {
   deleteGoldPrice: (date: string) => void;
   deleteWallet: (walletId: string) => void;
   moveWallet: (walletId: string, direction: "up" | "down") => void;
+  addCustomCategory: (cat: Omit<CustomCategory, "key">) => void;
+  updateCustomCategory: (key: string, patch: Partial<Omit<CustomCategory, "key">>) => void;
+  removeCustomCategory: (key: string) => void;
+  addRecurring: (r: Omit<RecurringTransaction, "id" | "createdAt">) => void;
+  updateRecurring: (id: string, patch: Partial<RecurringTransaction>) => void;
+  removeRecurring: (id: string) => void;
+  /** Generate transaksi dari recurring yang sudah jatuh tempo. Return jumlah yang dibuat. */
+  generateDueRecurring: () => number;
+  setCategoryBudget: (categoryKey: string, limit: number) => void;
+  removeCategoryBudget: (categoryKey: string) => void;
   resetAll: () => void;
   /** Ganti seluruh data (dipakai Mode Tamu untuk memuat data contoh) */
   replaceAll: (next: AppData) => void;
@@ -293,6 +306,144 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     [persist]
   );
 
+  const addCustomCategory = useCallback(
+    (cat: Omit<CustomCategory, "key">) => {
+      const key = cat.label.toLowerCase().replace(/[^a-z0-9]/g, "_") + "_" + Date.now();
+      persist((prev) => ({
+        ...prev,
+        customCategories: [...(prev.customCategories ?? []), { ...cat, key }],
+      }));
+    },
+    [persist],
+  );
+
+  const updateCustomCategory = useCallback(
+    (key: string, patch: Partial<Omit<CustomCategory, "key">>) => {
+      persist((prev) => ({
+        ...prev,
+        customCategories: (prev.customCategories ?? []).map((c) =>
+          c.key === key ? { ...c, ...patch } : c,
+        ),
+      }));
+    },
+    [persist],
+  );
+
+  const removeCustomCategory = useCallback(
+    (key: string) => {
+      persist((prev) => ({
+        ...prev,
+        customCategories: (prev.customCategories ?? []).filter((c) => c.key !== key),
+      }));
+    },
+    [persist]
+  );
+
+  // --- Transaksi berulang ---
+
+  const addRecurring = useCallback(
+    (r: Omit<RecurringTransaction, "id" | "createdAt">) => {
+      persist((prev) => ({
+        ...prev,
+        recurringTransactions: [
+          ...(prev.recurringTransactions ?? []),
+          { ...r, id: newId("recurring"), createdAt: new Date().toISOString() },
+        ],
+      }));
+    },
+    [persist]
+  );
+
+  const updateRecurring = useCallback(
+    (id: string, patch: Partial<RecurringTransaction>) => {
+      persist((prev) => ({
+        ...prev,
+        recurringTransactions: (prev.recurringTransactions ?? []).map((r) =>
+          r.id === id ? { ...r, ...patch } : r
+        ),
+      }));
+    },
+    [persist]
+  );
+
+  const removeRecurring = useCallback(
+    (id: string) => {
+      persist((prev) => ({
+        ...prev,
+        recurringTransactions: (prev.recurringTransactions ?? []).filter((r) => r.id !== id),
+      }));
+    },
+    [persist]
+  );
+
+  function advanceDue(current: string, freq: RecurringTransaction["frequency"]): string {
+    const d = new Date(current);
+    if (freq === "weekly") d.setDate(d.getDate() + 7);
+    else if (freq === "monthly") d.setMonth(d.getMonth() + 1);
+    else d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
+  const generateDueRecurring = useCallback((): number => {
+    const today = new Date().toISOString().slice(0, 10);
+    let count = 0;
+    persist((prev) => {
+      const list = prev.recurringTransactions ?? [];
+      const newTxs: Transaction[] = [];
+      const updated = list.map((r) => {
+        if (!r.active || r.nextDue > today) return r;
+        newTxs.push({
+          id: newId("tx"),
+          walletId: r.walletId,
+          date: r.nextDue,
+          type: "expense",
+          amount: r.amount,
+          category: r.category,
+          note: r.title,
+          source: "manual",
+        });
+        count++;
+        return { ...r, nextDue: advanceDue(r.nextDue, r.frequency) };
+      });
+      if (newTxs.length === 0) return prev;
+      return {
+        ...prev,
+        transactions: [...prev.transactions, ...newTxs],
+        recurringTransactions: updated,
+      };
+    });
+    return count;
+  }, [persist]);
+
+  // --- Budget per kategori ---
+
+  const setCategoryBudget = useCallback(
+    (categoryKey: string, limit: number) => {
+      persist((prev) => {
+        const budgets = prev.categoryBudgets ?? [];
+        const existing = budgets.findIndex((b) => b.categoryKey === categoryKey);
+        const next = [...budgets];
+        if (existing >= 0) {
+          next[existing] = { categoryKey, limit };
+        } else {
+          next.push({ categoryKey, limit });
+        }
+        return { ...prev, categoryBudgets: next };
+      });
+    },
+    [persist]
+  );
+
+  const removeCategoryBudget = useCallback(
+    (categoryKey: string) => {
+      persist((prev) => ({
+        ...prev,
+        categoryBudgets: (prev.categoryBudgets ?? []).filter((b) => b.categoryKey !== categoryKey),
+      }));
+    },
+    [persist]
+  );
+
   const resetAll = useCallback(() => {
     persist(() => EMPTY_DATA);
   }, [persist]);
@@ -348,10 +499,19 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       deleteGoldPrice,
       deleteWallet,
       moveWallet,
+      addCustomCategory,
+      updateCustomCategory,
+      removeCustomCategory,
+      addRecurring,
+      updateRecurring,
+      removeRecurring,
+      generateDueRecurring,
+      setCategoryBudget,
+      removeCategoryBudget,
       resetAll,
       replaceAll,
     }),
-    [data, loading, lastSyncTimestamp, authError, clearAuthError, manualSync, conflictRemote, resolveConflict, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, resetAll, replaceAll]
+    [data, loading, lastSyncTimestamp, authError, clearAuthError, manualSync, conflictRemote, resolveConflict, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, addCustomCategory, updateCustomCategory, removeCustomCategory, addRecurring, updateRecurring, removeRecurring, generateDueRecurring, setCategoryBudget, removeCategoryBudget, resetAll, replaceAll]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

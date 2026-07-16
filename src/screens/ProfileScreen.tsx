@@ -104,6 +104,15 @@ export function ProfileScreen() {
 
       <View className="mt-6 gap-3">
         <Pressable
+          onPress={() => navigation.navigate("Beranda", { screen: "ManageCategories" })}
+          className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
+        >
+          <Ionicons name="pricetags" size={20} color="#3D51E0" />
+          <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">Kategori</Text>
+          <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
+        </Pressable>
+
+        <Pressable
           onPress={() => navigation.navigate("Beranda", { screen: "Backup" })}
           className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
         >
@@ -146,6 +155,24 @@ export function ProfileScreen() {
         >
           <Ionicons name="trash" size={20} color="#E23B3B" />
           <Text className="flex-1 font-sans-semibold text-sm text-saldio-red">Hapus semua data</Text>
+          <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
+        </Pressable>
+
+        <Pressable
+          onPress={() => navigation.navigate("Beranda", { screen: "Recurring" })}
+          className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
+        >
+          <Ionicons name="repeat" size={20} color="#3D51E0" />
+          <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">Transaksi Berulang</Text>
+          <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
+        </Pressable>
+
+        <Pressable
+          onPress={() => navigation.navigate("Beranda", { screen: "Budget" })}
+          className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
+        >
+          <Ionicons name="wallet" size={20} color="#3D51E0" />
+          <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">Budget Kategori</Text>
           <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
         </Pressable>
       </View>

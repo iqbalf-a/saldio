@@ -14,6 +14,9 @@ export type HomeStackParamList = {
   ImportPdf: { walletId: string };
   UpdateGoldPrice: { walletId: string };
   Backup: undefined;
+  ManageCategories: undefined;
+  Recurring: undefined;
+  Budget: undefined;
 };
 
 export type MainTabsParamList = {
