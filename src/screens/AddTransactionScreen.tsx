@@ -4,7 +4,7 @@ import { Screen, ScreenHeader } from "../components/Screen";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { DatePickerField } from "../components/DatePickerField";
 import { WalletBadge } from "../components/WalletBadge";
-import { CATEGORIES } from "../lib/categories";
+import { CATEGORIES, allCategories } from "../lib/categories";
 import { toISODate } from "../lib/format";
 import type { TransactionType } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
@@ -65,7 +65,7 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
   const [note, setNote] = useState(existingTx?.note ?? "");
   const [date, setDate] = useState(existingTx?.date ?? toISODate(new Date()));
 
-  const categories = useMemo(() => CATEGORIES.filter((c) => c.key !== "Emas" && c.key !== "Transfer"), []);
+  const categories = useMemo(() => allCategories(data.customCategories).filter((c) => c.key !== "Emas" && c.key !== "Transfer"), [data.customCategories]);
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
   const canSubmit =
     !!wallet && validDate && (isGold ? parseFloat(grams.replace(",", ".")) > 0 : parseInt(amountDigits || "0", 10) > 0);

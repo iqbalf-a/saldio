@@ -63,6 +63,12 @@ export interface AppData {
   wallets: Wallet[];
   transactions: Transaction[];
   goldPriceLog: GoldPriceEntry[];
+  /** Kategori kustom yang dibuat user. */
+  customCategories?: CustomCategory[];
+  /** Transaksi berulang (langganan, tagihan rutin). */
+  recurringTransactions?: RecurringTransaction[];
+  /** Budget per kategori (bulanan). */
+  categoryBudgets?: CategoryBudget[];
   /** ISO timestamp kapan data terakhir diubah. Dipakai untuk deteksi konflik multi-perangkat. */
   lastModified?: string;
 }
@@ -71,10 +77,44 @@ export const EMPTY_DATA: AppData = {
   wallets: [],
   transactions: [],
   goldPriceLog: [],
+  customCategories: [],
+  recurringTransactions: [],
+  categoryBudgets: [],
 };
 
 export interface UserProfile {
   name: string;
   email: string;
   picture?: string;
+}
+
+export interface CustomCategory {
+  /** Unique key — auto-generated dari label */
+  key: string;
+  label: string;
+  icon: string;
+  color: string;
+  background: string;
+}
+
+export type RecurringFrequency = "weekly" | "monthly" | "yearly";
+
+export interface RecurringTransaction {
+  id: string;
+  title: string;
+  amount: number;
+  category?: string;
+  walletId: string;
+  frequency: RecurringFrequency;
+  /** ISO date — tanggal jatuh tempo berikutnya */
+  nextDue: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface CategoryBudget {
+  /** Key kategori — bisa built-in atau kustom */
+  categoryKey: string;
+  /** Budget bulanan dalam Rupiah */
+  limit: number;
 }

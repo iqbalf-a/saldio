@@ -13,6 +13,9 @@ import { EditWalletScreen } from "../screens/EditWalletScreen";
 import { ImportPdfScreen } from "../screens/ImportPdfScreen";
 import { UpdateGoldPriceScreen } from "../screens/UpdateGoldPriceScreen";
 import { BackupScreen } from "../screens/BackupScreen";
+import { ManageCategoriesScreen } from "../screens/ManageCategoriesScreen";
+import { RecurringScreen } from "../screens/RecurringScreen";
+import { BudgetScreen } from "../screens/BudgetScreen";
 import type { HomeStackParamList, MainTabsParamList } from "./types";
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -32,6 +35,9 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="ImportPdf" component={ImportPdfScreen} />
       <HomeStack.Screen name="UpdateGoldPrice" component={UpdateGoldPriceScreen} />
       <HomeStack.Screen name="Backup" component={BackupScreen} />
+      <HomeStack.Screen name="ManageCategories" component={ManageCategoriesScreen} />
+      <HomeStack.Screen name="Recurring" component={RecurringScreen} />
+      <HomeStack.Screen name="Budget" component={BudgetScreen} />
     </HomeStack.Navigator>
   );
 }

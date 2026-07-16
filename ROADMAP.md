@@ -24,17 +24,17 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 
 - [x] Date picker sungguhan (kalender bottom-sheet setema, aksen biru/emas; chip Hari ini/Kemarin dipertahankan)
 - [x] Kalibrasi parser dengan PDF asli BCA / Mandiri / Bank Jago — ketiganya tervalidasi cocok dengan ringkasan resmi tiap statement; dukungan PDF ber-password ikut ditambahkan
-- [ ] Solusi impor PDF di Android native (pdfjs tidak jalan di Hermes): opsi WebView tersembunyi, library native, atau arahan resmi "impor lewat versi web"
+- [ ] Solusi impor PDF di Android native (pdfjs tidak jalan di Hermes) — **ditunda, fokus web dulu**
 - [x] Unit test: parser PDF (`src/lib/pdf/`), formatter Rupiah/tanggal — 102 test pass (format, parseCommon, parsers)
 
 ## Fase 4 — Fitur finansial lanjutan
 
 - [x] Breakdown pengeluaran per kategori per bulan (chart di tab Riwayat atau Aset)
 - [x] Pencarian transaksi (catatan/kategori)
-- [ ] Kategori kustom (tambah/ubah/arsip)
+- [x] Kategori kustom (tambah/ubah/arsip)
 - [x] Ekspor data CSV / JSON (backup export/import di tab Profil)
-- [ ] Transaksi berulang (langganan bulanan: Netflix, listrik, dll.)
-- [ ] Budget per kategori + indikator pemakaian
+- [x] Transaksi berulang (langganan bulanan: Netflix, listrik, dll.)
+- [x] Budget per kategori + indikator pemakaian
 
 ## Fase 5 — Kesiapan produksi
 
