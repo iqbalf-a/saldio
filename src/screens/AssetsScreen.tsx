@@ -10,7 +10,7 @@ import { DonutChart } from "../components/charts/DonutChart";
 import { TrendLine } from "../components/charts/TrendLine";
 import { EmptyState } from "../components/EmptyState";
 import { CategoryIcon } from "../components/CategoryIcon";
-import { formatGrams, formatRupiah, monthShortLabel } from "../lib/format";
+import { currentYearMonth, formatGrams, formatRupiah, monthShortLabel, toYearMonth } from "../lib/format";
 import { categoryByKey } from "../lib/categories";
 import {
   goldTotal,
@@ -40,10 +40,10 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
+  const currentYM = currentYearMonth();
   const now = new Date();
-  const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const prevYM = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+  const prevYM = toYearMonth(prevDate.toISOString());
 
   const currentMonthTxs = useMemo(
     () => data.transactions.filter((t) => t.date.startsWith(currentYM)),

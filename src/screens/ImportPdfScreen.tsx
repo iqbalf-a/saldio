@@ -5,7 +5,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { Screen, ScreenHeader } from "../components/Screen";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { WalletBadge } from "../components/WalletBadge";
-import { CATEGORIES, categoryByKey } from "../lib/categories";
+import { CATEGORIES, allCategories, categoryByKey } from "../lib/categories";
 import { formatRupiah, formatShortDate, formatSignedRupiah } from "../lib/format";
 import { walletBalance } from "../lib/balances";
 import { extractPdfLines, PdfPasswordError } from "../lib/pdf/extract";
@@ -489,7 +489,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
             <Text className="mb-2 px-2 font-sans-bold text-base text-saldio-ink">
               Pilih kategori
             </Text>
-            {CATEGORIES.filter((c) => c.key !== "Emas").map((c) => (
+            {allCategories(data.customCategories ?? []).filter((c) => c.key !== "Emas").map((c) => (
               <Pressable
                 key={c.key}
                 onPress={() => {

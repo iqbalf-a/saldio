@@ -41,7 +41,6 @@ export function ManageCategoriesScreen({ navigation }: HomeScreenProps<"ManageCa
 
   const customList = data.customCategories ?? [];
   const all = allCategories(customList);
-  const builtInKeys = new Set(CATEGORIES.map((c) => c.key));
 
   const startAdd = () => {
     setEditing(null);
