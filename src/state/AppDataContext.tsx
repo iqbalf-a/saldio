@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { downloadFromDrive, DriveAuthError, uploadToDrive } from "../lib/drive";
 import { newId } from "../lib/ids";
+import { toISODate } from "../lib/format";
 import { loadData, saveData } from "../lib/storage";
 import type {
   AppData,
@@ -377,31 +378,23 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   );
 
   /** Format tanggal lokal YYYY-MM-DD (bukan UTC). */
-  function localDateStr(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  }
-
-  /** Tanggal hari ini versi lokal. */
-  function localToday(): string {
-    return localDateStr(new Date());
-  }
-
   /** Majukan due date sesuai frekuensi, handle month-end drift. */
   function advanceDue(current: string, freq: RecurringTransaction["frequency"]): string {
     const [y, m, d] = current.split("-").map(Number);
     if (freq === "weekly") {
-      return localDateStr(new Date(y, m - 1, d + 7));
+      return toISODate(new Date(y, m - 1, d + 7));
     } else if (freq === "monthly") {
-      // Clamp ke hari terakhir bulan tujuan (Jan 31 → Feb 28 → Mar 31)
+      // Clamp ke hari terakhir bulan tujuan (Jan 31 → Feb 28; setelah ter-clamp,
+      // hari jangkar tidak dikembalikan — jadwal lanjut di tanggal 28).
       const targetDay = Math.min(d, new Date(y, m + 1, 0).getDate());
-      return localDateStr(new Date(y, m, targetDay));
+      return toISODate(new Date(y, m, targetDay));
     } else {
-      return localDateStr(new Date(y + 1, m - 1, d));
+      return toISODate(new Date(y + 1, m - 1, d));
     }
   }
 
   const generateDueRecurring = useCallback((): number => {
-    const today = localToday();
+    const today = toISODate(new Date());
     // Hitung semua transaksi baru & update nextDue di luar updater (tanpa side-effect).
     const list = data.recurringTransactions ?? [];
     const newTxs: Transaction[] = [];
