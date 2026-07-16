@@ -6,7 +6,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { useAppData } from "../state/AppDataContext";
 import { useConfirm } from "../components/ConfirmModal";
 import { allCategories } from "../lib/categories";
-import { formatRupiah } from "../lib/format";
+import { formatRupiah, toISODate } from "../lib/format";
 import type { RecurringFrequency, RecurringTransaction, Wallet } from "../lib/types";
 import type { HomeScreenProps } from "../navigation/types";
 
@@ -36,7 +36,7 @@ export function RecurringScreen({ navigation }: HomeScreenProps<"Recurring">) {
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [walletId, setWalletId] = useState(data.wallets?.[0]?.id ?? "");
   const [frequency, setFrequency] = useState<RecurringFrequency>("monthly");
-  const [dueDate, setDueDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState(toISODate(new Date()));
 
   const startAdd = () => {
     setEditing(null);
@@ -46,7 +46,7 @@ export function RecurringScreen({ navigation }: HomeScreenProps<"Recurring">) {
     setCategory(undefined);
     setWalletId(data.wallets?.[0]?.id ?? "");
     setFrequency("monthly");
-    setDueDate(new Date().toISOString().slice(0, 10));
+    setDueDate(toISODate(new Date()));
   };
 
   const startEdit = (r: RecurringTransaction) => {

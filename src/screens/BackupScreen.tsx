@@ -37,7 +37,7 @@ export function BackupScreen({ navigation }: { navigation: any }) {
             try {
               // Kita tampilkan alert satu kali untuk memberitahu user
               // Karena ConfirmModal tidak punya tombol "Copy" native
-              const Clipboard = (await import("expo-clipboard")).Clipboard;
+              const Clipboard = await import("expo-clipboard");
               await Clipboard.setStringAsync(json);
               // Tampilkan notifikasi sukses (simple toast via alert karena tidak ada toast component)
               // Atau bisa pakai modal success sederhana
