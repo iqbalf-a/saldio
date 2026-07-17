@@ -1,0 +1,22 @@
+{
+  "name": "Saldio",
+  "short_name": "Saldio",
+  "description": "Catatan keuangan pribadi — aset, emas, dan transaksi dalam satu tempat.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E6F4FE",
+  "theme_color": "#E6F4FE",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
