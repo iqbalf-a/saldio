@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -8,6 +8,8 @@ import { useConfirm } from "../components/ConfirmModal";
 import { useAppData } from "../state/AppDataContext";
 import { useAuth } from "../state/AuthContext";
 import type { MainTabsParamList } from "../navigation/types";
+import { isPinEnabled, clearPinVerification } from "../lib/pin";
+import { PinModal } from "../components/PinLockScreen";
 
 type Nav = BottomTabNavigationProp<MainTabsParamList>;
 
@@ -18,6 +20,20 @@ export function ProfileScreen() {
   const confirm = useConfirm();
   const online = !!accessToken;
   const [syncing, setSyncing] = useState(false);
+  const [pinEnabled, setPinEnabled] = useState(false);
+  // Tombol PIN disembunyikan sampai status termuat — mencegah "Aktifkan PIN"
+  // menimpa PIN yang sudah ada sebelum AsyncStorage selesai dibaca
+  const [pinLoaded, setPinLoaded] = useState(false);
+  const [pinModal, setPinModal] = useState<"enable" | "change" | "disable">("enable");
+  const [pinModalVisible, setPinModalVisible] = useState(false);
+  const [pinOldValue, setPinOldValue] = useState("");
+
+  useEffect(() => {
+    isPinEnabled().then((v) => {
+      setPinEnabled(v);
+      setPinLoaded(true);
+    });
+  }, []);
 
   const handleSync = useCallback(async () => {
     setSyncing(true);
@@ -175,11 +191,83 @@ export function ProfileScreen() {
           <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">Budget Kategori</Text>
           <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
         </Pressable>
+
+        {/* --- Keamanan: PIN --- */}
+        <View className="mt-2">
+          <Text className="mb-2 ml-1 font-sans text-xs text-saldio-muted">Keamanan</Text>
+        </View>
+
+        {!pinLoaded ? null : !pinEnabled ? (
+          <Pressable
+            onPress={() => {
+              setPinModal("enable");
+              setPinModalVisible(true);
+            }}
+            className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
+          >
+            <Ionicons name="lock-closed" size={20} color="#3D51E0" />
+            <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">Aktifkan PIN</Text>
+            <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
+          </Pressable>
+        ) : (
+          <>
+            <Pressable
+              onPress={() => {
+                setPinModal("change");
+                setPinModalVisible(true);
+              }}
+              className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
+            >
+              <Ionicons name="lock-closed" size={20} color="#3D51E0" />
+              <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">Ubah PIN</Text>
+              <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setPinModal("disable");
+                setPinModalVisible(true);
+              }}
+              className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
+            >
+              <Ionicons name="lock-open" size={20} color="#8A94A6" />
+              <Text className="flex-1 font-sans-semibold text-sm text-saldio-muted">Nonaktifkan PIN</Text>
+              <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
+            </Pressable>
+          </>
+        )}
+
       </View>
 
       <Text className="mt-8 text-center font-sans text-xs text-saldio-muted">
         Saldio · data milikmu, di Drive milikmu
       </Text>
+
+      <PinModal
+        visible={pinModalVisible}
+        mode={
+          pinModal === "change" && !pinOldValue
+            ? "change_old"
+            : pinModal === "change" && pinOldValue
+              ? "change_new"
+              : pinModal === "disable"
+                ? "disable"
+                : "setup"
+        }
+        oldPin={pinOldValue || undefined}
+        onDone={() => {
+          setPinModalVisible(false);
+          setPinOldValue("");
+          isPinEnabled().then(setPinEnabled);
+          clearPinVerification();
+        }}
+        onCancel={() => {
+          setPinModalVisible(false);
+          setPinOldValue("");
+        }}
+        onNeedChangeNew={(oldPin) => {
+          setPinOldValue(oldPin);
+        }}
+      />
     </Screen>
   );
 }

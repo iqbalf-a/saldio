@@ -1,6 +1,6 @@
 import "./global.css";
-import React, { useEffect } from "react";
-import { Modal, Platform, Pressable, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { AppState, Modal, Platform, Pressable, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,6 +22,8 @@ import { AppDataProvider, useAppData } from "./src/state/AppDataContext";
 import { ConfirmProvider, useConfirm } from "./src/components/ConfirmModal";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { Ionicons } from "@expo/vector-icons";
+import { isPinEnabled, isPinVerified } from "./src/lib/pin";
+import { PinLockScreen } from "./src/components/PinLockScreen";
 
 const theme = {
   ...DefaultTheme,
@@ -110,6 +112,41 @@ function ConflictResolver() {
   );
 }
 
+/**
+ * PIN gate — mencegah akses ke app utama jika PIN aktif tapi belum diverifikasi.
+ * Rendered di dalam providers tapi di luar NavigationContainer.
+ */
+function PinGate({ children }: { children: React.ReactNode }) {
+  const [pinRequired, setPinRequired] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  // Cek PIN saat mount dan setiap app/tab kembali aktif (re-lock setelah 30 menit)
+  useEffect(() => {
+    const check = async () => {
+      const enabled = await isPinEnabled();
+      if (enabled && !(await isPinVerified())) {
+        setPinRequired(true);
+      }
+      setReady(true);
+    };
+    check();
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") check();
+    });
+    return () => sub.remove();
+  }, []);
+
+  if (!ready) {
+    return <View className="flex-1 bg-saldio-bg" />;
+  }
+
+  if (pinRequired) {
+    return <PinLockScreen onUnlock={() => setPinRequired(false)} />;
+  }
+
+  return <>{children}</>;
+}
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     Geist_400Regular,
@@ -129,12 +166,14 @@ export default function App() {
       <AuthProvider>
         <AppDataProvider>
           <ConfirmProvider>
-            <AuthErrorHandler />
-            <ConflictResolver />
-            <NavigationContainer theme={theme} documentTitle={{ enabled: false }}>
-              <StatusBar style="dark" />
-              <RootNavigator />
-            </NavigationContainer>
+            <PinGate>
+              <AuthErrorHandler />
+              <ConflictResolver />
+              <NavigationContainer theme={theme} documentTitle={{ enabled: false }}>
+                <StatusBar style="dark" />
+                <RootNavigator />
+              </NavigationContainer>
+            </PinGate>
           </ConfirmProvider>
         </AppDataProvider>
       </AuthProvider>

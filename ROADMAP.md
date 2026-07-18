@@ -41,7 +41,7 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 - [ ] Ikon aplikasi & splash screen Saldio (ganti default Expo) — icon placeholder sudah ada (192/512px), splash pakai default Expo
 - [ ] Konfigurasi EAS Build untuk APK (package name, versionCode, signing)
 - [x] PWA: manifest + installable di web (target Vercel) — manifest di `public/manifest.json`, postbuild inject link
-- [ ] Kunci aplikasi: PIN / biometrik (expo-local-authentication)
+- [x] Kunci aplikasi: PIN 6 digit (SHA-256, AsyncStorage) — keypad + setup/ubah/nonaktifkan dari Profil
 - [x] CI: typecheck + test di GitHub Actions — `.github/workflows/ci.yml` + concurrency
 
 ## Ditunda sesuai spek awal (belum dijadwalkan)
