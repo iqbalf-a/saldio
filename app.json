@@ -6,11 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#E6F4FE"
-    },
     "ios": {
       "supportsTablet": true
     },
@@ -28,16 +23,8 @@
       "bundler": "metro",
       "output": "single",
       "name": "Saldio",
-      "shortName": "Saldio",
       "description": "Catatan keuangan pribadi — aset, emas, dan transaksi dalam satu tempat.",
-      "scope": "/",
       "lang": "id",
-      "display": "standalone",
-      "splash": {
-        "image": "./assets/splash-icon.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#E6F4FE"
-      },
       "themeColor": "#E6F4FE"
     },
     "plugins": [

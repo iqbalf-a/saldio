@@ -38,11 +38,11 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 
 ## Fase 5 — Kesiapan produksi
 
-- [ ] Ikon aplikasi & splash screen Saldio (ganti default Expo)
+- [ ] Ikon aplikasi & splash screen Saldio (ganti default Expo) — icon placeholder sudah ada (192/512px), splash pakai default Expo
 - [ ] Konfigurasi EAS Build untuk APK (package name, versionCode, signing)
-- [ ] PWA: manifest + installable di web (target Vercel)
+- [x] PWA: manifest + installable di web (target Vercel) — manifest di `public/manifest.json`, postbuild inject link
 - [ ] Kunci aplikasi: PIN / biometrik (expo-local-authentication)
-- [ ] CI: typecheck + test di GitHub Actions
+- [x] CI: typecheck + test di GitHub Actions — `.github/workflows/ci.yml` + concurrency
 
 ## Ditunda sesuai spek awal (belum dijadwalkan)
 
