@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { AppState, AppStateStatus } from "react-native";
 import { downloadFromDrive, DriveAuthError, uploadToDrive } from "../lib/drive";
 import { newId } from "../lib/ids";
 import { toISODate } from "../lib/format";
-import { loadData, saveData } from "../lib/storage";
+import { loadData, loadLastSyncTimestamp, saveData, saveLastSyncTimestamp } from "../lib/storage";
 import type {
   AppData,
   GoldPriceEntry,
@@ -84,8 +85,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const conflictLocalRef = useRef<AppData>(EMPTY_DATA);
   const { accessToken } = useAuth();
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref untuk upload saat background — hindari stale closure
+  const accessTokenRef = useRef<string | null>(null);
+  const dataRef = useRef<AppData>(EMPTY_DATA);
+  useEffect(() => { accessTokenRef.current = accessToken; }, [accessToken]);
+  useEffect(() => { dataRef.current = data; }, [data]);
 
   const clearAuthError = useCallback(() => setAuthError(false), []);
+
+  const persistSyncTimestamp = useCallback((ts: number) => {
+    setLastSyncTimestamp(ts);
+    saveLastSyncTimestamp(ts).catch(() => {});
+  }, []);
 
   // --- Conflict resolution ---
   const resolveConflict = useCallback(
@@ -97,43 +108,46 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         setData(local);
         if (accessToken) {
           uploadToDrive(accessToken, local).then(() => {
-            setLastSyncTimestamp(Date.now());
+            persistSyncTimestamp(Date.now());
           }).catch(() => {});
         }
       } else {
         // User pilih data remote — timpa lokal
         setData(conflictRemote);
         saveData(conflictRemote).catch(() => {});
-        setLastSyncTimestamp(Date.now());
+        persistSyncTimestamp(Date.now());
       }
       setConflictRemote(null);
     },
-    [conflictRemote, accessToken],
+    [conflictRemote, accessToken, persistSyncTimestamp],
   );
 
   // Muat cache lokal dulu (offline-first), lalu coba tarik dari Drive.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const local = await loadData();
+      // Bug 1 fix: muat lastSyncTimestamp dari AsyncStorage agar tidak reset setiap cold start
+      const [local, storedSyncTs] = await Promise.all([loadData(), loadLastSyncTimestamp()]);
+      const syncTs = storedSyncTs;
       if (!cancelled) {
         setData(local);
+        if (syncTs !== null) setLastSyncTimestamp(syncTs);
         setLoading(false);
       }
       if (accessToken) {
         try {
           const remote = await downloadFromDrive(accessToken);
           if (remote && !cancelled) {
-            const localChanged = modifiedSince(local, lastSyncTimestamp);
-            const remoteChanged = modifiedSince(remote, lastSyncTimestamp);
-            if (localChanged && remoteChanged && lastSyncTimestamp !== null) {
+            const localChanged = modifiedSince(local, syncTs);
+            const remoteChanged = modifiedSince(remote, syncTs);
+            if (localChanged && remoteChanged && syncTs !== null) {
               // Konflik: keduanya berubah sejak sync terakhir
               conflictLocalRef.current = local;
               setConflictRemote(remote);
             } else if (remoteChanged || !localChanged) {
               // Remote berubah atau lokal tidak berubah — pakai remote
               setData(remote);
-              setLastSyncTimestamp(Date.now());
+              persistSyncTimestamp(Date.now());
               await saveData(remote);
             }
             // else: lokal berubah, remote tidak — tetap pakai lokal (akan di-upload nanti)
@@ -156,11 +170,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       setData((prev) => {
         const next = stampModified(updater(prev));
         saveData(next).catch(() => {});
-        if (accessToken) {
+        if (accessTokenRef.current) {
           if (syncTimer.current) clearTimeout(syncTimer.current);
           syncTimer.current = setTimeout(() => {
-            uploadToDrive(accessToken, next).then(() => {
-              setLastSyncTimestamp(Date.now());
+            const token = accessTokenRef.current;
+            if (!token) return;
+            uploadToDrive(token, next).then(() => {
+              persistSyncTimestamp(Date.now());
             }).catch((e) => {
               if (e instanceof DriveAuthError) setAuthError(true);
             });
@@ -169,8 +185,55 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
     },
-    [accessToken]
+    [persistSyncTimestamp]
   );
+
+  // Bug 2 + 3 fix: AppState listener — flush upload sebelum background, pull saat foreground kembali
+  useEffect(() => {
+    const handleAppStateChange = async (nextState: AppStateStatus) => {
+      if (nextState === "background" || nextState === "inactive") {
+        // Flush debounced upload segera sebelum app masuk background
+        if (syncTimer.current) {
+          clearTimeout(syncTimer.current);
+          syncTimer.current = null;
+        }
+        const token = accessTokenRef.current;
+        if (token) {
+          try {
+            await uploadToDrive(token, dataRef.current);
+            persistSyncTimestamp(Date.now());
+          } catch {
+            // Offline — tidak ada yang bisa dilakukan
+          }
+        }
+      } else if (nextState === "active") {
+        // Pull data terbaru dari Drive saat app kembali ke foreground
+        const token = accessTokenRef.current;
+        if (!token) return;
+        try {
+          const remote = await downloadFromDrive(token);
+          if (!remote) return;
+          const storedSyncTs = await loadLastSyncTimestamp();
+          const localData = dataRef.current;
+          const localChanged = modifiedSince(localData, storedSyncTs);
+          const remoteChanged = modifiedSince(remote, storedSyncTs);
+          if (localChanged && remoteChanged && storedSyncTs !== null) {
+            conflictLocalRef.current = localData;
+            setConflictRemote(remote);
+          } else if (remoteChanged || !localChanged) {
+            setData(remote);
+            persistSyncTimestamp(Date.now());
+            saveData(remote).catch(() => {});
+          }
+        } catch (e) {
+          if (e instanceof DriveAuthError) setAuthError(true);
+        }
+      }
+    };
+
+    const sub = AppState.addEventListener("change", handleAppStateChange);
+    return () => sub.remove();
+  }, [persistSyncTimestamp]);
 
   const addWallet = useCallback(
     (wallet: Omit<Wallet, "id" | "createdAt">): Wallet => {
@@ -488,24 +551,24 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const manualSync = useCallback(async () => {
     if (!accessToken) return;
     try {
-      const local = await loadData();
+      const [local, storedSyncTs] = await Promise.all([loadData(), loadLastSyncTimestamp()]);
       const remote = await downloadFromDrive(accessToken);
       if (remote) {
-        const localChanged = modifiedSince(local, lastSyncTimestamp);
-        const remoteChanged = modifiedSince(remote, lastSyncTimestamp);
-        if (localChanged && remoteChanged && lastSyncTimestamp !== null) {
+        const localChanged = modifiedSince(local, storedSyncTs);
+        const remoteChanged = modifiedSince(remote, storedSyncTs);
+        if (localChanged && remoteChanged && storedSyncTs !== null) {
           conflictLocalRef.current = local;
           setConflictRemote(remote);
         } else {
           setData(remote);
-          setLastSyncTimestamp(Date.now());
+          persistSyncTimestamp(Date.now());
           await saveData(remote);
         }
       }
     } catch (e) {
       if (e instanceof DriveAuthError) setAuthError(true);
     }
-  }, [accessToken, lastSyncTimestamp]);
+  }, [accessToken, persistSyncTimestamp]);
 
   const value = useMemo(
     () => ({

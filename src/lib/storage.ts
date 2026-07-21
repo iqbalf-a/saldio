@@ -4,6 +4,7 @@ import { AppData, EMPTY_DATA, UserProfile } from "./types";
 const DATA_KEY = "saldio:data";
 const PROFILE_KEY = "saldio:profile";
 const TOKEN_KEY = "saldio:googleAccessToken";
+const LAST_SYNC_KEY = "saldio:lastSyncTimestamp";
 
 export async function loadData(): Promise<AppData> {
   try {
@@ -37,4 +38,14 @@ export async function loadAccessToken(): Promise<string | null> {
 export async function saveAccessToken(token: string | null): Promise<void> {
   if (token) await AsyncStorage.setItem(TOKEN_KEY, token);
   else await AsyncStorage.removeItem(TOKEN_KEY);
+}
+
+export async function loadLastSyncTimestamp(): Promise<number | null> {
+  const raw = await AsyncStorage.getItem(LAST_SYNC_KEY);
+  return raw ? parseInt(raw, 10) : null;
+}
+
+export async function saveLastSyncTimestamp(ts: number | null): Promise<void> {
+  if (ts !== null) await AsyncStorage.setItem(LAST_SYNC_KEY, String(ts));
+  else await AsyncStorage.removeItem(LAST_SYNC_KEY);
 }
