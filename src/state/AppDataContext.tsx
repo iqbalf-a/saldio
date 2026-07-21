@@ -25,6 +25,8 @@ interface AppDataState {
   authError: boolean;
   /** Reset flag authError setelah user menanggapi. */
   clearAuthError: () => void;
+  /** Pesan error sinkron manual terakhir (mis. gagal 403 dari Drive API), null jika tidak ada. */
+  syncError: string | null;
   /** Sinkronisasi manual — tarik data dari Drive sekarang. */
   manualSync: () => Promise<void>;
   addWallet: (wallet: Omit<Wallet, "id" | "createdAt">) => Wallet;
@@ -80,6 +82,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<AppData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const [lastSyncTimestamp, setLastSyncTimestamp] = useState<number | null>(null);
   // Konflik state — simpan data remote saat konflik terdeteksi
   const [conflictRemote, setConflictRemote] = useState<AppData | null>(null);
@@ -575,6 +578,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const manualSync = useCallback(async () => {
     if (!accessToken) return;
+    setSyncError(null);
     try {
       const [local, storedSyncTs] = await Promise.all([loadData(), loadLastSyncTimestamp()]);
       const remote = await downloadFromDrive(accessToken);
@@ -589,9 +593,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
           persistSyncTimestamp(Date.now());
           await saveData(remote);
         }
+      } else {
+        // remote null: file belum ada di Drive (device ini belum pernah upload)
+        setSyncError("Belum ada data di Drive untuk akun ini — coba tambah data dulu di device manapun.");
       }
     } catch (e) {
-      if (e instanceof DriveAuthError) setAuthError(true);
+      if (e instanceof DriveAuthError) {
+        setAuthError(true);
+      } else {
+        const msg = e instanceof Error ? e.message : String(e);
+        setSyncError(msg);
+        console.error("[manualSync] gagal:", e);
+      }
     }
   }, [accessToken, persistSyncTimestamp]);
 
@@ -602,6 +615,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       lastSyncTimestamp,
       authError,
       clearAuthError,
+      syncError,
       manualSync,
       conflictRemote,
       resolveConflict,
@@ -629,7 +643,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       resetAll,
       replaceAll,
     }),
-    [data, loading, lastSyncTimestamp, authError, clearAuthError, manualSync, conflictRemote, resolveConflict, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, addCustomCategory, updateCustomCategory, removeCustomCategory, addRecurring, updateRecurring, removeRecurring, generateDueRecurring, setCategoryBudget, removeCategoryBudget, resetAll, replaceAll]
+    [data, loading, lastSyncTimestamp, authError, clearAuthError, syncError, manualSync, conflictRemote, resolveConflict, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, addCustomCategory, updateCustomCategory, removeCustomCategory, addRecurring, updateRecurring, removeRecurring, generateDueRecurring, setCategoryBudget, removeCategoryBudget, resetAll, replaceAll]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

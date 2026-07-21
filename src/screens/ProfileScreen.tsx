@@ -16,7 +16,7 @@ type Nav = BottomTabNavigationProp<MainTabsParamList>;
 export function ProfileScreen() {
   const navigation = useNavigation<Nav>();
   const { profile, accessToken, isGuest, signOut } = useAuth();
-  const { resetAll, lastSyncTimestamp, manualSync } = useAppData();
+  const { resetAll, lastSyncTimestamp, manualSync, syncError } = useAppData();
   const confirm = useConfirm();
   const online = !!accessToken;
   const [syncing, setSyncing] = useState(false);
@@ -117,6 +117,13 @@ export function ProfileScreen() {
           </Pressable>
         )}
       </View>
+
+      {syncError && (
+        <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg p-3">
+          <Ionicons name="warning" size={16} color="#E23B3B" />
+          <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red">{syncError}</Text>
+        </View>
+      )}
 
       <View className="mt-6 gap-3">
         <Pressable
