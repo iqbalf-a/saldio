@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Platform, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen, ScreenHeader } from "../components/Screen";
@@ -7,6 +7,8 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { useConfirm } from "../components/ConfirmModal";
 import { useAppData } from "../state/AppDataContext";
 import type { AppData } from "../lib/types";
+import { isPinEnabled, verifyPin, getCachedEncryptionKey, getLockoutRemaining } from "../lib/pin";
+import { encryptWithKey, decryptWithKey, isEncryptedPayload } from "../lib/crypto";
 
 export function BackupScreen({ navigation }: { navigation: any }) {
   const { data, replaceAll } = useAppData();
@@ -14,43 +16,141 @@ export function BackupScreen({ navigation }: { navigation: any }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // PIN input state
+  const [pinModalVisible, setPinModalVisible] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinMode, setPinMode] = useState<"encrypt" | "decrypt">("encrypt");
+  const [pendingData, setPendingData] = useState<string | null>(null);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
+
+  // Countdown timer saat lockout — sama dengan PinLockScreen
+  useEffect(() => {
+    if (lockoutRemaining <= 0) return;
+    const id = setInterval(() => {
+      setLockoutRemaining((prev) => {
+        if (prev <= 1000) { clearInterval(id); return 0; }
+        return prev - 1000;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [lockoutRemaining > 0]);
+
   const exportData = async () => {
     try {
       setBusy(true);
       const json = JSON.stringify(data, null, 2);
 
-      if (Platform.OS === "web") {
-        const blob = new Blob([json], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `saldio-backup-${new Date().toISOString().split("T")[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } else {
-        // Untuk native, tampilkan modal konfirmasi dulu sebelum copy
-        confirm({
-          title: "Copy backup?",
-          message: "Backup tersimpan di cache. Anda perlu menyalin JSON ini secara manual ke file backup.",
-          confirmLabel: "Salin ke Clipboard",
-          onConfirm: async () => {
-            try {
-              // Kita tampilkan alert satu kali untuk memberitahu user
-              // Karena ConfirmModal tidak punya tombol "Copy" native
-              const Clipboard = await import("expo-clipboard");
-              await Clipboard.setStringAsync(json);
-              // Tampilkan notifikasi sukses (simple toast via alert karena tidak ada toast component)
-              // Atau bisa pakai modal success sederhana
-            } catch {
-              setError("Gagal menyalin ke clipboard. Copy manual saja.");
-            }
-          },
-        });
+      const pinActive = await isPinEnabled();
+      if (pinActive) {
+        // PIN aktif → tampilkan input PIN untuk enkripsi
+        setPendingData(json);
+        setPinMode("encrypt");
+        setPinInput("");
+        setError(null);
+        // Cek lockout
+        const remaining = await getLockoutRemaining();
+        setLockoutRemaining(remaining);
+        setPinModalVisible(true);
+        setBusy(false);
+        return;
       }
+
+      // Tidak ada PIN → export plain
+      downloadPlain(json);
     } catch {
       setError("Gagal membuat file backup. Coba lagi.");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const downloadPlain = (json: string) => {
+    if (Platform.OS === "web") {
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `saldio-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      confirm({
+        title: "Copy backup?",
+        message: "Backup tersimpan di cache. Anda perlu menyalin JSON ini secara manual ke file backup.",
+        confirmLabel: "Salin ke Clipboard",
+        onConfirm: async () => {
+          try {
+            const Clipboard = await import("expo-clipboard");
+            await Clipboard.setStringAsync(json);
+          } catch {
+            setError("Gagal menyalin ke clipboard. Copy manual saja.");
+          }
+        },
+      });
+    }
+  };
+
+  const handlePinSubmit = async () => {
+    if (pinInput.length !== 6) {
+      setError("PIN harus 6 digit.");
+      return;
+    }
+
+    // Verifikasi PIN lewat jalur yang sama dengan PinLockScreen
+    // (sudah punya lockout escalation)
+    const result = await verifyPin(pinInput);
+    if (!result.ok) {
+      setLockoutRemaining(result.lockoutRemaining);
+      setError(
+        result.lockoutRemaining > 0
+          ? `Terlalu banyak percobaan. Tunggu ${Math.ceil(result.lockoutRemaining / 1000)} detik`
+          : "PIN salah."
+      );
+      setPinInput("");
+      return;
+    }
+
+    // PIN benar — ambil kunci enkripsi dari cache
+    const key = getCachedEncryptionKey();
+    if (!key) {
+      setError("Terjadi kesalahan internal. Coba lagi.");
+      return;
+    }
+
+    setPinModalVisible(false);
+    setBusy(true);
+
+    try {
+      if (pinMode === "encrypt" && pendingData) {
+        const encrypted = await encryptWithKey(pendingData, key);
+        downloadPlain(JSON.stringify({ v: 2, iv: encrypted.iv, data: encrypted.data }));
+      } else if (pinMode === "decrypt" && pendingData) {
+        const payload = JSON.parse(pendingData);
+        const decrypted = await decryptWithKey(payload, key);
+        if (!decrypted) {
+          setError("Data backup korup.");
+          return;
+        }
+        const json = JSON.parse(decrypted) as AppData;
+        if (!json.wallets || !json.transactions || !json.goldPriceLog) {
+          setError("File tidak valid. Pastikan file backup dari Saldio.");
+          return;
+        }
+        confirm({
+          title: "Import data?",
+          message: "Data saat ini akan diganti dengan data dari file backup. Tindakan ini tidak bisa dibatalkan.",
+          confirmLabel: "Import",
+          onConfirm: () => {
+            replaceAll(json);
+            navigation.goBack();
+          },
+        });
+      }
+    } catch {
+      setError("Gagal memproses data. Coba lagi.");
+    } finally {
+      setBusy(false);
+      setPendingData(null);
     }
   };
 
@@ -71,13 +171,32 @@ export function BackupScreen({ navigation }: { navigation: any }) {
         const response = await fetch(result.assets[0].uri);
         content = await response.text();
       } else {
-        // Untuk native, baca file dengan fetch
         const response = await fetch(result.assets[0].uri);
         content = await response.text();
       }
 
-      const json = JSON.parse(content) as AppData;
+      // Cek apakah file terenkripsi
+      if (isEncryptedPayload(content)) {
+        const pinActive = await isPinEnabled();
+        if (!pinActive) {
+          setError("File terenkripsi tapi PIN tidak aktif. Aktifkan PIN dulu.");
+          return;
+        }
+        // Minta PIN untuk dekripsi
+        setPendingData(content);
+        setPinMode("decrypt");
+        setPinInput("");
+        setError(null);
+        // Cek lockout
+        const remaining = await getLockoutRemaining();
+        setLockoutRemaining(remaining);
+        setPinModalVisible(true);
+        setBusy(false);
+        return;
+      }
 
+      // Plain JSON
+      const json = JSON.parse(content) as AppData;
       if (!json.wallets || !json.transactions || !json.goldPriceLog) {
         setError("File tidak valid. Pastikan file backup dari Saldio.");
         return;
@@ -102,6 +221,49 @@ export function BackupScreen({ navigation }: { navigation: any }) {
   return (
     <Screen>
       <ScreenHeader title="Backup & Restore" />
+
+      {/* PIN input modal — menggunakan PIN asli aplikasi (bukan passphrase bebas) */}
+      {pinModalVisible && (
+        <View className="absolute inset-0 z-50 items-center justify-center bg-black/50">
+          <View className="mx-8 w-full rounded-2xl bg-white p-6">
+            <Text className="text-center font-sans-bold text-lg text-saldio-ink">
+              {pinMode === "encrypt" ? "PIN untuk Enkripsi Backup" : "PIN untuk Dekripsi Backup"}
+            </Text>
+            <Text className="mt-2 text-center font-sans text-sm text-saldio-muted">
+              Masukkan PIN aplikasi Anda (6 digit)
+            </Text>
+            <TextInput
+              className="mt-4 rounded-xl border border-saldio-border bg-saldio-bg px-4 py-3 text-center font-mono-medium text-lg text-saldio-ink"
+              placeholder="PIN 6 digit"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="numeric"
+              maxLength={6}
+              secureTextEntry
+              autoFocus
+              value={pinInput}
+              onChangeText={setPinInput}
+            />
+            {lockoutRemaining > 0 && (
+              <Text className="mt-2 text-center font-sans text-xs text-saldio-red">
+                Terlalu banyak percobaan. Tunggu {Math.ceil(lockoutRemaining / 1000)} detik
+              </Text>
+            )}
+            <View className="mt-4 flex-row gap-3">
+              <Pressable
+                onPress={() => { setPinModalVisible(false); setPendingData(null); setLockoutRemaining(0); }}
+                className="h-[44px] flex-1 items-center justify-center rounded-full border border-saldio-border active:opacity-80"
+              >
+                <Text className="font-sans-semibold text-sm text-saldio-muted">Batal</Text>
+              </Pressable>
+              <PrimaryButton
+                label={pinMode === "encrypt" ? "Enkripsi" : "Dekripsi"}
+                onPress={handlePinSubmit}
+                disabled={pinInput.length !== 6 || lockoutRemaining > 0}
+              />
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* Info data */}
       <View className="mb-6 rounded-2xl bg-white p-5">

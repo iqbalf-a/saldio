@@ -45,3 +45,7 @@ yarn-error.*
 
 # e-statement asli untuk kalibrasi parser - jangan pernah commit PDF
 samples/e-statements/*.pdf
+
+# Playwright
+test-results/
+playwright-report/

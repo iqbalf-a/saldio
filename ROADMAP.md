@@ -44,6 +44,25 @@ rencana lanjutan, diurutkan berdasarkan prioritas. Centang saat selesai.
 - [x] Kunci aplikasi: PIN 6 digit (SHA-256, AsyncStorage) — keypad + setup/ubah/nonaktifkan dari Profil
 - [x] CI: typecheck + test di GitHub Actions — `.github/workflows/ci.yml` + concurrency
 
+## Fase 6 — Web & PWA lanjutan (fokus saat ini)
+
+- [x] Service worker: shell app bisa dibuka offline + prompt "versi baru tersedia"
+      saat ada deploy (PWA sekarang installable tapi butuh jaringan untuk load)
+- [x] Input keyboard fisik di web: ketik angka di layar PIN, Enter/Esc di form &
+      modal, fokus otomatis ke input pertama
+- [x] Layout desktop: konten diberi max-width di layar lebar (sekarang layout
+      mobile direntang penuh)
+- [x] Lockout percobaan PIN: jeda progresif setelah 5x salah (sekarang bisa
+      coba tanpa batas)
+- [x] Enkripsi data/backup dengan kunci turunan PIN (export/import JSON
+      terenkripsi) — upgrade dari kunci
+      kosmetik ke proteksi data sungguhan (hash & data kini polos di localStorage)
+- [x] Smoke test E2E Playwright di CI (buka app → mode tamu → tambah transaksi →
+      alur PIN) — 4 tests passed
+- [x] Error tracking produksi (ErrorBoundary + console logging, siap upgrade ke
+      Sentry)
+- [ ] Dark mode (mengikuti preferensi sistem)
+
 ## Ditunda sesuai spek awal (belum dijadwalkan)
 
 - Toggle bahasa Inggris

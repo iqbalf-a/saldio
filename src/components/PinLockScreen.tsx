@@ -3,6 +3,8 @@ import { Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { savePinHash, verifyPin, removePinHash } from "../lib/pin";
+import { usePinKeyboard } from "../lib/usePinKeyboard";
+import { getLockoutRemaining } from "../lib/pin";
 
 const KEYPAD_ROWS = [
   ["1", "2", "3"],
@@ -92,16 +94,36 @@ export function PinLockScreen({ onUnlock }: PinLockScreenProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
   const insets = useSafeAreaInsets();
+
+  // Countdown timer saat lockout
+  useEffect(() => {
+    if (lockoutRemaining <= 0) return;
+    const id = setInterval(() => {
+      setLockoutRemaining((prev) => {
+        if (prev <= 1000) { clearInterval(id); return 0; }
+        return prev - 1000;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [lockoutRemaining > 0]);
+
+  // Cek lockout saat mount
+  useEffect(() => {
+    getLockoutRemaining().then((r) => { if (r > 0) setLockoutRemaining(r); });
+  }, []);
 
   const submit = async (value: string) => {
     setLoading(true);
     try {
-      if (await verifyPin(value)) {
+      const result = await verifyPin(value);
+      if (result.ok) {
         onUnlock();
       } else {
         setError(true);
         setPin("");
+        if (result.lockoutRemaining > 0) setLockoutRemaining(result.lockoutRemaining);
       }
     } finally {
       setLoading(false);
@@ -109,7 +131,7 @@ export function PinLockScreen({ onUnlock }: PinLockScreenProps) {
   };
 
   const handleDigit = (digit: string) => {
-    if (pin.length >= 6 || loading) return;
+    if (pin.length >= 6 || loading || lockoutRemaining > 0) return;
     setError(false);
     const next = pin + digit;
     setPin(next);
@@ -117,9 +139,12 @@ export function PinLockScreen({ onUnlock }: PinLockScreenProps) {
   };
 
   const handleDelete = () => {
+    if (lockoutRemaining > 0) return;
     setError(false);
     setPin((p) => p.slice(0, -1));
   };
+
+  usePinKeyboard({ onDigit: handleDigit, onDelete: handleDelete, disabled: loading });
 
   return (
     <View className="flex-1 bg-saldio-bg" style={{ paddingTop: insets.top }}>
@@ -142,10 +167,16 @@ export function PinLockScreen({ onUnlock }: PinLockScreenProps) {
         {error && (
           <Text className="mt-3 font-sans text-sm text-saldio-red">PIN salah, coba lagi</Text>
         )}
+
+        {lockoutRemaining > 0 && (
+          <Text className="mt-3 font-sans text-sm text-saldio-red">
+            Terlalu banyak percobaan. Tunggu {Math.ceil(lockoutRemaining / 1000)} detik
+          </Text>
+        )}
       </View>
 
       <View className="px-10 pb-10">
-        <PinKeypad onDigit={handleDigit} onDelete={handleDelete} disabled={loading} size="lg" />
+        <PinKeypad onDigit={handleDigit} onDelete={handleDelete} disabled={loading || lockoutRemaining > 0} size="lg" />
       </View>
     </View>
   );
@@ -166,6 +197,7 @@ export function PinModal({ visible, mode, oldPin: oldPinProp, onDone, onCancel, 
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
   // Entri pertama untuk mode setup/change_new — PIN baru harus diketik dua kali
   const [firstEntry, setFirstEntry] = useState<string | null>(null);
 
@@ -174,8 +206,21 @@ export function PinModal({ visible, mode, oldPin: oldPinProp, onDone, onCancel, 
       setPin("");
       setError(null);
       setFirstEntry(null);
+      getLockoutRemaining().then((r) => { if (r > 0) setLockoutRemaining(r); });
     }
   }, [visible, mode]);
+
+  // Countdown timer saat lockout
+  useEffect(() => {
+    if (lockoutRemaining <= 0) return;
+    const id = setInterval(() => {
+      setLockoutRemaining((prev) => {
+        if (prev <= 1000) { clearInterval(id); return 0; }
+        return prev - 1000;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [lockoutRemaining > 0]);
 
   const confirming = (mode === "setup" || mode === "change_new") && firstEntry !== null;
 
@@ -207,19 +252,23 @@ export function PinModal({ visible, mode, oldPin: oldPinProp, onDone, onCancel, 
     setLoading(true);
     try {
       if (mode === "disable") {
-        if (await verifyPin(value)) {
+        const result = await verifyPin(value);
+        if (result.ok) {
           await removePinHash();
           onDone();
         } else {
           setError("PIN salah");
           setPin("");
+          if (result.lockoutRemaining > 0) setLockoutRemaining(result.lockoutRemaining);
         }
       } else if (mode === "change_old") {
-        if (await verifyPin(value)) {
+        const result = await verifyPin(value);
+        if (result.ok) {
           onNeedChangeNew?.(value);
         } else {
           setError("PIN salah");
           setPin("");
+          if (result.lockoutRemaining > 0) setLockoutRemaining(result.lockoutRemaining);
         }
       } else {
         // setup / change_new: dua kali entri sebelum disimpan
@@ -246,7 +295,7 @@ export function PinModal({ visible, mode, oldPin: oldPinProp, onDone, onCancel, 
   };
 
   const handleDigit = (digit: string) => {
-    if (pin.length >= 6 || loading) return;
+    if (pin.length >= 6 || loading || lockoutRemaining > 0) return;
     setError(null);
     const next = pin + digit;
     setPin(next);
@@ -254,9 +303,12 @@ export function PinModal({ visible, mode, oldPin: oldPinProp, onDone, onCancel, 
   };
 
   const handleDelete = () => {
+    if (lockoutRemaining > 0) return;
     setError(null);
     setPin((p) => p.slice(0, -1));
   };
+
+  usePinKeyboard({ onDigit: handleDigit, onDelete: handleDelete, onEscape: onCancel, disabled: loading || lockoutRemaining > 0 });
 
   if (!visible) return null;
 
@@ -281,8 +333,14 @@ export function PinModal({ visible, mode, oldPin: oldPinProp, onDone, onCancel, 
 
           {error && <Text className="mt-3 font-sans text-sm text-saldio-red">{error}</Text>}
 
+          {lockoutRemaining > 0 && (
+            <Text className="mt-3 font-sans text-sm text-saldio-red">
+              Terlalu banyak percobaan. Tunggu {Math.ceil(lockoutRemaining / 1000)} detik
+            </Text>
+          )}
+
           <View className="mt-6">
-            <PinKeypad onDigit={handleDigit} onDelete={handleDelete} disabled={loading} size="sm" />
+            <PinKeypad onDigit={handleDigit} onDelete={handleDelete} disabled={loading || lockoutRemaining > 0} size="sm" />
           </View>
         </Pressable>
       </Pressable>

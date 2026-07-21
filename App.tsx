@@ -22,8 +22,11 @@ import { AppDataProvider, useAppData } from "./src/state/AppDataContext";
 import { ConfirmProvider, useConfirm } from "./src/components/ConfirmModal";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { Ionicons } from "@expo/vector-icons";
-import { isPinEnabled, isPinVerified } from "./src/lib/pin";
+import { isPinEnabled, isPinVerified, getCachedEncryptionKey } from "./src/lib/pin";
 import { PinLockScreen } from "./src/components/PinLockScreen";
+import { UpdateBanner } from "./src/components/UpdateBanner";
+import { ErrorBoundary } from "./src/components/ErrorBoundary";
+import { ThemeProvider } from "./src/components/ThemeProvider";
 
 const theme = {
   ...DefaultTheme,
@@ -119,14 +122,20 @@ function ConflictResolver() {
 function PinGate({ children }: { children: React.ReactNode }) {
   const [pinRequired, setPinRequired] = useState(false);
   const [ready, setReady] = useState(false);
+  const { manualSync } = useAppData();
 
   // Cek PIN saat mount dan setiap app/tab kembali aktif (re-lock setelah 30 menit)
   useEffect(() => {
     const check = async () => {
       const enabled = await isPinEnabled();
-      if (enabled && !(await isPinVerified())) {
-        setPinRequired(true);
+      if (!enabled) {
+        setPinRequired(false);
+        setReady(true);
+        return;
       }
+      const verified = await isPinVerified();
+      const hasKey = getCachedEncryptionKey() !== null;
+      setPinRequired(!(verified && hasKey));
       setReady(true);
     };
     check();
@@ -141,7 +150,17 @@ function PinGate({ children }: { children: React.ReactNode }) {
   }
 
   if (pinRequired) {
-    return <PinLockScreen onUnlock={() => setPinRequired(false)} />;
+    return (
+      <PinLockScreen
+        onUnlock={() => {
+          setPinRequired(false);
+          // Kunci enkripsi sudah ter-cache di pin.ts — picu sync
+          // supaya data terenkripsi di Drive yang sempat terlewat
+          // (saat kunci belum tersedia) bisa diambil sekarang
+          manualSync();
+        }}
+      />
+    );
   }
 
   return <>{children}</>;
@@ -163,12 +182,15 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <ErrorBoundary>
+      <ThemeProvider>
       <AuthProvider>
         <AppDataProvider>
           <ConfirmProvider>
             <PinGate>
               <AuthErrorHandler />
               <ConflictResolver />
+              <UpdateBanner />
               <NavigationContainer theme={theme} documentTitle={{ enabled: false }}>
                 <StatusBar style="dark" />
                 <RootNavigator />
@@ -177,6 +199,8 @@ export default function App() {
           </ConfirmProvider>
         </AppDataProvider>
       </AuthProvider>
+      </ThemeProvider>
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }

@@ -34,6 +34,7 @@
     "victory-native": "^41.26.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
     "jest": "^30.4.2",
@@ -47,7 +48,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export --platform web && bash scripts/postbuild.sh",
-    "test": "jest --verbose"
+    "test": "jest --verbose",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui"
   },
   "private": true
 }

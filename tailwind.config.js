@@ -4,6 +4,7 @@ module.exports = {
     "./App.{js,jsx,ts,tsx}",
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
+  darkMode: "class",
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
@@ -19,6 +20,7 @@ module.exports = {
       },
       colors: {
         saldio: {
+          // Light mode (default)
           navy: "#1E2A78",
           blue: "#3D51E0",
           sky: "#EAEFFB",
