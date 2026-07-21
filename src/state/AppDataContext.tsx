@@ -62,6 +62,8 @@ interface AppDataState {
 
 const AppDataContext = createContext<AppDataState | null>(null);
 
+const FOREGROUND_SYNC_COOLDOWN = 30_000;
+
 /** Stamp lastModified ke AppData. */
 function stampModified(d: AppData): AppData {
   return { ...d, lastModified: new Date().toISOString() };
@@ -69,7 +71,7 @@ function stampModified(d: AppData): AppData {
 
 /** Cek apakah data berubah sejak timestamp tertentu. */
 function modifiedSince(d: AppData, since: number | null): boolean {
-  if (!since) return true; // pertama kali — anggap berubah
+  if (since === null) return true; // pertama kali — anggap berubah
   if (!d.lastModified) return false; // data lama tanpa lastModified — tidak dianggap berubah
   return new Date(d.lastModified).getTime() > since;
 }
@@ -85,11 +87,16 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const conflictLocalRef = useRef<AppData>(EMPTY_DATA);
   const { accessToken } = useAuth();
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Ref untuk upload saat background — hindari stale closure
+  // Ref untuk menghindari stale closure di async handler
   const accessTokenRef = useRef<string | null>(null);
   const dataRef = useRef<AppData>(EMPTY_DATA);
+  const loadingRef = useRef(true);
+  const lastSyncTimestampRef = useRef<number | null>(null);
+  const isBackgroundUploadingRef = useRef(false);
   useEffect(() => { accessTokenRef.current = accessToken; }, [accessToken]);
   useEffect(() => { dataRef.current = data; }, [data]);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+  useEffect(() => { lastSyncTimestampRef.current = lastSyncTimestamp; }, [lastSyncTimestamp]);
 
   const clearAuthError = useCallback(() => setAuthError(false), []);
 
@@ -106,10 +113,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         // User pilih data lokal — upload ke Drive
         const local = conflictLocalRef.current;
         setData(local);
-        if (accessToken) {
-          uploadToDrive(accessToken, local).then(() => {
+        const token = accessTokenRef.current;
+        if (token) {
+          uploadToDrive(token, local).then(() => {
             persistSyncTimestamp(Date.now());
-          }).catch(() => {});
+          }).catch((e) => {
+            if (e instanceof DriveAuthError) setAuthError(true);
+          });
         }
       } else {
         // User pilih data remote — timpa lokal
@@ -119,19 +129,17 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       }
       setConflictRemote(null);
     },
-    [conflictRemote, accessToken, persistSyncTimestamp],
+    [conflictRemote, persistSyncTimestamp],
   );
 
   // Muat cache lokal dulu (offline-first), lalu coba tarik dari Drive.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // Bug 1 fix: muat lastSyncTimestamp dari AsyncStorage agar tidak reset setiap cold start
-      const [local, storedSyncTs] = await Promise.all([loadData(), loadLastSyncTimestamp()]);
-      const syncTs = storedSyncTs;
+      const [local, syncTs] = await Promise.all([loadData(), loadLastSyncTimestamp()]);
       if (!cancelled) {
         setData(local);
-        if (syncTs !== null) setLastSyncTimestamp(syncTs);
+        setLastSyncTimestamp(syncTs); // null saat pertama kali atau setelah sign-out
         setLoading(false);
       }
       if (accessToken) {
@@ -188,10 +196,20 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     [persistSyncTimestamp]
   );
 
-  // Bug 2 + 3 fix: AppState listener — flush upload sebelum background, pull saat foreground kembali
+  // Cancel debounce timer saat unmount agar tidak ada state update ke komponen yang sudah mati
+  useEffect(() => {
+    return () => {
+      if (syncTimer.current) clearTimeout(syncTimer.current);
+    };
+  }, []);
+
+  // AppState listener — flush upload sebelum background, pull saat foreground kembali
   useEffect(() => {
     const handleAppStateChange = async (nextState: AppStateStatus) => {
       if (nextState === "background" || nextState === "inactive") {
+        // Guard: cegah double-upload pada iOS (inactive → background dua event)
+        if (isBackgroundUploadingRef.current) return;
+        isBackgroundUploadingRef.current = true;
         // Flush debounced upload segera sebelum app masuk background
         if (syncTimer.current) {
           clearTimeout(syncTimer.current);
@@ -206,18 +224,25 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
             // Offline — tidak ada yang bisa dilakukan
           }
         }
+        isBackgroundUploadingRef.current = false;
       } else if (nextState === "active") {
-        // Pull data terbaru dari Drive saat app kembali ke foreground
+        isBackgroundUploadingRef.current = false;
+        // Skip jika init load belum selesai (hindari race dengan EMPTY_DATA)
+        if (loadingRef.current) return;
         const token = accessTokenRef.current;
         if (!token) return;
+        // Cooldown: hindari hammering Drive API saat rapid app-switch
+        const lastSync = lastSyncTimestampRef.current;
+        if (lastSync !== null && Date.now() - lastSync < FOREGROUND_SYNC_COOLDOWN) return;
+        // Pull data terbaru dari Drive
         try {
           const remote = await downloadFromDrive(token);
           if (!remote) return;
-          const storedSyncTs = await loadLastSyncTimestamp();
+          const syncTs = lastSyncTimestampRef.current;
           const localData = dataRef.current;
-          const localChanged = modifiedSince(localData, storedSyncTs);
-          const remoteChanged = modifiedSince(remote, storedSyncTs);
-          if (localChanged && remoteChanged && storedSyncTs !== null) {
+          const localChanged = modifiedSince(localData, syncTs);
+          const remoteChanged = modifiedSince(remote, syncTs);
+          if (localChanged && remoteChanged && syncTs !== null) {
             conflictLocalRef.current = localData;
             setConflictRemote(remote);
           } else if (remoteChanged || !localChanged) {
