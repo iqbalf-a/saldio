@@ -13,6 +13,7 @@ import { useAppData } from "../state/AppDataContext";
 import { useConfirm } from "../components/ConfirmModal";
 import type { MainTabsParamList } from "../navigation/types";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { categoryLabel } from "../lib/categories";
 
 type Nav = BottomTabScreenProps<MainTabsParamList, "Riwayat">;
 
@@ -44,10 +45,12 @@ function HistoryTxRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { data } = useAppData();
   const [menuOpen, setMenuOpen] = useState(false);
   const isGold = tx.type === "buy_gold" || tx.type === "sell_gold";
   const isIncome = tx.type === "income";
   const category = isGold ? "Emas" : tx.category;
+  const label = categoryLabel(category, data.customCategories);
   const amountText = isGold
     ? formatSignedGrams(tx.type === "buy_gold" ? tx.grams ?? 0 : -(tx.grams ?? 0))
     : formatSignedRupiah(isIncome ? tx.amount ?? 0 : -(tx.amount ?? 0));
@@ -60,7 +63,7 @@ function HistoryTxRow({
       <CategoryIcon category={category} size={40} />
       <View className="flex-1">
         <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
-          {tx.note || category || "Transaksi"}
+          {tx.note || label}
         </Text>
         <View className="mt-1 flex-row items-center gap-1.5">
           {walletTag ? (
@@ -70,7 +73,7 @@ function HistoryTxRow({
               </Text>
             </View>
           ) : null}
-          <Text className="font-sans text-xs text-saldio-muted">{category ?? "Lainnya"}</Text>
+          <Text className="font-sans text-xs text-saldio-muted">{label}</Text>
           <SourceChip source={tx.source} />
         </View>
       </View>
@@ -130,7 +133,7 @@ export function HistoryScreen({ navigation }: Nav) {
       const q = search.trim().toLowerCase();
       base = base.filter((t) => {
         const note = (t.note || "").toLowerCase();
-        const category = (t.category || "").toLowerCase();
+        const category = categoryLabel(t.category, data.customCategories).toLowerCase();
         const amount = t.amount ? String(t.amount) : "";
         const grams = t.grams ? String(t.grams) : "";
         return note.includes(q) || category.includes(q) || amount.includes(q) || grams.includes(q);
@@ -287,7 +290,7 @@ export function HistoryScreen({ navigation }: Nav) {
                       onDelete={() =>
                         confirm({
                           title: "Hapus transaksi?",
-                          message: `"${t.note || t.category || "Transaksi"}" akan dihapus permanen.`,
+                          message: `"${t.note || categoryLabel(t.category, data.customCategories)}" akan dihapus permanen.`,
                           confirmLabel: "Hapus",
                           onConfirm: () => deleteTransaction(t.id),
                         })

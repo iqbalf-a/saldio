@@ -3,6 +3,8 @@ import { Text, View } from "react-native";
 import { formatSignedGrams, formatSignedRupiah } from "../lib/format";
 import type { Transaction } from "../lib/types";
 import { CategoryIcon } from "./CategoryIcon";
+import { categoryLabel } from "../lib/categories";
+import { useAppData } from "../state/AppDataContext";
 
 interface Props {
   tx: Transaction;
@@ -27,6 +29,7 @@ function SourceChip({ source }: { source: Transaction["source"] }) {
 }
 
 export function TransactionRow({ tx, walletTag, walletTagColor }: Props) {
+  const { data } = useAppData();
   const isGold = tx.type === "buy_gold" || tx.type === "sell_gold";
   const isIncome = tx.type === "income";
   const amountText = isGold
@@ -41,13 +44,14 @@ export function TransactionRow({ tx, walletTag, walletTagColor }: Props) {
       : "text-saldio-red";
 
   const category = isGold ? "Emas" : tx.category;
+  const label = categoryLabel(category, data.customCategories);
 
   return (
     <View className="flex-row items-center gap-3 py-3">
       <CategoryIcon category={category} size={40} />
       <View className="flex-1">
         <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
-          {tx.note || category || "Transaksi"}
+          {tx.note || label}
         </Text>
         <View className="mt-1 flex-row items-center gap-1.5">
           {walletTag ? (
@@ -57,7 +61,7 @@ export function TransactionRow({ tx, walletTag, walletTagColor }: Props) {
               </Text>
             </View>
           ) : null}
-          <Text className="font-sans text-xs text-saldio-muted">{category ?? "Lainnya"}</Text>
+          <Text className="font-sans text-xs text-saldio-muted">{label}</Text>
           <SourceChip source={tx.source} />
         </View>
       </View>

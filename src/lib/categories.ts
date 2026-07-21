@@ -37,6 +37,11 @@ export function categoryByKey(key?: string, custom?: CustomCategory[]): Category
   return allCategories(custom).find((c) => c.key === key) ?? CATEGORIES[CATEGORIES.length - 1];
 }
 
+/** Nama kategori untuk ditampilkan ke user — key kategori kustom bukan nama aslinya. */
+export function categoryLabel(key?: string, custom?: CustomCategory[]): string {
+  return categoryByKey(key, custom).label;
+}
+
 /** Tebak kategori dari deskripsi transaksi hasil impor PDF. */
 export function guessCategory(description: string): string {
   const d = description.toUpperCase();

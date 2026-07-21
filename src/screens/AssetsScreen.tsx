@@ -157,13 +157,14 @@ function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
             {categoryBreakdown.map(([cat, amount]) => {
               const maxAmount = categoryBreakdown[0][1];
               const pctBar = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
-              const color = CATEGORY_COLORS[cat] || "#64748B";
+              const catInfo = categoryByKey(cat, data.customCategories);
+              const color = CATEGORY_COLORS[cat] || catInfo.color;
               return (
                 <View key={cat}>
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2">
                       <CategoryIcon category={cat} size={24} />
-                      <Text className="font-sans text-xs text-saldio-ink">{cat}</Text>
+                      <Text className="font-sans text-xs text-saldio-ink">{catInfo.label}</Text>
                     </View>
                     <Text className="font-mono-medium text-xs text-saldio-ink">{formatRupiah(amount)}</Text>
                   </View>

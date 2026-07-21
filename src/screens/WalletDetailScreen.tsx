@@ -12,6 +12,7 @@ import { formatDayLabel, formatRupiah, formatSignedGrams, formatSignedRupiah } f
 import { groupByDay, walletBalance } from "../lib/balances";
 import { availableMonths, walletFeed } from "../lib/walletFeed";
 import { walletSupportsPdfImport } from "../lib/templates";
+import { categoryLabel } from "../lib/categories";
 import { useConfirm } from "../components/ConfirmModal";
 import { HERO_SHADOW } from "../lib/ui";
 import { useAppData } from "../state/AppDataContext";
@@ -54,6 +55,7 @@ function ActionButton({
 function WalletTxRow({
   tx,
   category,
+  label,
   amountText,
   amountColor,
   onEdit,
@@ -61,6 +63,7 @@ function WalletTxRow({
 }: {
   tx: Transaction;
   category: string | undefined;
+  label: string;
   amountText: string;
   amountColor: string;
   onEdit: () => void;
@@ -72,10 +75,10 @@ function WalletTxRow({
       <CategoryIcon category={category} size={40} />
       <View className="flex-1">
         <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
-          {tx.note || category || "Transaksi"}
+          {tx.note || label}
         </Text>
         <View className="mt-1 flex-row items-center gap-1.5">
-          <Text className="font-sans text-xs text-saldio-muted">{category ?? "Lainnya"}</Text>
+          <Text className="font-sans text-xs text-saldio-muted">{label}</Text>
           {tx.source !== "manual" ? (
             <View className="flex-row items-center rounded-md bg-saldio-sky px-1.5 py-0.5">
               <Text className="font-sans-medium text-[10px] text-saldio-blue">PDF</Text>
@@ -304,6 +307,7 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
                 const isGoldTx = t.type === "buy_gold" || t.type === "sell_gold";
                 const isIncome = t.type === "income";
                 const category = isGoldTx ? "Emas" : t.category;
+                const label = categoryLabel(category, data.customCategories);
                 const amountText = isGoldTx
                   ? formatSignedGrams(t.type === "buy_gold" ? t.grams ?? 0 : -(t.grams ?? 0))
                   : formatSignedRupiah(isIncome ? t.amount ?? 0 : -(t.amount ?? 0));
@@ -315,13 +319,14 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
                     key={t.id}
                     tx={t}
                     category={category}
+                    label={label}
                     amountText={amountText}
                     amountColor={amountColor}
                     onEdit={() => navigation.navigate("AddTransaction", { walletId: wallet.id, transactionId: t.id })}
                     onDelete={() =>
                       confirm({
                         title: "Hapus transaksi?",
-                        message: `"${t.note || category || "Transaksi"}" akan dihapus permanen.`,
+                        message: `"${t.note || label}" akan dihapus permanen.`,
                         confirmLabel: "Hapus",
                         onConfirm: () => deleteTransaction(t.id),
                       })
