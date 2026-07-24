@@ -37,6 +37,23 @@ module.exports = {
           "gold-deep": "#8A6A10",
           "gold-bg": "#FBF3DC",
           "gold-ink": "#6B5308",
+          // Dark mode overrides — pakai dengan dark: prefix
+          // Contoh: dark:bg-saldio-darkBg, dark:text-saldio-darkInk
+          "dark-bg": "#0F1123",
+          "dark-card": "#181E36",
+          "dark-ink": "#E8ECF4",
+          "dark-muted": "#8892A6",
+          "dark-soft": "#6B7589",
+          "dark-border": "#1E2540",
+          "dark-sky": "#5B6FE8",
+          "dark-blue": "#5B6FE8",
+          "dark-red": "#F06060",
+          "dark-red-bg": "#3D1515",
+          "dark-green": "#3DCE7E",
+          "dark-green-bg": "#1A3D2A",
+          "dark-gold": "#D4A843",
+          "dark-gold-bg": "#2E2610",
+          "dark-gold-ink": "#C4A44A",
         },
       },
       fontFamily: {

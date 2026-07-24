@@ -1,3 +1,64 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Dark Mode: CSS Custom Properties ────────────────────────────────────
+ * Digunakan oleh useDarkColor() hook untuk inline styles (hex values).
+ * Tailwind dark: prefix sudah pakai saldio-dark-* dari tailwind.config.js.
+ * Variables di sini untuk elemen yang pakai style={{ ... }}.
+ */
+:root {
+  /* Transition animasi saat berubah theme */
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+
+  --saldio-bg: #F1F4F9;
+  --saldio-card: #FFFFFF;
+  --saldio-ink: #101736;
+  --saldio-muted: #8A94A6;
+  --saldio-soft: #64748B;
+  --saldio-border: #E6EAF2;
+  --saldio-sky: #3D51E0;
+  --saldio-blue: #3D51E0;
+  --saldio-navy: #1E2A78;
+  --saldio-red: #E23B3B;
+  --saldio-red-bg: #FDECEC;
+  --saldio-green: #16A34A;
+  --saldio-green-bg: #E7F6EC;
+  --saldio-gold: #B08415;
+  --saldio-gold-bg: #FBF3DC;
+  --saldio-gold-ink: #6B5308;
+  --shadow-card: 0px 6px 18px rgba(23, 32, 90, 0.07);
+  --shadow-hero: 0px 12px 28px rgba(30, 42, 120, 0.28);
+
+  /* Gradient hero card */
+  --gradient-hero-from: #1E2A78;
+  --gradient-hero-to: #3D51E0;
+}
+
+.dark {
+  /* Transisi juga berlaku untuk transisi masuk-keluar dark mode */
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+
+  --saldio-bg: #0F1123;
+  --saldio-card: #181E36;
+  --saldio-ink: #E8ECF4;
+  --saldio-muted: #8892A6;
+  --saldio-soft: #6B7589;
+  --saldio-border: #1E2540;
+  --saldio-sky: #5B6FE8;
+  --saldio-blue: #5B6FE8;
+  --saldio-navy: #0F1B5E;
+  --saldio-red: #F06060;
+  --saldio-red-bg: #3D1515;
+  --saldio-green: #3DCE7E;
+  --saldio-green-bg: #1A3D2A;
+  --saldio-gold: #D4A843;
+  --saldio-gold-bg: #2E2610;
+  --saldio-gold-ink: #C4A44A;
+  --shadow-card: 0px 6px 18px rgba(0, 0, 0, 0.3);
+  --shadow-hero: 0px 12px 28px rgba(0, 0, 0, 0.5);
+
+  /* Gradient hero card — lebih redup di dark mode */
+  --gradient-hero-from: #0F1B5E;
+  --gradient-hero-to: #2A3FAF;
+}
