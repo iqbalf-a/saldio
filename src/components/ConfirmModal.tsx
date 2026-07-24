@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useDarkColor } from "../lib/darkColors";
 
 interface ConfirmState {
   visible: boolean;
@@ -91,6 +92,8 @@ function ConfirmModal({
   onCancel: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const dangerIconColor = useDarkColor("red");
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <Pressable
@@ -98,30 +101,30 @@ function ConfirmModal({
         onPress={onCancel}
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
-        <Pressable className="w-full rounded-3xl bg-white p-6" onPress={() => {}}>
+        <Pressable className="w-full rounded-3xl bg-white dark:bg-saldio-dark-card p-6" onPress={() => {}}>
           <View className="items-center">
-            <View className="h-14 w-14 items-center justify-center rounded-full bg-saldio-red-bg">
-              <Ionicons name="warning" size={28} color="#E23B3B" />
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-saldio-red-bg dark:bg-saldio-dark-red-bg">
+              <Ionicons name="warning" size={28} color={dangerIconColor} />
             </View>
           </View>
 
-          <Text className="mt-5 text-center font-sans-bold text-lg text-saldio-ink">{title}</Text>
-          <Text className="mt-2 text-center font-sans text-sm leading-5 text-saldio-muted">
+          <Text className="mt-5 text-center font-sans-bold text-lg text-saldio-ink dark:text-saldio-dark-ink">{title}</Text>
+          <Text className="mt-2 text-center font-sans text-sm leading-5 text-saldio-muted dark:text-saldio-dark-muted">
             {message}
           </Text>
 
           <View className="mt-6 gap-3">
             <Pressable
               onPress={onConfirm}
-              className="h-[52px] items-center justify-center rounded-full bg-saldio-red active:opacity-80"
+              className="h-[52px] items-center justify-center rounded-full bg-saldio-red dark:bg-saldio-dark-red active:opacity-80"
             >
               <Text className="font-sans-semibold text-base text-white">{confirmLabel}</Text>
             </Pressable>
             <Pressable
               onPress={onCancel}
-              className="h-[52px] items-center justify-center rounded-full bg-saldio-bg active:opacity-80"
+              className="h-[52px] items-center justify-center rounded-full bg-saldio-bg dark:bg-saldio-dark-bg active:opacity-80"
             >
-              <Text className="font-sans-semibold text-base text-saldio-soft">Batal</Text>
+              <Text className="font-sans-semibold text-base text-saldio-soft dark:text-saldio-dark-soft">Batal</Text>
             </Pressable>
           </View>
         </Pressable>

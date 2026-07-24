@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useDarkColor } from "../lib/darkColors";
 
 export interface ActionMenuItem {
   label: string;
@@ -17,10 +18,13 @@ interface Props {
 
 /** Menu aksi (dibuka tombol "⋯") — lembar pilihan di bagian bawah layar. */
 export function ActionMenu({ visible, onClose, items }: Props) {
+  const iconColor = useDarkColor("blue");
+  const dangerColor = useDarkColor("red");
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable className="flex-1 justify-end bg-black/40" onPress={onClose}>
-        <View className="mx-4 mb-6 rounded-3xl bg-white p-2">
+        <View className="mx-4 mb-6 rounded-3xl bg-white dark:bg-saldio-dark-card p-2">
           {items.map((item) => (
             <Pressable
               key={item.label}
@@ -28,16 +32,16 @@ export function ActionMenu({ visible, onClose, items }: Props) {
                 onClose();
                 item.onPress();
               }}
-              className="flex-row items-center gap-3 rounded-2xl px-4 py-3.5 active:bg-saldio-bg"
+              className="flex-row items-center gap-3 rounded-2xl px-4 py-3.5 active:bg-saldio-bg dark:active:bg-saldio-dark-bg"
             >
               <Ionicons
                 name={item.icon as never}
                 size={18}
-                color={item.destructive ? "#E23B3B" : "#3D51E0"}
+                color={item.destructive ? dangerColor : iconColor}
               />
               <Text
                 className={`font-sans-semibold text-base ${
-                  item.destructive ? "text-saldio-red" : "text-saldio-ink"
+                  item.destructive ? "text-saldio-red dark:text-saldio-dark-red" : "text-saldio-ink dark:text-saldio-dark-ink"
                 }`}
               >
                 {item.label}
@@ -46,9 +50,9 @@ export function ActionMenu({ visible, onClose, items }: Props) {
           ))}
           <Pressable
             onPress={onClose}
-            className="mt-1 items-center rounded-2xl border-t border-saldio-border px-4 py-3.5 active:bg-saldio-bg"
+            className="mt-1 items-center rounded-2xl border-t border-saldio-border dark:border-saldio-dark-border px-4 py-3.5 active:bg-saldio-bg dark:active:bg-saldio-dark-bg"
           >
-            <Text className="font-sans-semibold text-base text-saldio-soft">Batal</Text>
+            <Text className="font-sans-semibold text-base text-saldio-soft dark:text-saldio-dark-soft">Batal</Text>
           </Pressable>
         </View>
       </Pressable>
