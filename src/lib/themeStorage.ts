@@ -2,7 +2,8 @@ import { Platform } from "react-native";
 
 export type ThemeMode = "light" | "dark" | "system";
 
-const STORAGE_KEY = "saldio-theme-preference";
+/** Key localStorage untuk preferensi tema — satu-satunya sumber, jangan hardcode ulang di file lain. */
+export const STORAGE_KEY = "saldio-theme-preference";
 
 /** Baca tema tersimpan dari localStorage (web) atau default "system". */
 export function getStoredTheme(): ThemeMode {

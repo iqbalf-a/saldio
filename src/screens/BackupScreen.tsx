@@ -9,8 +9,12 @@ import { useAppData } from "../state/AppDataContext";
 import type { AppData } from "../lib/types";
 import { isPinEnabled, verifyPin, getCachedEncryptionKey, getLockoutRemaining } from "../lib/pin";
 import { encryptWithKey, decryptWithKey, isEncryptedPayload } from "../lib/crypto";
+import { useTheme } from "../components/ThemeProvider";
+import { useDarkColor } from "../lib/darkColors";
 
 export function BackupScreen({ navigation }: { navigation: any }) {
+  const { isDark } = useTheme();
+  const muted = useDarkColor("muted");
   const { data, replaceAll } = useAppData();
   const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
@@ -225,17 +229,17 @@ export function BackupScreen({ navigation }: { navigation: any }) {
       {/* PIN input modal — menggunakan PIN asli aplikasi (bukan passphrase bebas) */}
       {pinModalVisible && (
         <View className="absolute inset-0 z-50 items-center justify-center bg-black/50">
-          <View className="mx-8 w-full rounded-2xl bg-white p-6">
-            <Text className="text-center font-sans-bold text-lg text-saldio-ink">
+          <View className="mx-8 w-full rounded-2xl bg-white dark:bg-saldio-surface p-6">
+            <Text className="text-center font-sans-bold text-lg text-saldio-ink dark:text-saldio-dark-ink">
               {pinMode === "encrypt" ? "PIN untuk Enkripsi Backup" : "PIN untuk Dekripsi Backup"}
             </Text>
-            <Text className="mt-2 text-center font-sans text-sm text-saldio-muted">
+            <Text className="mt-2 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
               Masukkan PIN aplikasi Anda (6 digit)
             </Text>
             <TextInput
-              className="mt-4 rounded-xl border border-saldio-border bg-saldio-bg px-4 py-3 text-center font-mono-medium text-lg text-saldio-ink"
+              className="mt-4 rounded-xl border border-saldio-border dark:border-saldio-dark-border bg-saldio-bg dark:bg-saldio-dark-bg px-4 py-3 text-center font-mono-medium text-lg text-saldio-ink dark:text-saldio-dark-ink"
               placeholder="PIN 6 digit"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={muted}
               keyboardType="numeric"
               maxLength={6}
               secureTextEntry
@@ -244,16 +248,16 @@ export function BackupScreen({ navigation }: { navigation: any }) {
               onChangeText={setPinInput}
             />
             {lockoutRemaining > 0 && (
-              <Text className="mt-2 text-center font-sans text-xs text-saldio-red">
+              <Text className="mt-2 text-center font-sans text-xs text-saldio-red dark:text-saldio-dark-red">
                 Terlalu banyak percobaan. Tunggu {Math.ceil(lockoutRemaining / 1000)} detik
               </Text>
             )}
             <View className="mt-4 flex-row gap-3">
               <Pressable
                 onPress={() => { setPinModalVisible(false); setPendingData(null); setLockoutRemaining(0); }}
-                className="h-[44px] flex-1 items-center justify-center rounded-full border border-saldio-border active:opacity-80"
+                className="h-[44px] flex-1 items-center justify-center rounded-full border border-saldio-border dark:border-saldio-dark-border active:opacity-80"
               >
-                <Text className="font-sans-semibold text-sm text-saldio-muted">Batal</Text>
+                <Text className="font-sans-semibold text-sm text-saldio-muted dark:text-saldio-dark-muted">Batal</Text>
               </Pressable>
               <PrimaryButton
                 label={pinMode === "encrypt" ? "Enkripsi" : "Dekripsi"}
@@ -266,27 +270,27 @@ export function BackupScreen({ navigation }: { navigation: any }) {
       )}
 
       {/* Info data */}
-      <View className="mb-6 rounded-2xl bg-white p-5">
-        <Text className="font-sans-semibold text-sm text-saldio-ink">Data Anda</Text>
-        <View className="mt-3 flex-row items-center justify-between py-2 border-b border-saldio-border">
-          <Text className="font-sans text-xs text-saldio-muted">Jumlah dompet</Text>
-          <Text className="font-mono-medium text-sm text-saldio-ink">{data.wallets.length}</Text>
+      <View className="mb-6 rounded-2xl bg-white dark:bg-saldio-surface p-5">
+        <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">Data Anda</Text>
+        <View className="mt-3 flex-row items-center justify-between py-2 border-b border-saldio-border dark:border-saldio-dark-border">
+          <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Jumlah dompet</Text>
+          <Text className="font-mono-medium text-sm text-saldio-ink dark:text-saldio-dark-ink">{data.wallets.length}</Text>
         </View>
-        <View className="flex-row items-center justify-between py-2 border-b border-saldio-border">
-          <Text className="font-sans text-xs text-saldio-muted">Jumlah transaksi</Text>
-          <Text className="font-mono-medium text-sm text-saldio-ink">{data.transactions.length}</Text>
+        <View className="flex-row items-center justify-between py-2 border-b border-saldio-border dark:border-saldio-dark-border">
+          <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Jumlah transaksi</Text>
+          <Text className="font-mono-medium text-sm text-saldio-ink dark:text-saldio-dark-ink">{data.transactions.length}</Text>
         </View>
         <View className="flex-row items-center justify-between py-2">
-          <Text className="font-sans text-xs text-saldio-muted">Riwayat harga emas</Text>
-          <Text className="font-mono-medium text-sm text-saldio-ink">{data.goldPriceLog.length} entri</Text>
+          <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Riwayat harga emas</Text>
+          <Text className="font-mono-medium text-sm text-saldio-ink dark:text-saldio-dark-ink">{data.goldPriceLog.length} entri</Text>
         </View>
       </View>
 
       {/* Export button */}
-      <View className="mb-4 rounded-2xl bg-white p-5">
-        <View className="mb-4 flex-row items-start gap-3 rounded-xl bg-saldio-green-bg p-4">
+      <View className="mb-4 rounded-2xl bg-white dark:bg-saldio-surface p-5">
+        <View className="mb-4 flex-row items-start gap-3 rounded-xl bg-saldio-green-bg dark:bg-saldio-dark-green-bg p-4">
           <Ionicons name="cloud-upload-outline" size={20} color="#16A34A" />
-          <Text className="flex-1 font-sans text-sm leading-5 text-saldio-green">
+          <Text className="flex-1 font-sans text-sm leading-5 text-saldio-green dark:text-saldio-dark-green">
             Export data ke file JSON untuk di-backup di perangkat atau komputer Anda.
           </Text>
         </View>
@@ -299,8 +303,8 @@ export function BackupScreen({ navigation }: { navigation: any }) {
       </View>
 
       {/* Import button */}
-      <View className="mb-4 rounded-2xl bg-white p-5">
-        <View className="mb-4 flex-row items-start gap-3 rounded-xl bg-saldio-sky p-4">
+      <View className="mb-4 rounded-2xl bg-white dark:bg-saldio-surface p-5">
+        <View className="mb-4 flex-row items-start gap-3 rounded-xl bg-saldio-sky dark:bg-saldio-dark-sky p-4">
           <Ionicons name="cloud-download-outline" size={20} color="#3D51E0" />
           <Text className="flex-1 font-sans text-sm leading-5 text-saldio-blue">
             Import file backup JSON untuk mengembalikan data. Data saat ini akan diganti.
@@ -317,14 +321,14 @@ export function BackupScreen({ navigation }: { navigation: any }) {
 
       {/* Error message */}
       {error ? (
-        <View className="mt-4 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg p-4">
+        <View className="mt-4 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg dark:bg-saldio-dark-red-bg p-4">
           <Ionicons name="alert-circle" size={16} color="#E23B3B" />
-          <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red">{error}</Text>
+          <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red dark:text-saldio-dark-red">{error}</Text>
         </View>
       ) : null}
 
-      <View className="mt-6 rounded-2xl bg-saldio-bg p-4">
-        <Text className="font-sans text-xs text-saldio-soft">
+      <View className="mt-6 rounded-2xl bg-saldio-bg dark:bg-saldio-dark-bg p-4">
+        <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">
           Backup disimpan di perangkat Anda. Pastikan file backup aman dan tidak hilang.
         </Text>
       </View>

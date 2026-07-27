@@ -6,6 +6,7 @@ import {
   type ThemeMode,
   type EffectiveTheme,
 } from "../lib/useSystemTheme";
+import { getStoredTheme, STORAGE_KEY } from "../lib/themeStorage";
 
 export interface ThemeContextValue {
   /** Apakah tema efektif saat ini gelap (untuk conditional styling). */
@@ -70,13 +71,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const handler = () => {
       // force re-read preference dari localStorage (mungkin berubah dari tab lain?)
-      setPreference(getEffectivePreference());
+      setPreference(getStoredTheme());
       // useSystemTheme akan update otomatis via event listener
     };
 
     // Listen storage event untuk cross-tab sync
     const storageHandler = (e: StorageEvent) => {
-      if (e.key === "saldio-theme-preference") {
+      if (e.key === STORAGE_KEY) {
         const raw = e.newValue as ThemeMode | null;
         if (raw === "light" || raw === "dark" || raw === "system") {
           setPreference(raw);
@@ -97,12 +98,4 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ThemeContext.Provider>
   );
-}
-
-/** Helper untuk baca preferensi dari localStorage (inline untuk useEffect). */
-function getEffectivePreference(): ThemeMode {
-  if (typeof window === "undefined") return "system";
-  const raw = localStorage.getItem("saldio-theme-preference");
-  if (raw === "light" || raw === "dark" || raw === "system") return raw;
-  return "system";
 }

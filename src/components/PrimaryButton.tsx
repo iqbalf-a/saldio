@@ -11,7 +11,7 @@ interface Props {
 
 export function PrimaryButton({ label, onPress, disabled, loading, variant = "primary" }: Props) {
   const bg =
-    disabled ? "bg-saldio-border" : variant === "gold" ? "bg-saldio-gold" : "bg-saldio-blue";
+    disabled ? "bg-saldio-border dark:bg-saldio-dark-border" : variant === "gold" ? "bg-saldio-gold dark:bg-saldio-dark-gold" : "bg-saldio-blue dark:bg-saldio-dark-blue";
   return (
     <Pressable
       onPress={onPress}
@@ -21,7 +21,7 @@ export function PrimaryButton({ label, onPress, disabled, loading, variant = "pr
       {loading ? (
         <ActivityIndicator color="white" />
       ) : (
-        <Text className={`font-sans-semibold text-base ${disabled ? "text-saldio-muted" : "text-white"}`}>
+        <Text className={`font-sans-semibold text-base ${disabled ? "text-saldio-muted dark:text-saldio-dark-muted" : "text-white"}`}>
           {label}
         </Text>
       )}

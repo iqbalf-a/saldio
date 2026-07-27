@@ -23,6 +23,7 @@ import type { Wallet } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
 import { useAuth } from "../state/AuthContext";
 import { CARD_SHADOW, HERO_SHADOW } from "../lib/ui";
+import { useTheme } from "../components/ThemeProvider";
 import type { HomeStackParamList, MainTabsParamList } from "../navigation/types";
 
 type Nav = CompositeNavigationProp<
@@ -44,12 +45,16 @@ function walletSubtitle(wallet: Wallet): string {
   return `${label} · ${walletSupportsPdfImport(wallet) ? "impor PDF" : "manual"}`;
 }
 
+const GRADIENT_LIGHT = ["#1E2A78", "#3D51E0"] as const;
+const GRADIENT_DARK = ["#131B54", "#2A3BAA"] as const;
+
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const { data, moveWallet } = useAppData();
   const { profile } = useAuth();
   const [hidden, setHidden] = useState(false);
   const [walletMenuId, setWalletMenuId] = useState<string | null>(null);
+  const { isDark } = useTheme();
 
   const total = netWorth(data);
   const liquid = liquidTotal(data);
@@ -63,8 +68,8 @@ export function HomeScreen() {
         {/* Sapaan */}
         <View className="mb-6 flex-row items-center justify-between">
           <View>
-            <Text className="font-sans text-sm text-saldio-soft">{greeting()}</Text>
-            <Text className="mt-0.5 font-sans-bold text-xl text-saldio-ink">
+            <Text className="font-sans text-sm text-saldio-soft dark:text-saldio-dark-soft">{greeting()}</Text>
+            <Text className="mt-0.5 font-sans-bold text-xl text-saldio-ink dark:text-saldio-dark-ink">
               {profile?.name ?? "Pengguna"}
             </Text>
           </View>
@@ -72,13 +77,13 @@ export function HomeScreen() {
             onPress={() => navigation.navigate("Profil")}
             className="h-11 w-11 items-center justify-center rounded-full bg-saldio-blue active:opacity-80"
           >
-            <Ionicons name="person" size={20} color="#3D51E0" />
+            <Ionicons name="person" size={20} color="#5B6FE8" />
           </Pressable>
         </View>
 
         {/* Kartu total saldo */}
         <LinearGradient
-          colors={["#1E2A78", "#3D51E0"]}
+          colors={isDark ? [...GRADIENT_DARK] : [...GRADIENT_LIGHT]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1.2, y: 1.2 }}
           style={{ borderRadius: 24, padding: 20, ...HERO_SHADOW }}
@@ -108,8 +113,8 @@ export function HomeScreen() {
 
         {/* Daftar dompet */}
         <View className="mb-3.5 mt-7 flex-row items-end justify-between">
-          <Text className="font-sans-bold text-lg text-saldio-ink">Dompet</Text>
-          <Text className="font-sans text-sm text-saldio-muted">
+          <Text className="font-sans-bold text-lg text-saldio-ink dark:text-saldio-dark-ink">Dompet</Text>
+          <Text className="font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
             {data.wallets.length} dompet
           </Text>
         </View>
@@ -117,7 +122,7 @@ export function HomeScreen() {
         {data.wallets.length === 0 ? (
           <EmptyState
             icon="wallet"
-            iconColor="#3D51E0"
+            iconColor="#5B6FE8"
             iconBackground="#EAEFFB"
             title="Belum ada dompet"
             description="Buat dompet pertamamu — rekening bank, uang tunai, atau tabungan emas."
@@ -135,13 +140,15 @@ export function HomeScreen() {
                     onLongPress={() => setWalletMenuId(w.id)}
                     style={CARD_SHADOW}
                     className={`flex-row items-center gap-3 rounded-[20px] p-4 active:opacity-80 ${
-                      isGold ? "bg-saldio-gold-bg" : "bg-white"
+                      isGold
+                        ? "bg-saldio-gold-bg dark:bg-saldio-dark-gold-bg"
+                        : "bg-white dark:bg-saldio-dark-card"
                     }`}
                   >
                     <WalletBadge name={w.name} template={w.template} type={w.type} size={40} />
                     <View className="flex-1">
-                      <Text className="font-sans-semibold text-sm text-saldio-ink">{w.name}</Text>
-                      <Text className="mt-0.5 font-sans text-xs text-saldio-muted">
+                      <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">{w.name}</Text>
+                      <Text className="mt-0.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
                         {isGold
                           ? price
                             ? `${formatGrams(goldGrams(data, w), false)} gram · ${formatRupiah(price.pricePerGram)}/g`
@@ -150,11 +157,11 @@ export function HomeScreen() {
                       </Text>
                     </View>
                     <View className="items-end">
-                      <Text className="font-mono-semibold text-sm text-saldio-ink">
+                      <Text className="font-mono-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
                         {mask(formatRupiah(walletBalance(data, w)))}
                       </Text>
                       {isGold ? (
-                        <Text className="mt-0.5 font-sans text-[10px] text-saldio-gold-ink">
+                        <Text className="mt-0.5 font-sans text-[10px] text-saldio-gold-ink dark:text-saldio-dark-gold-ink">
                           ≈ nilai saat ini
                         </Text>
                       ) : null}
@@ -165,24 +172,28 @@ export function HomeScreen() {
                     onClose={() => setWalletMenuId(null)}
                     items={[
                       ...(idx > 0
-                        ? [{
-                            label: "Pindah ke atas",
-                            icon: "arrow-up",
-                            onPress: () => {
-                              moveWallet(w.id, "up");
-                              setWalletMenuId(null);
+                        ? [
+                            {
+                              label: "Pindah ke atas",
+                              icon: "arrow-up",
+                              onPress: () => {
+                                moveWallet(w.id, "up");
+                                setWalletMenuId(null);
+                              },
                             },
-                          }]
+                          ]
                         : []),
                       ...(idx < data.wallets.length - 1
-                        ? [{
-                            label: "Pindah ke bawah",
-                            icon: "arrow-down",
-                            onPress: () => {
-                              moveWallet(w.id, "down");
-                              setWalletMenuId(null);
+                        ? [
+                            {
+                              label: "Pindah ke bawah",
+                              icon: "arrow-down",
+                              onPress: () => {
+                                moveWallet(w.id, "down");
+                                setWalletMenuId(null);
+                              },
                             },
-                          }]
+                          ]
                         : []),
                     ]}
                   />

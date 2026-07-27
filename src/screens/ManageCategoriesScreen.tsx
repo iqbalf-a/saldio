@@ -6,6 +6,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { useAppData } from "../state/AppDataContext";
 import { allCategories, CATEGORIES } from "../lib/categories";
 import { useConfirm } from "../components/ConfirmModal";
+import { useTheme } from "../components/ThemeProvider";
 import type { Category } from "../lib/categories";
 import type { HomeScreenProps } from "../navigation/types";
 
@@ -16,22 +17,22 @@ const ICON_OPTIONS = [
   "fitness", "medkit", "school", "pencil", "build", "game-controller",
 ];
 
-const COLOR_OPTIONS = [
-  { color: "#E86A33", background: "#FDEEE4" },
-  { color: "#2F6BFF", background: "#E8F0FE" },
-  { color: "#8B5CF6", background: "#F1EAFE" },
-  { color: "#D9A400", background: "#FEF6DC" },
-  { color: "#E23B3B", background: "#FDE8E8" },
-  { color: "#16A34A", background: "#E7F6EC" },
-  { color: "#0EA5E9", background: "#E6F6FE" },
-  { color: "#EC4899", background: "#FDE8F3" },
-  { color: "#F97316", background: "#FEE9D6" },
-  { color: "#64748B", background: "#EDF1F7" },
-];
-
 export function ManageCategoriesScreen({ navigation }: HomeScreenProps<"ManageCategories">) {
   const { data, addCustomCategory, updateCustomCategory, removeCustomCategory } = useAppData();
   const confirm = useConfirm();
+  const { isDark } = useTheme();
+  const COLOR_OPTIONS = [
+    { color: "#E86A33", background: "#FDEEE4" },
+    { color: "#2F6BFF", background: "#E8F0FE" },
+    { color: "#8B5CF6", background: "#F1EAFE" },
+    { color: "#D9A400", background: "#FEF6DC" },
+    { color: "#E23B3B", background: "#FDE8E8" },
+    { color: "#16A34A", background: "#E7F6EC" },
+    { color: "#0EA5E9", background: "#E6F6FE" },
+    { color: "#EC4899", background: "#FDE8F3" },
+    { color: "#F97316", background: "#FEE9D6" },
+    { color: isDark ? "#94A3B8" : "#64748B", background: isDark ? "#2A3456" : "#EDF1F7" },
+  ];
   const [editing, setEditing] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
@@ -96,7 +97,7 @@ export function ManageCategoriesScreen({ navigation }: HomeScreenProps<"ManageCa
       <ScreenHeader title="Kategori" />
 
       <View className="mb-4 flex-row items-center justify-between">
-        <Text className="font-sans text-sm text-saldio-muted">
+        <Text className="font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
           {CATEGORIES.length} bawaan · {customList.length} kustom
         </Text>
         {!isFormOpen && (
@@ -112,43 +113,43 @@ export function ManageCategoriesScreen({ navigation }: HomeScreenProps<"ManageCa
 
       {/* Form tambah / edit */}
       {isFormOpen && (
-        <View className="mb-5 rounded-2xl bg-white p-4">
-          <Text className="mb-3 font-sans-semibold text-sm text-saldio-ink">
+        <View className="mb-5 rounded-2xl bg-white dark:bg-saldio-surface p-4">
+          <Text className="mb-3 font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
             {adding ? "Kategori Baru" : "Edit Kategori"}
           </Text>
 
-          <Text className="mb-1.5 font-sans text-xs text-saldio-muted">Nama</Text>
-          <View className="mb-4 rounded-xl bg-saldio-bg px-3 py-2.5">
+          <Text className="mb-1.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Nama</Text>
+          <View className="mb-4 rounded-xl bg-saldio-bg dark:bg-saldio-dark-bg px-3 py-2.5">
             <TextInput
               value={name}
               onChangeText={setName}
               placeholder="mis. Kopi, Parkir, Langganan…"
-              placeholderTextColor="#8A94A6"
-              className="font-sans text-sm text-saldio-ink"
+              placeholderTextColor={isDark ? '#9CA3AF' : '#8A94A6'}
+              className="font-sans text-sm text-saldio-ink dark:text-saldio-dark-ink"
               autoFocus
             />
           </View>
 
-          <Text className="mb-1.5 font-sans text-xs text-saldio-muted">Ikon</Text>
+          <Text className="mb-1.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Ikon</Text>
           <View className="mb-4 flex-row flex-wrap gap-2">
             {ICON_OPTIONS.map((ic) => (
               <Pressable
                 key={ic}
                 onPress={() => setIcon(ic)}
                 className={`h-10 w-10 items-center justify-center rounded-xl ${
-                  icon === ic ? "bg-saldio-blue" : "bg-saldio-bg"
+                  icon === ic ? "bg-saldio-blue" : "bg-saldio-bg dark:bg-saldio-dark-bg"
                 }`}
               >
                 <Ionicons
                   name={ic as keyof typeof Ionicons.glyphMap}
                   size={18}
-                  color={icon === ic ? "#fff" : "#64748B"}
+                  color={icon === ic ? "#fff" : isDark ? "#94A3B8" : "#64748B"}
                 />
               </Pressable>
             ))}
           </View>
 
-          <Text className="mb-1.5 font-sans text-xs text-saldio-muted">Warna</Text>
+          <Text className="mb-1.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Warna</Text>
           <View className="mb-4 flex-row flex-wrap gap-2">
             {COLOR_OPTIONS.map((c, i) => (
               <Pressable
@@ -173,9 +174,9 @@ export function ManageCategoriesScreen({ navigation }: HomeScreenProps<"ManageCa
           <View className="flex-row gap-3">
             <Pressable
               onPress={cancel}
-              className="flex-1 h-[52px] items-center justify-center rounded-full bg-saldio-border active:opacity-80"
+              className="flex-1 h-[52px] items-center justify-center rounded-full bg-saldio-border dark:bg-saldio-dark-border active:opacity-80"
             >
-              <Text className="font-sans-semibold text-base text-saldio-muted">Batal</Text>
+              <Text className="font-sans-semibold text-base text-saldio-muted dark:text-saldio-dark-muted">Batal</Text>
             </Pressable>
             <View className="flex-1">
               <PrimaryButton label="Simpan" onPress={save} disabled={!name.trim()} />
@@ -185,15 +186,15 @@ export function ManageCategoriesScreen({ navigation }: HomeScreenProps<"ManageCa
       )}
 
       {/* Daftar kategori bawaan */}
-      <Text className="mb-2 font-sans-semibold text-xs uppercase text-saldio-muted">Bawaan</Text>
+      <Text className="mb-2 font-sans-semibold text-xs uppercase text-saldio-muted dark:text-saldio-dark-muted">Bawaan</Text>
       <View className="mb-4 gap-2">
         {CATEGORIES.map((cat) => (
-          <View key={cat.key} className="flex-row items-center gap-3 rounded-2xl bg-white p-3">
+          <View key={cat.key} className="flex-row items-center gap-3 rounded-2xl bg-white dark:bg-saldio-surface p-3">
             <View className="h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: cat.background }}>
               <Ionicons name={cat.icon as keyof typeof Ionicons.glyphMap} size={18} color={cat.color} />
             </View>
-            <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">{cat.label}</Text>
-            <Text className="font-sans text-xs text-saldio-muted">Bawaan</Text>
+            <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">{cat.label}</Text>
+            <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Bawaan</Text>
           </View>
         ))}
       </View>
@@ -201,26 +202,26 @@ export function ManageCategoriesScreen({ navigation }: HomeScreenProps<"ManageCa
       {/* Daftar kategori kustom */}
       {customList.length > 0 && (
         <>
-          <Text className="mb-2 font-sans-semibold text-xs uppercase text-saldio-muted">Kustom</Text>
+          <Text className="mb-2 font-sans-semibold text-xs uppercase text-saldio-muted dark:text-saldio-dark-muted">Kustom</Text>
           <View className="gap-2">
             {customList.map((cat) => {
               const matched = all.find((c) => c.key === cat.key);
               if (!matched) return null;
               return (
-                <View key={cat.key} className="flex-row items-center gap-3 rounded-2xl bg-white p-3">
+                <View key={cat.key} className="flex-row items-center gap-3 rounded-2xl bg-white dark:bg-saldio-surface p-3">
                   <View className="h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: matched.background }}>
                     <Ionicons name={matched.icon as keyof typeof Ionicons.glyphMap} size={18} color={matched.color} />
                   </View>
-                  <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">{matched.label}</Text>
+                  <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">{matched.label}</Text>
                   <Pressable
                     onPress={() => startEdit(matched)}
-                    className="h-8 w-8 items-center justify-center rounded-lg bg-saldio-bg active:opacity-70"
+                    className="h-8 w-8 items-center justify-center rounded-lg bg-saldio-bg dark:bg-saldio-dark-bg active:opacity-70"
                   >
-                    <Ionicons name="pencil" size={14} color="#64748B" />
+                    <Ionicons name="pencil" size={14} color={isDark ? "#94A3B8" : "#64748B"} />
                   </Pressable>
                   <Pressable
                     onPress={() => handleDelete(matched)}
-                    className="h-8 w-8 items-center justify-center rounded-lg bg-saldio-bg active:opacity-70"
+                    className="h-8 w-8 items-center justify-center rounded-lg bg-saldio-bg dark:bg-saldio-dark-bg active:opacity-70"
                   >
                     <Ionicons name="trash-outline" size={14} color="#E23B3B" />
                   </Pressable>

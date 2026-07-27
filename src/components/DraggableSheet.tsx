@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Animated, PanResponder, View } from "react-native";
+import { useDarkColor } from "../lib/darkColors";
 
 interface DraggableSheetProps {
   /** Posisi `top` (px) saat sheet dalam keadaan tertutup — biasanya tinggi konten di atasnya. */
@@ -50,6 +51,9 @@ export function DraggableSheet({ collapsedTop, expandedTop = 0, children }: Drag
     if (!expandedRef.current) topAnim.setValue(collapsedTop);
   }, [collapsedTop]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const cardBg = useDarkColor("card");
+  const borderColor = useDarkColor("border");
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -88,7 +92,7 @@ export function DraggableSheet({ collapsedTop, expandedTop = 0, children }: Drag
         right: 0,
         bottom: 0,
         top: topAnim,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: cardBg,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         boxShadow: "0px -4px 16px rgba(23, 32, 90, 0.06)",
@@ -100,7 +104,7 @@ export function DraggableSheet({ collapsedTop, expandedTop = 0, children }: Drag
         className="items-center pb-1 pt-3"
         style={NO_SELECT_STYLE}
       >
-        <View className="h-1.5 w-10 rounded-full bg-saldio-border" style={NO_SELECT_STYLE} />
+        <View className="h-1.5 w-10 rounded-full bg-saldio-border dark:bg-saldio-dark-border" style={NO_SELECT_STYLE} />
       </View>
       {children}
     </Animated.View>

@@ -16,14 +16,14 @@ interface Props {
 function SourceChip({ source }: { source: Transaction["source"] }) {
   if (source === "manual") {
     return (
-      <View className="rounded-md bg-saldio-bg px-1.5 py-0.5">
-        <Text className="font-sans-medium text-[10px] text-saldio-soft">Manual</Text>
+      <View className="rounded-md bg-saldio-bg dark:bg-saldio-dark-bg px-1.5 py-0.5">
+        <Text className="font-sans-medium text-[10px] text-saldio-soft dark:text-saldio-dark-soft">Manual</Text>
       </View>
     );
   }
   return (
-    <View className="flex-row items-center rounded-md bg-saldio-sky px-1.5 py-0.5">
-      <Text className="font-sans-medium text-[10px] text-saldio-blue">PDF</Text>
+    <View className="flex-row items-center rounded-md bg-saldio-sky dark:bg-saldio-dark-sky px-1.5 py-0.5">
+      <Text className="font-sans-medium text-[10px] text-saldio-blue dark:text-saldio-dark-blue">PDF</Text>
     </View>
   );
 }
@@ -37,11 +37,11 @@ export function TransactionRow({ tx, walletTag, walletTagColor }: Props) {
     : formatSignedRupiah(isIncome ? tx.amount ?? 0 : -(tx.amount ?? 0));
   const amountColor = isGold
     ? tx.type === "buy_gold"
-      ? "text-saldio-green"
-      : "text-saldio-red"
+      ? "text-saldio-green dark:text-saldio-dark-green"
+      : "text-saldio-red dark:text-saldio-dark-red"
     : isIncome
-      ? "text-saldio-green"
-      : "text-saldio-red";
+      ? "text-saldio-green dark:text-saldio-dark-green"
+      : "text-saldio-red dark:text-saldio-dark-red";
 
   const category = isGold ? "Emas" : tx.category;
   const label = categoryLabel(category, data.customCategories);
@@ -50,7 +50,7 @@ export function TransactionRow({ tx, walletTag, walletTagColor }: Props) {
     <View className="flex-row items-center gap-3 py-3">
       <CategoryIcon category={category} size={40} />
       <View className="flex-1">
-        <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
+        <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink" numberOfLines={1}>
           {tx.note || label}
         </Text>
         <View className="mt-1 flex-row items-center gap-1.5">
@@ -61,7 +61,7 @@ export function TransactionRow({ tx, walletTag, walletTagColor }: Props) {
               </Text>
             </View>
           ) : null}
-          <Text className="font-sans text-xs text-saldio-muted">{label}</Text>
+          <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">{label}</Text>
           <SourceChip source={tx.source} />
         </View>
       </View>

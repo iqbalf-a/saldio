@@ -2,6 +2,7 @@ import React from "react";
 import { Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { badgeForWallet } from "../lib/templates";
+import { useTheme } from "./ThemeProvider";
 import type { WalletTemplateKey, WalletType } from "../lib/types";
 
 interface Props {
@@ -13,10 +14,11 @@ interface Props {
 
 /** Badge inisial berwarna berbentuk lingkaran; dompet emas memakai "Em". */
 export function WalletBadge({ name, template, type, size = 44 }: Props) {
+  const { isDark } = useTheme();
   if (type === "gold") {
     return (
       <View
-        className="items-center justify-center rounded-full bg-saldio-gold-bg"
+        className="items-center justify-center rounded-full bg-saldio-gold-bg dark:bg-saldio-dark-gold-bg"
         style={{ width: size, height: size }}
       >
         <Text className="font-sans-bold" style={{ color: "#B08415", fontSize: size * 0.34 }}>
@@ -28,14 +30,14 @@ export function WalletBadge({ name, template, type, size = 44 }: Props) {
   if (type === "cash" || (template === "custom" && type !== "bank")) {
     return (
       <View
-        className="items-center justify-center rounded-full bg-saldio-bg"
+        className="items-center justify-center rounded-full bg-saldio-bg dark:bg-saldio-dark-bg"
         style={{ width: size, height: size }}
       >
         <Ionicons name="cash" size={size * 0.45} color="#64748B" />
       </View>
     );
   }
-  const badge = badgeForWallet(name, template);
+  const badge = badgeForWallet(name, template, isDark);
   return (
     <View
       className="items-center justify-center rounded-full"

@@ -65,7 +65,7 @@ export function TrendLine({ values, labels, height = 110, color = "#7C5CF6", fil
       {labels && labels.length > 1 ? (
         <View className="mt-1 flex-row justify-between">
           {labels.map((l, i) => (
-            <Text key={`${l}-${i}`} className="font-sans text-[11px] text-saldio-muted">
+            <Text key={`${l}-${i}`} className="font-sans text-[11px] text-saldio-muted dark:text-saldio-dark-muted">
               {l}
             </Text>
           ))}

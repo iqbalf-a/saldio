@@ -11,6 +11,8 @@ import { availableMonths } from "../lib/walletFeed";
 import type { Transaction } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
 import { useConfirm } from "../components/ConfirmModal";
+import { useDarkColor } from "../lib/darkColors";
+import { useTheme } from "../components/ThemeProvider";
 import type { MainTabsParamList } from "../navigation/types";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { categoryLabel } from "../lib/categories";
@@ -18,16 +20,19 @@ import { categoryLabel } from "../lib/categories";
 type Nav = BottomTabScreenProps<MainTabsParamList, "Riwayat">;
 
 function SourceChip({ source }: { source: Transaction["source"] }) {
+  const muted = useDarkColor("muted");
+  const blue = useDarkColor("blue");
+
   if (source === "manual") {
     return (
-      <View className="rounded-md bg-saldio-bg px-1.5 py-0.5">
-        <Text className="font-sans-medium text-[10px] text-saldio-soft">Manual</Text>
+      <View className="rounded-md bg-saldio-bg dark:bg-saldio-dark-bg dark:border-saldio-dark-border px-1.5 py-0.5">
+        <Text className="font-sans-medium text-[10px] text-saldio-soft dark:text-saldio-dark-soft">Manual</Text>
       </View>
     );
   }
   return (
-    <View className="flex-row items-center rounded-md bg-saldio-sky px-1.5 py-0.5">
-      <Text className="font-sans-medium text-[10px] text-saldio-blue">PDF</Text>
+    <View className="flex-row items-center rounded-md bg-saldio-sky dark:bg-saldio-dark-sky px-1.5 py-0.5">
+      <Text className="font-sans-medium text-[10px] text-saldio-blue dark:text-saldio-dark-blue">PDF</Text>
     </View>
   );
 }
@@ -47,6 +52,7 @@ function HistoryTxRow({
 }) {
   const { data } = useAppData();
   const [menuOpen, setMenuOpen] = useState(false);
+  const muted = useDarkColor("muted");
   const isGold = tx.type === "buy_gold" || tx.type === "sell_gold";
   const isIncome = tx.type === "income";
   const category = isGold ? "Emas" : tx.category;
@@ -55,14 +61,14 @@ function HistoryTxRow({
     ? formatSignedGrams(tx.type === "buy_gold" ? tx.grams ?? 0 : -(tx.grams ?? 0))
     : formatSignedRupiah(isIncome ? tx.amount ?? 0 : -(tx.amount ?? 0));
   const amountColor = isGold
-    ? tx.type === "buy_gold" ? "text-saldio-green" : "text-saldio-red"
-    : isIncome ? "text-saldio-green" : "text-saldio-red";
+    ? tx.type === "buy_gold" ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
+    : isIncome ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red";
 
   return (
     <View className="flex-row items-center gap-3 py-3">
       <CategoryIcon category={category} size={40} />
       <View className="flex-1">
-        <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
+        <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink" numberOfLines={1}>
           {tx.note || label}
         </Text>
         <View className="mt-1 flex-row items-center gap-1.5">
@@ -73,16 +79,16 @@ function HistoryTxRow({
               </Text>
             </View>
           ) : null}
-          <Text className="font-sans text-xs text-saldio-muted">{label}</Text>
+          <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">{label}</Text>
           <SourceChip source={tx.source} />
         </View>
       </View>
       <Text className={`font-mono-semibold text-[12px] ${amountColor}`}>{amountText}</Text>
       <Pressable
         onPress={() => setMenuOpen(true)}
-        className="h-8 w-8 items-center justify-center rounded-full bg-saldio-bg active:opacity-70"
+        className="h-8 w-8 items-center justify-center rounded-full bg-saldio-bg dark:bg-saldio-dark-bg dark:border-saldio-dark-border active:opacity-70"
       >
-        <Ionicons name="ellipsis-horizontal" size={16} color="#8A94A6" />
+        <Ionicons name="ellipsis-horizontal" size={16} color={muted} />
       </Pressable>
       <ActionMenu
         visible={menuOpen}
@@ -112,10 +118,13 @@ function HistoryTxRow({
 }
 
 export function HistoryScreen({ navigation }: Nav) {
+  const { isDark } = useTheme();
   const { data, deleteTransaction } = useAppData();
   const confirm = useConfirm();
   const [walletFilter, setWalletFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const muted = useDarkColor("muted");
+  const ink = useDarkColor("ink");
 
   const allDates = useMemo(() => data.transactions, [data.transactions]);
   const months = useMemo(() => availableMonths(allDates), [allDates]);
@@ -179,7 +188,7 @@ export function HistoryScreen({ navigation }: Nav) {
     <Screen padded={false}>
       <View className="px-5">
         <View className="mb-4 flex-row items-center justify-between">
-          <Text className="font-sans-bold text-xl text-saldio-ink">Riwayat Transaksi</Text>
+          <Text className="font-sans-bold text-xl text-saldio-ink dark:text-saldio-dark-ink">Riwayat Transaksi</Text>
           <MonthPicker value={activeMonth} options={months} onChange={setMonth} />
         </View>
       </View>
@@ -191,12 +200,12 @@ export function HistoryScreen({ navigation }: Nav) {
               key={f.id}
               onPress={() => setWalletFilter(f.id)}
               className={`rounded-full px-4 py-2 ${
-                walletFilter === f.id ? "bg-saldio-blue" : "bg-white"
+                walletFilter === f.id ? "bg-saldio-blue dark:bg-saldio-dark-blue" : "bg-white dark:bg-saldio-dark-card"
               }`}
             >
               <Text
                 className={`font-sans-semibold text-sm ${
-                  walletFilter === f.id ? "text-white" : "text-saldio-soft"
+                  walletFilter === f.id ? "text-white" : "text-saldio-soft dark:text-saldio-dark-soft"
                 }`}
               >
                 {f.label}
@@ -207,18 +216,18 @@ export function HistoryScreen({ navigation }: Nav) {
       </ScrollView>
 
       <View className="px-5">
-        <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-white px-4 py-3">
-          <Ionicons name="search" size={18} color="#8A94A6" />
+        <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-white dark:bg-saldio-dark-card px-4 py-3">
+          <Ionicons name="search" size={18} color={muted} />
           <TextInput
             value={search}
             onChangeText={setSearch}
             placeholder="Cari transaksi..."
-            placeholderTextColor="#8A94A6"
-            className="flex-1 font-sans text-sm text-saldio-ink"
+            placeholderTextColor={muted}
+            className="flex-1 font-sans text-sm text-saldio-ink dark:text-saldio-dark-ink"
           />
           {search.length > 0 ? (
             <Pressable onPress={() => setSearch("")} hitSlop={8}>
-              <Ionicons name="close-circle" size={18} color="#8A94A6" />
+              <Ionicons name="close-circle" size={18} color={muted} />
             </Pressable>
           ) : null}
         </View>
@@ -226,44 +235,44 @@ export function HistoryScreen({ navigation }: Nav) {
 
       <View className="px-5">
         <View className="mb-4 flex-row gap-3">
-          <View className="flex-1 rounded-2xl bg-white p-4">
+          <View className="flex-1 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
             <View className="flex-row items-center gap-1">
               <Ionicons name="arrow-down" size={13} color="#16A34A" />
-              <Text className="font-sans text-xs text-saldio-soft">Masuk</Text>
+              <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Masuk</Text>
             </View>
-            <Text className="mt-1 font-mono-semibold text-sm text-saldio-green">
+            <Text className="mt-1 font-mono-semibold text-sm text-saldio-green dark:text-saldio-dark-green">
               {formatRupiah(inflow)}
             </Text>
           </View>
-          <View className="flex-1 rounded-2xl bg-white p-4">
+          <View className="flex-1 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
             <View className="flex-row items-center gap-1">
               <Ionicons name="arrow-up" size={13} color="#E23B3B" />
-              <Text className="font-sans text-xs text-saldio-soft">Keluar</Text>
+              <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Keluar</Text>
             </View>
-            <Text className="mt-1 font-mono-semibold text-sm text-saldio-red">
+            <Text className="mt-1 font-mono-semibold text-sm text-saldio-red dark:text-saldio-dark-red">
               {formatRupiah(outflow)}
             </Text>
           </View>
         </View>
 
         {groups.length === 0 ? (
-          <View className="items-center rounded-3xl bg-white px-8 py-12">
-            <Ionicons name="receipt" size={32} color="#8A94A6" />
-            <Text className="mt-4 text-center font-sans text-sm text-saldio-muted">
+          <View className="items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-8 py-12">
+            <Ionicons name="receipt" size={32} color={muted} />
+            <Text className="mt-4 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
               Belum ada transaksi di bulan ini.
             </Text>
           </View>
         ) : (
-          <View className="rounded-3xl bg-white px-4">
+          <View className="rounded-3xl bg-white dark:bg-saldio-dark-card px-4">
             {groups.map((g) => (
               <View key={g.date}>
-                <View className="flex-row items-center justify-between border-b border-saldio-border py-3">
-                  <Text className="font-sans-semibold text-xs text-saldio-soft">
+                <View className="flex-row items-center justify-between border-b border-saldio-border dark:border-saldio-dark-border py-3">
+                  <Text className="font-sans-semibold text-xs text-saldio-soft dark:text-saldio-dark-soft">
                     {formatDayLabel(g.date)}
                   </Text>
                   <Text
                     className={`font-mono-semibold text-xs ${
-                      g.subtotal >= 0 ? "text-saldio-green" : "text-saldio-red"
+                      g.subtotal >= 0 ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
                     }`}
                   >
                     {formatSignedRupiah(g.subtotal)}
@@ -271,7 +280,7 @@ export function HistoryScreen({ navigation }: Nav) {
                 </View>
                 {g.items.map((t) => {
                   const wallet = data.wallets.find((w) => w.id === t.walletId);
-                  const badge = wallet ? badgeForWallet(wallet.name, wallet.template) : null;
+                  const badge = wallet ? badgeForWallet(wallet.name, wallet.template, isDark) : null;
                   const isGoldWallet = wallet?.type === "gold";
                   return (
                     <HistoryTxRow

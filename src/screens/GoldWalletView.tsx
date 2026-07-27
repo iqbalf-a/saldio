@@ -22,6 +22,7 @@ import { useConfirm } from "../components/ConfirmModal";
 import type { Wallet } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
 import type { HomeStackParamList } from "../navigation/types";
+import { useTheme } from "../components/ThemeProvider";
 
 type Nav = NativeStackNavigationProp<HomeStackParamList>;
 type TxFilter = "Semua" | "Beli" | "Jual";
@@ -33,6 +34,7 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
   const [filter, setFilter] = useState<TxFilter>("Semua");
   const [menuOpen, setMenuOpen] = useState(false);
   const [priceMenuDate, setPriceMenuDate] = useState<string | null>(null);
+  const { isDark } = useTheme();
 
   const grams = goldGrams(data, wallet);
   const value = goldValue(data, wallet);
@@ -92,7 +94,7 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
         title={wallet.name}
         right={
           <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} className="active:opacity-70">
-            <Ionicons name="ellipsis-horizontal" size={20} color="#8A94A6" />
+            <Ionicons name="ellipsis-horizontal" size={20} color={isDark ? '#9CA3AF' : '#8A94A6'} />
           </Pressable>
         }
       />
@@ -144,7 +146,7 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
           </View>
         </View>
 
-        <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-white/20 p-3.5">
+        <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-white/20 dark:bg-saldio-surface/20 p-3.5">
           <View className="flex-1 pr-3">
             <Text className="font-sans text-xs text-white/80">
               {price ? `Harga per gram · diperbarui ${formatMediumDate(price.date)}` : "Harga per gram"}
@@ -155,10 +157,10 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
           </View>
           <Pressable
             onPress={() => navigation.navigate("UpdateGoldPrice", { walletId: wallet.id })}
-            className="flex-row items-center gap-1.5 rounded-full bg-white px-4 py-2.5 active:opacity-80"
+            className="flex-row items-center gap-1.5 rounded-full bg-white dark:bg-saldio-surface px-4 py-2.5 active:opacity-80"
           >
-            <Ionicons name="pencil" size={13} color="#8A6A10" />
-            <Text className="font-sans-semibold text-xs text-saldio-gold-deep">
+            <Ionicons name="pencil" size={13} color={isDark ? "#B8923E" : "#8A6A10"} />
+            <Text className="font-sans-semibold text-xs text-saldio-gold-deep dark:text-saldio-dark-gold-deep">
               {price ? "Perbarui Harga" : "Atur Harga"}
             </Text>
           </Pressable>
@@ -181,9 +183,9 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
         showsVerticalScrollIndicator={false}
       >
       {/* Riwayat harga */}
-      <View className="mt-4 rounded-3xl bg-white p-4">
+      <View className="mt-4 rounded-3xl bg-white dark:bg-saldio-surface p-4">
         <View className="flex-row items-center justify-between">
-          <Text className="font-sans-bold text-base text-saldio-ink">Riwayat harga</Text>
+          <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Riwayat harga</Text>
           {change30 !== null ? (
             <View className="flex-row items-center gap-1">
               <Ionicons
@@ -193,7 +195,7 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
               />
               <Text
                 className={`font-sans-semibold text-xs ${
-                  change30 >= 0 ? "text-saldio-green" : "text-saldio-red"
+                  change30 >= 0 ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
                 }`}
               >
                 {change30 >= 0 ? "+" : ""}
@@ -205,10 +207,10 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
 
         {priceLog.length === 0 ? (
           <View className="mt-4 items-center rounded-2xl border-2 border-dashed border-saldio-gold/40 px-6 py-8">
-            <Text className="font-sans-semibold text-sm text-saldio-gold-ink">
+            <Text className="font-sans-semibold text-sm text-saldio-gold-ink dark:text-saldio-dark-gold-ink">
               Belum ada catatan harga
             </Text>
-            <Text className="mt-1.5 text-center font-sans text-xs leading-4 text-saldio-muted">
+            <Text className="mt-1.5 text-center font-sans text-xs leading-4 text-saldio-muted dark:text-saldio-dark-muted">
               Setiap kali harga Pegadaian berubah, catat di sini — riwayatnya akan tampil sebagai
               grafik.
             </Text>
@@ -233,19 +235,19 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
                     onLongPress={() => setPriceMenuDate(p.date)}
                     className="flex-row items-center justify-between py-2 active:opacity-70"
                   >
-                    <Text className="w-24 font-sans text-xs text-saldio-soft">
+                    <Text className="w-24 font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">
                       {formatMediumDate(p.date)}
                     </Text>
-                    <Text className="flex-1 text-center font-mono-medium text-sm text-saldio-ink">
+                    <Text className="flex-1 text-center font-mono-medium text-sm text-saldio-ink dark:text-saldio-dark-ink">
                       {formatRupiah(p.pricePerGram)}
                     </Text>
                     <Text
                       className={`w-20 text-right font-mono-medium text-xs ${
                         delta === null
-                          ? "text-saldio-muted"
+                          ? "text-saldio-muted dark:text-saldio-dark-muted"
                           : delta >= 0
-                            ? "text-saldio-green"
-                            : "text-saldio-red"
+                            ? "text-saldio-green dark:text-saldio-dark-green"
+                            : "text-saldio-red dark:text-saldio-dark-red"
                       }`}
                     >
                       {delta === null ? "" : formatSignedRupiah(delta).replace("Rp", "")}
@@ -291,12 +293,12 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
 
       {/* Transaksi emas */}
       <View className="mb-2 mt-6 flex-row items-center justify-between">
-        <Text className="font-sans-bold text-lg text-saldio-ink">Transaksi emas</Text>
+        <Text className="font-sans-bold text-lg text-saldio-ink dark:text-saldio-dark-ink">Transaksi emas</Text>
         <Pressable
           onPress={cycleFilter}
-          className="flex-row items-center gap-1 rounded-full bg-white px-4 py-2 active:opacity-70"
+          className="flex-row items-center gap-1 rounded-full bg-white dark:bg-saldio-surface px-4 py-2 active:opacity-70"
         >
-          <Text className="font-sans-semibold text-sm text-saldio-ink">{filter}</Text>
+          <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">{filter}</Text>
           <Ionicons name="chevron-down" size={14} color="#64748B" />
         </Pressable>
       </View>
@@ -313,9 +315,9 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
           onAction={() => navigation.navigate("AddTransaction", { walletId: wallet.id })}
         />
       ) : (
-        <View className="rounded-3xl bg-white px-4 py-1">
+        <View className="rounded-3xl bg-white dark:bg-saldio-surface px-4 py-1">
           {goldTxs.length === 0 ? (
-            <Text className="py-8 text-center font-sans text-sm text-saldio-muted">
+            <Text className="py-8 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
               Tidak ada transaksi {filter.toLowerCase()}.
             </Text>
           ) : (
@@ -325,27 +327,27 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
                 <View key={t.id} className="flex-row items-center gap-3 py-3">
                   <View
                     className={`h-11 w-11 items-center justify-center rounded-2xl ${
-                      isBuy ? "bg-saldio-gold-bg" : "bg-saldio-red-bg"
+                      isBuy ? "bg-saldio-gold-bg dark:bg-saldio-dark-gold-bg" : "bg-saldio-red-bg dark:bg-saldio-dark-red-bg"
                     }`}
                   >
                     <Ionicons name={isBuy ? "cart" : "hand-left"} size={18} color={isBuy ? "#B08415" : "#E23B3B"} />
                   </View>
                   <View className="flex-1">
-                    <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
+                    <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink" numberOfLines={1}>
                       {t.note || (isBuy ? "Beli emas" : "Jual emas")}
                     </Text>
                     <View className="mt-1 flex-row items-center gap-1.5">
-                      <Text className="font-sans text-xs text-saldio-muted">
+                      <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
                         {formatMediumDate(t.date)}
                       </Text>
-                      <View className="rounded-md bg-saldio-bg px-1.5 py-0.5">
-                        <Text className="font-sans-medium text-[10px] text-saldio-soft">Manual</Text>
+                      <View className="rounded-md bg-saldio-bg dark:bg-saldio-dark-bg px-1.5 py-0.5">
+                        <Text className="font-sans-medium text-[10px] text-saldio-soft dark:text-saldio-dark-soft">Manual</Text>
                       </View>
                     </View>
                   </View>
                   <Text
                     className={`font-mono-semibold text-sm ${
-                      isBuy ? "text-saldio-green" : "text-saldio-red"
+                      isBuy ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
                     }`}
                   >
                     {formatSignedGrams(isBuy ? t.grams ?? 0 : -(t.grams ?? 0))}

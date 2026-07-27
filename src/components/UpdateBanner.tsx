@@ -46,7 +46,7 @@ export function UpdateBanner() {
 
   return (
     <View
-      className="absolute bottom-24 left-4 right-4 z-50 flex-row items-center gap-3 rounded-2xl bg-saldio-blue px-4 py-3"
+      className="absolute bottom-24 left-4 right-4 z-50 flex-row items-center gap-3 rounded-2xl bg-saldio-blue dark:bg-saldio-dark-blue px-4 py-3"
       style={{ elevation: 8 }}
     >
       <Ionicons name="refresh-circle" size={22} color="#fff" />

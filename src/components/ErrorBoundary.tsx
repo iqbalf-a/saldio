@@ -1,6 +1,7 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useDarkColor } from "../lib/darkColors";
 
 interface Props {
   children: ReactNode;
@@ -50,25 +51,31 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      return (
-        <View className="flex-1 items-center justify-center bg-saldio-bg p-6">
-          <Ionicons name="warning-outline" size={48} color="#E23B3B" />
-          <Text className="mt-4 text-center font-sans-bold text-lg text-saldio-ink">
-            Terjadi Kesalahan
-          </Text>
-          <Text className="mt-2 text-center font-sans text-sm text-saldio-muted">
-            {this.state.error?.message || "Unknown error"}
-          </Text>
-          <Text
-            onPress={this.handleReset}
-            className="mt-6 font-sans-semibold text-base text-saldio-blue active:opacity-70"
-          >
-            Coba Lagi
-          </Text>
-        </View>
-      );
+      return <ErrorFallback error={this.state.error} onReset={this.handleReset} />;
     }
 
     return this.props.children;
   }
+}
+
+// Functional wrapper to use hooks inside class component fallback
+function ErrorFallback({ error, onReset }: { error: Error | null; onReset: () => void }) {
+  const red = useDarkColor("red");
+  return (
+    <View className="flex-1 items-center justify-center bg-saldio-bg dark:bg-saldio-dark-bg p-6">
+      <Ionicons name="warning-outline" size={48} color={red} />
+      <Text className="mt-4 text-center font-sans-bold text-lg text-saldio-ink dark:text-saldio-dark-ink">
+        Terjadi Kesalahan
+      </Text>
+      <Text className="mt-2 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
+        {error?.message || "Unknown error"}
+      </Text>
+      <Text
+        onPress={onReset}
+        className="mt-6 font-sans-semibold text-base text-saldio-blue dark:text-saldio-dark-blue active:opacity-70"
+      >
+        Coba Lagi
+      </Text>
+    </View>
+  );
 }

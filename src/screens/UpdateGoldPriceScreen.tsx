@@ -32,44 +32,44 @@ export function UpdateGoldPriceScreen({ navigation }: HomeScreenProps<"UpdateGol
       <ScreenHeader title="Perbarui Harga Emas" />
 
       {current ? (
-        <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-saldio-gold-bg p-4">
-          <Text className="font-sans text-sm text-saldio-gold-ink">Harga saat ini</Text>
-          <Text className="font-mono-semibold text-base text-saldio-gold-ink">
+        <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-saldio-gold-bg dark:bg-saldio-dark-gold-bg p-4">
+          <Text className="font-sans text-sm text-saldio-gold-ink dark:text-saldio-dark-gold-ink">Harga saat ini</Text>
+          <Text className="font-mono-semibold text-base text-saldio-gold-ink dark:text-saldio-dark-gold-ink">
             {formatRupiah(current.pricePerGram)}/g
           </Text>
         </View>
       ) : null}
 
-      <Text className="mb-2 font-sans-semibold text-sm text-saldio-soft">Harga per gram</Text>
-      <View className="rounded-2xl bg-white px-4 py-3.5">
+      <Text className="mb-2 font-sans-semibold text-sm text-saldio-soft dark:text-saldio-dark-soft">Harga per gram</Text>
+      <View className="rounded-2xl bg-white dark:bg-saldio-surface px-4 py-3.5">
         <View className="flex-row items-center gap-1">
-          <Text className="font-mono-semibold text-2xl text-saldio-ink">Rp</Text>
+          <Text className="font-mono-semibold text-2xl text-saldio-ink dark:text-saldio-dark-ink">Rp</Text>
           <TextInput
             value={withDots(priceDigits)}
             onChangeText={(v) => setPriceDigits(digitsOnly(v))}
             placeholder="1.485.000"
             keyboardType="number-pad"
             placeholderTextColor="#8A94A6"
-            className="flex-1 font-mono-semibold text-2xl text-saldio-ink"
+            className="flex-1 font-mono-semibold text-2xl text-saldio-ink dark:text-saldio-dark-ink"
           />
         </View>
       </View>
 
-      <Text className="mb-2 mt-5 font-sans-semibold text-sm text-saldio-soft">Tanggal</Text>
+      <Text className="mb-2 mt-5 font-sans-semibold text-sm text-saldio-soft dark:text-saldio-dark-soft">Tanggal</Text>
       <DatePickerField value={date} onChange={setDate} accent="gold" />
 
-      <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-white p-4">
+      <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-white dark:bg-saldio-surface p-4">
         <Ionicons name="information-circle" size={16} color="#B08415" />
-        <Text className="flex-1 font-sans text-xs leading-4 text-saldio-soft">
+        <Text className="flex-1 font-sans text-xs leading-4 text-saldio-soft dark:text-saldio-dark-soft">
           Masukkan harga per gram terbaru dari Pegadaian. Nilai seluruh dompet emasmu akan mengikuti
           harga ini, dan perubahannya tercatat di riwayat harga.
         </Text>
       </View>
 
       {dateExists ? (
-        <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg p-4">
+        <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg dark:bg-saldio-dark-red-bg p-4">
           <Ionicons name="alert-circle" size={16} color="#E23B3B" />
-          <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red">
+          <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red dark:text-saldio-dark-red">
             Harga untuk tanggal ini sudah ada. Pilih tanggal lain atau perbarui entri yang sudah ada.
           </Text>
         </View>

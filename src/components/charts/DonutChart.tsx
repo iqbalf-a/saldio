@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+import { useTheme } from "../ThemeProvider";
 
 export interface DonutSlice {
   label: string;
@@ -18,6 +19,7 @@ interface Props {
 
 /** Donut chart komposisi aset — digambar dengan stroke-dasharray per irisan. */
 export function DonutChart({ slices, size = 140, strokeWidth = 22, centerTop, centerBottom }: Props) {
+  const { isDark } = useTheme();
   const total = slices.reduce((s, x) => s + x.value, 0);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -56,7 +58,7 @@ export function DonutChart({ slices, size = 140, strokeWidth = 22, centerTop, ce
             cx={center}
             cy={center}
             r={radius}
-            stroke="#E6EAF2"
+            stroke={isDark ? '#3A4566' : '#E6EAF2'}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -65,8 +67,8 @@ export function DonutChart({ slices, size = 140, strokeWidth = 22, centerTop, ce
         )}
       </Svg>
       <View className="absolute items-center">
-        {centerTop ? <Text className="font-sans-bold text-xl text-saldio-ink">{centerTop}</Text> : null}
-        {centerBottom ? <Text className="font-sans text-xs text-saldio-muted">{centerBottom}</Text> : null}
+        {centerTop ? <Text className="font-sans-bold text-xl text-saldio-ink dark:text-saldio-dark-ink">{centerTop}</Text> : null}
+        {centerBottom ? <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">{centerBottom}</Text> : null}
       </View>
     </View>
   );

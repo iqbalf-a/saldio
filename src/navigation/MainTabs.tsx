@@ -16,6 +16,7 @@ import { BackupScreen } from "../screens/BackupScreen";
 import { ManageCategoriesScreen } from "../screens/ManageCategoriesScreen";
 import { RecurringScreen } from "../screens/RecurringScreen";
 import { BudgetScreen } from "../screens/BudgetScreen";
+import { useTheme } from "../components/ThemeProvider";
 import type { HomeStackParamList, MainTabsParamList } from "./types";
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -23,9 +24,14 @@ const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
 /** Stack di dalam tab Beranda — tab bar tetap terlihat di semua layar ini. */
 function HomeStackNavigator() {
+  const { isDark } = useTheme();
+
   return (
     <HomeStack.Navigator
-      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#F1F4F9" } }}
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: isDark ? "#0F1123" : "#F1F4F9" },
+      }}
     >
       <HomeStack.Screen name="Home" component={HomeScreen} />
       <HomeStack.Screen name="AddWallet" component={AddWalletScreen} />
@@ -50,22 +56,26 @@ const TAB_ICONS: Record<keyof MainTabsParamList, string> = {
 };
 
 export function MainTabs() {
+  const { isDark } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#3D51E0",
-        tabBarInactiveTintColor: "#8A94A6",
+        tabBarActiveTintColor: isDark ? "#5B6FE8" : "#3D51E0",
+        tabBarInactiveTintColor: isDark ? "#8892A6" : "#8A94A6",
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "#E6EAF2",
+          backgroundColor: isDark ? "#181E36" : "#FFFFFF",
+          borderTopColor: isDark ? "#1E2540" : "#E6EAF2",
           height: 66,
           paddingTop: 7,
           paddingBottom: 10,
+          transition: "background-color 0.3s ease, border-color 0.3s ease",
         },
         tabBarLabelStyle: {
           fontFamily: "Geist_500Medium",
           fontSize: 10,
+          transition: "color 0.3s ease",
         },
         tabBarIcon: ({ color, focused }) => (
           <Ionicons

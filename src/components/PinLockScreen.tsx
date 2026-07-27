@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useDarkColor } from "../lib/darkColors";
 import { savePinHash, verifyPin, removePinHash } from "../lib/pin";
 import { usePinKeyboard } from "../lib/usePinKeyboard";
 import { getLockoutRemaining } from "../lib/pin";
@@ -22,7 +23,7 @@ function PinDots({ filled, error, size = "lg" }: { filled: number; error: boolea
         <View
           key={i}
           className={`${dot} rounded-full ${
-            i < filled ? (error ? "bg-saldio-red" : "bg-saldio-blue") : "bg-saldio-border"
+            i < filled ? (error ? "bg-saldio-red dark:bg-red-400" : "bg-saldio-blue dark:bg-saldio-dark-blue") : "bg-saldio-border dark:bg-saldio-dark-border"
           }`}
         />
       ))}
@@ -45,6 +46,7 @@ function PinKeypad({
   const lg = size === "lg";
   const btn = lg ? "h-16 w-16" : "h-12 w-12";
   const rowGap = lg ? "gap-6" : "gap-4";
+  const muted = useDarkColor("muted");
   return (
     <View className={lg ? "gap-4" : "gap-3"}>
       {KEYPAD_ROWS.map((row, ri) => (
@@ -59,7 +61,7 @@ function PinKeypad({
                   disabled={disabled}
                   className={`${btn} items-center justify-center rounded-full active:opacity-60`}
                 >
-                  <Ionicons name="backspace-outline" size={lg ? 24 : 20} color="#8A94A6" />
+                  <Ionicons name="backspace-outline" size={lg ? 24 : 20} color={muted} />
                 </Pressable>
               );
             }
@@ -69,11 +71,11 @@ function PinKeypad({
                 onPress={() => onDigit(key)}
                 disabled={disabled}
                 className={`${btn} items-center justify-center rounded-full active:opacity-70 ${
-                  lg ? "bg-white" : "bg-saldio-bg"
+                  lg ? "bg-white dark:bg-saldio-dark-card" : "bg-saldio-bg dark:bg-saldio-dark-bg"
                 }`}
                 style={lg ? { boxShadow: "0px 2px 8px rgba(23, 32, 90, 0.06)" } : undefined}
               >
-                <Text className={`font-sans-bold text-saldio-ink ${lg ? "text-2xl" : "text-lg"}`}>
+                <Text className={`font-sans-bold text-saldio-ink dark:text-saldio-dark-ink ${lg ? "text-2xl" : "text-lg"}`}>
                   {key}
                 </Text>
               </Pressable>
@@ -96,6 +98,10 @@ export function PinLockScreen({ onUnlock }: PinLockScreenProps) {
   const [loading, setLoading] = useState(false);
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
   const insets = useSafeAreaInsets();
+  const blue = useDarkColor("blue");
+  const ink = useDarkColor("ink");
+  const muted = useDarkColor("muted");
+  const red = useDarkColor("red");
 
   // Countdown timer saat lockout
   useEffect(() => {
@@ -147,16 +153,16 @@ export function PinLockScreen({ onUnlock }: PinLockScreenProps) {
   usePinKeyboard({ onDigit: handleDigit, onDelete: handleDelete, disabled: loading });
 
   return (
-    <View className="flex-1 bg-saldio-bg" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-saldio-bg dark:bg-saldio-dark-bg" style={{ paddingTop: insets.top }}>
       <View className="flex-1 items-center justify-center px-8">
-        <View className="h-16 w-16 items-center justify-center rounded-full bg-saldio-blue/10">
-          <Ionicons name="lock-closed" size={30} color="#3D51E0" />
+        <View className="h-16 w-16 items-center justify-center rounded-full bg-saldio-blue/10 dark:bg-saldio-dark-blue/10">
+          <Ionicons name="lock-closed" size={30} color={blue} />
         </View>
 
-        <Text className="mt-6 text-center font-sans-bold text-xl text-saldio-ink">
+        <Text className="mt-6 text-center font-sans-bold text-xl text-saldio-ink dark:text-saldio-dark-ink">
           Masukkan PIN
         </Text>
-        <Text className="mt-2 text-center font-sans text-sm text-saldio-muted">
+        <Text className="mt-2 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
           PIN diperlukan untuk membuka Saldio
         </Text>
 
@@ -165,11 +171,11 @@ export function PinLockScreen({ onUnlock }: PinLockScreenProps) {
         </View>
 
         {error && (
-          <Text className="mt-3 font-sans text-sm text-saldio-red">PIN salah, coba lagi</Text>
+          <Text className="mt-3 font-sans text-sm text-saldio-red dark:text-saldio-dark-red">PIN salah, coba lagi</Text>
         )}
 
         {lockoutRemaining > 0 && (
-          <Text className="mt-3 font-sans text-sm text-saldio-red">
+          <Text className="mt-3 font-sans text-sm text-saldio-red dark:text-saldio-dark-red">
             Terlalu banyak percobaan. Tunggu {Math.ceil(lockoutRemaining / 1000)} detik
           </Text>
         )}
@@ -200,6 +206,10 @@ export function PinModal({ visible, mode, oldPin: oldPinProp, onDone, onCancel, 
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
   // Entri pertama untuk mode setup/change_new — PIN baru harus diketik dua kali
   const [firstEntry, setFirstEntry] = useState<string | null>(null);
+  const blue = useDarkColor("blue");
+  const ink = useDarkColor("ink");
+  const muted = useDarkColor("muted");
+  const red = useDarkColor("red");
 
   useEffect(() => {
     if (visible) {
@@ -319,22 +329,22 @@ export function PinModal({ visible, mode, oldPin: oldPinProp, onDone, onCancel, 
         onPress={onCancel}
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
-        <Pressable className="w-full items-center rounded-3xl bg-white px-6 py-8" onPress={() => {}}>
-          <View className="h-14 w-14 items-center justify-center rounded-full bg-saldio-blue/10">
-            <Ionicons name="lock-closed" size={28} color="#3D51E0" />
+        <Pressable className="w-full items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-6 py-8" onPress={() => {}}>
+          <View className="h-14 w-14 items-center justify-center rounded-full bg-saldio-blue/10 dark:bg-saldio-dark-blue/10">
+            <Ionicons name="lock-closed" size={28} color={blue} />
           </View>
 
-          <Text className="mt-5 text-center font-sans-bold text-lg text-saldio-ink">{title}</Text>
-          <Text className="mt-2 text-center font-sans text-sm text-saldio-muted">{subtitle}</Text>
+          <Text className="mt-5 text-center font-sans-bold text-lg text-saldio-ink dark:text-saldio-dark-ink">{title}</Text>
+          <Text className="mt-2 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">{subtitle}</Text>
 
           <View className="mt-6">
             <PinDots filled={pin.length} error={!!error} size="sm" />
           </View>
 
-          {error && <Text className="mt-3 font-sans text-sm text-saldio-red">{error}</Text>}
+          {error && <Text className="mt-3 font-sans text-sm text-saldio-red dark:text-saldio-dark-red">{error}</Text>}
 
           {lockoutRemaining > 0 && (
-            <Text className="mt-3 font-sans text-sm text-saldio-red">
+            <Text className="mt-3 font-sans text-sm text-saldio-red dark:text-saldio-dark-red">
               Terlalu banyak percobaan. Tunggu {Math.ceil(lockoutRemaining / 1000)} detik
             </Text>
           )}

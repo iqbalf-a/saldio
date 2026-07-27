@@ -60,7 +60,7 @@ export function OnboardingScreen() {
           end={{ x: 1, y: 1 }}
           style={{ borderRadius: 28, padding: 28, marginBottom: 32 }}
         >
-          <View className="h-14 w-14 items-center justify-center rounded-2xl bg-white/15">
+          <View className="h-14 w-14 items-center justify-center rounded-2xl bg-white/15 dark:bg-saldio-surface/15">
             <Ionicons name="wallet" size={28} color="white" />
           </View>
           <Text className="mt-5 font-sans-bold text-3xl text-white">Saldio</Text>
@@ -71,15 +71,15 @@ export function OnboardingScreen() {
         </LinearGradient>
 
         <View className="gap-3">
-          <View className="flex-row items-start gap-3 rounded-2xl bg-white p-4">
+          <View className="flex-row items-start gap-3 rounded-2xl bg-white dark:bg-saldio-surface p-4">
             <Ionicons name="document-text" size={20} color="#3D51E0" />
-            <Text className="flex-1 font-sans text-sm leading-5 text-saldio-soft">
+            <Text className="flex-1 font-sans text-sm leading-5 text-saldio-soft dark:text-saldio-dark-soft">
               Impor mutasi PDF dari BCA, Mandiri, dan Bank Jago — diproses di perangkatmu.
             </Text>
           </View>
-          <View className="flex-row items-start gap-3 rounded-2xl bg-white p-4">
+          <View className="flex-row items-start gap-3 rounded-2xl bg-white dark:bg-saldio-surface p-4">
             <Ionicons name="shield-checkmark" size={20} color="#16A34A" />
-            <Text className="flex-1 font-sans text-sm leading-5 text-saldio-soft">
+            <Text className="flex-1 font-sans text-sm leading-5 text-saldio-soft dark:text-saldio-dark-soft">
               Login dengan Google agar datamu ikut ke mana pun, tersimpan aman di Drive-mu sendiri.
             </Text>
           </View>
@@ -88,7 +88,7 @@ export function OnboardingScreen() {
 
       <View className="pb-6">
         {error ? (
-          <Text className="mb-3 text-center font-sans text-sm text-saldio-red">{error}</Text>
+          <Text className="mb-3 text-center font-sans text-sm text-saldio-red dark:text-saldio-dark-red">{error}</Text>
         ) : null}
         <PrimaryButton
           label="Masuk dengan Google"
@@ -102,7 +102,7 @@ export function OnboardingScreen() {
         />
         <Pressable
           onPress={enterGuestMode}
-          className="mt-3 h-14 flex-row items-center justify-center gap-2 rounded-full border border-saldio-border bg-white active:opacity-80"
+          className="mt-3 h-14 flex-row items-center justify-center gap-2 rounded-full border border-saldio-border dark:border-saldio-dark-border bg-white dark:bg-saldio-surface active:opacity-80"
         >
           <Ionicons name="eye" size={16} color="#3D51E0" />
           <Text className="font-sans-semibold text-base text-saldio-blue">
@@ -110,7 +110,7 @@ export function OnboardingScreen() {
           </Text>
         </Pressable>
         <Pressable onPress={signInOffline} className="mt-4 items-center active:opacity-70">
-          <Text className="font-sans-medium text-sm text-saldio-soft">
+          <Text className="font-sans-medium text-sm text-saldio-soft dark:text-saldio-dark-soft">
             Coba dulu tanpa akun (data hanya di perangkat ini)
           </Text>
         </Pressable>

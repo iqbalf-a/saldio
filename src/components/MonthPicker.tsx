@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FlatList, Modal, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { formatMonthLabel } from "../lib/format";
+import { useDarkColor } from "../lib/darkColors";
 
 interface Props {
   /** "2026-07" */
@@ -15,18 +16,21 @@ interface Props {
 export function MonthPicker({ value, options, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const list = options.length > 0 ? options : [value];
+  const ink = useDarkColor("ink");
+  const soft = useDarkColor("soft");
+  const blue = useDarkColor("blue");
   return (
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        className="flex-row items-center gap-1 rounded-full bg-white px-4 py-2 active:opacity-70"
+        className="flex-row items-center gap-1 rounded-full bg-white dark:bg-saldio-dark-card px-4 py-2 active:opacity-70"
       >
-        <Text className="font-sans-semibold text-sm text-saldio-ink">{formatMonthLabel(value)}</Text>
-        <Ionicons name="chevron-down" size={14} color="#64748B" />
+        <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">{formatMonthLabel(value)}</Text>
+        <Ionicons name="chevron-down" size={14} color={soft} />
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable className="flex-1 justify-center bg-black/40 px-8" onPress={() => setOpen(false)}>
-          <View className="max-h-96 rounded-3xl bg-white p-2">
+          <View className="max-h-96 rounded-3xl bg-white dark:bg-saldio-dark-card p-2">
             <FlatList
               data={list}
               keyExtractor={(m) => m}
@@ -36,18 +40,18 @@ export function MonthPicker({ value, options, onChange }: Props) {
                     onChange(item);
                     setOpen(false);
                   }}
-                  className={`flex-row items-center justify-between rounded-2xl px-4 py-3.5 active:bg-saldio-bg ${
-                    item === value ? "bg-saldio-sky" : ""
+                  className={`flex-row items-center justify-between rounded-2xl px-4 py-3.5 active:bg-saldio-bg dark:bg-saldio-dark-bg dark:active:bg-saldio-dark-bg ${
+                    item === value ? "bg-saldio-sky dark:bg-saldio-dark-sky" : ""
                   }`}
                 >
                   <Text
                     className={`font-sans-semibold text-base ${
-                      item === value ? "text-saldio-blue" : "text-saldio-ink"
+                      item === value ? "text-saldio-blue dark:text-saldio-dark-blue" : "text-saldio-ink dark:text-saldio-dark-ink"
                     }`}
                   >
                     {formatMonthLabel(item)}
                   </Text>
-                  {item === value ? <Ionicons name="checkmark" size={18} color="#3D51E0" /> : null}
+                  {item === value ? <Ionicons name="checkmark" size={18} color={blue} /> : null}
                 </Pressable>
               )}
             />

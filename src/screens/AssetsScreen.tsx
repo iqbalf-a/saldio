@@ -22,6 +22,7 @@ import {
 } from "../lib/balances";
 import { useAppData } from "../state/AppDataContext";
 import { HERO_SHADOW } from "../lib/ui";
+import { useTheme } from "../components/ThemeProvider";
 import type { MainTabsParamList } from "../navigation/types";
 
 type Nav = BottomTabNavigationProp<MainTabsParamList>;
@@ -38,6 +39,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   Emas: "#B08415",
   Lainnya: "#64748B",
 };
+
+const GRADIENT_LIGHT = ["#1E2A78", "#3D51E0"] as const;
+const GRADIENT_DARK = ["#131B54", "#2A3BAA"] as const;
 
 function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
   const currentYM = currentYearMonth();
@@ -99,36 +103,36 @@ function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
   const incomeChange = changePct(currentMonth.income, prevMonth.income);
 
   return (
-    <View className="mt-4 rounded-3xl bg-white p-5">
-      <Text className="font-sans-bold text-base text-saldio-ink">Insight Keuangan</Text>
-      <Text className="mt-0.5 font-sans text-xs text-saldio-muted">Bulan ini</Text>
+    <View className="mt-4 rounded-3xl bg-white dark:bg-saldio-dark-card p-5">
+      <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Insight Keuangan</Text>
+      <Text className="mt-0.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Bulan ini</Text>
 
       {/* Pemasukan vs Pengeluaran */}
       <View className="mt-4 flex-row gap-3">
-        <View className="flex-1 rounded-2xl bg-saldio-green-bg p-3.5">
+        <View className="flex-1 rounded-2xl bg-saldio-green-bg dark:bg-saldio-dark-green-bg p-3.5">
           <View className="flex-row items-center gap-1">
             <Ionicons name="arrow-down" size={12} color="#16A34A" />
-            <Text className="font-sans text-xs text-saldio-green">Pemasukan</Text>
+            <Text className="font-sans text-xs text-saldio-green dark:text-saldio-dark-green">Pemasukan</Text>
           </View>
-          <Text className="mt-1 font-mono-semibold text-sm text-saldio-green">
+          <Text className="mt-1 font-mono-semibold text-sm text-saldio-green dark:text-saldio-dark-green">
             {formatRupiah(currentMonth.income)}
           </Text>
           {incomeChange !== null ? (
-            <Text className="mt-0.5 font-sans text-[10px] text-saldio-muted">
+            <Text className="mt-0.5 font-sans text-[10px] text-saldio-muted dark:text-saldio-dark-muted">
               {incomeChange >= 0 ? "+" : ""}{String(incomeChange).replace(".", ",")}% vs bulan lalu
             </Text>
           ) : null}
         </View>
-        <View className="flex-1 rounded-2xl bg-saldio-red-bg p-3.5">
+        <View className="flex-1 rounded-2xl bg-saldio-red-bg dark:bg-saldio-dark-red-bg p-3.5">
           <View className="flex-row items-center gap-1">
             <Ionicons name="arrow-up" size={12} color="#E23B3B" />
-            <Text className="font-sans text-xs text-saldio-red">Pengeluaran</Text>
+            <Text className="font-sans text-xs text-saldio-red dark:text-saldio-dark-red">Pengeluaran</Text>
           </View>
-          <Text className="mt-1 font-mono-semibold text-sm text-saldio-red">
+          <Text className="mt-1 font-mono-semibold text-sm text-saldio-red dark:text-saldio-dark-red">
             {formatRupiah(currentMonth.expense)}
           </Text>
           {expenseChange !== null ? (
-            <Text className="mt-0.5 font-sans text-[10px] text-saldio-muted">
+            <Text className="mt-0.5 font-sans text-[10px] text-saldio-muted dark:text-saldio-dark-muted">
               {expenseChange >= 0 ? "+" : ""}{String(expenseChange).replace(".", ",")}% vs bulan lalu
             </Text>
           ) : null}
@@ -136,15 +140,15 @@ function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
       </View>
 
       {/* Rata-rata pengeluaran harian */}
-      <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-saldio-bg p-3.5">
-        <Ionicons name="calendar" size={16} color="#3D51E0" />
+      <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-saldio-bg dark:bg-saldio-dark-bg dark:border-saldio-dark-border p-3.5">
+        <Ionicons name="calendar" size={16} color="#5B6FE8" />
         <View className="flex-1">
-          <Text className="font-sans text-xs text-saldio-soft">Rata-rata pengeluaran harian</Text>
-          <Text className="mt-0.5 font-mono-semibold text-sm text-saldio-ink">
+          <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Rata-rata pengeluaran harian</Text>
+          <Text className="mt-0.5 font-mono-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
             {formatRupiah(avgDaily)}
           </Text>
         </View>
-        <Text className="font-sans text-[10px] text-saldio-muted">
+        <Text className="font-sans text-[10px] text-saldio-muted dark:text-saldio-dark-muted">
           {dayOfMonth}/{daysInMonth} hari
         </Text>
       </View>
@@ -152,7 +156,7 @@ function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
       {/* Pengeluaran per kategori */}
       {categoryBreakdown.length > 0 ? (
         <View className="mt-4">
-          <Text className="font-sans-semibold text-sm text-saldio-ink">Pengeluaran per kategori</Text>
+          <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">Pengeluaran per kategori</Text>
           <View className="mt-3 gap-2.5">
             {categoryBreakdown.map(([cat, amount]) => {
               const maxAmount = categoryBreakdown[0][1];
@@ -164,11 +168,11 @@ function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2">
                       <CategoryIcon category={cat} size={24} />
-                      <Text className="font-sans text-xs text-saldio-ink">{catInfo.label}</Text>
+                      <Text className="font-sans text-xs text-saldio-ink dark:text-saldio-dark-ink">{catInfo.label}</Text>
                     </View>
-                    <Text className="font-mono-medium text-xs text-saldio-ink">{formatRupiah(amount)}</Text>
+                    <Text className="font-mono-medium text-xs text-saldio-ink dark:text-saldio-dark-ink">{formatRupiah(amount)}</Text>
                   </View>
-                  <View className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-saldio-bg">
+                  <View className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-saldio-bg dark:bg-saldio-dark-bg dark:border-saldio-dark-border">
                     <View className="h-full rounded-full" style={{ width: `${pctBar}%`, backgroundColor: color }} />
                   </View>
                 </View>
@@ -179,14 +183,14 @@ function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
       ) : null}
 
       {/* Selisih */}
-      <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-saldio-sky p-3.5">
+      <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-saldio-sky dark:bg-saldio-dark-sky p-3.5">
         <View className="flex-row items-center gap-2">
           <Ionicons name="wallet" size={16} color="#3D51E0" />
-          <Text className="font-sans text-xs text-saldio-blue">Selisih bulan ini</Text>
+          <Text className="font-sans text-xs text-saldio-blue dark:text-saldio-dark-blue">Selisih bulan ini</Text>
         </View>
         <Text
           className={`font-mono-semibold text-sm ${
-            currentMonth.income - currentMonth.expense >= 0 ? "text-saldio-green" : "text-saldio-red"
+            currentMonth.income - currentMonth.expense >= 0 ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
           }`}
         >
           {formatRupiah(currentMonth.income - currentMonth.expense)}
@@ -199,6 +203,7 @@ function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
 export function AssetsScreen() {
   const navigation = useNavigation<Nav>();
   const { data } = useAppData();
+  const { isDark } = useTheme();
 
   const total = netWorth(data);
   const liquid = liquidTotal(data);
@@ -222,12 +227,12 @@ export function AssetsScreen() {
 
   return (
     <Screen>
-      <Text className="mb-4 font-sans-bold text-xl text-saldio-ink">Semua Aset</Text>
+      <Text className="mb-4 font-sans-bold text-xl text-saldio-ink dark:text-saldio-dark-ink">Semua Aset</Text>
 
       {data.wallets.length === 0 ? (
         <EmptyState
           icon="pie-chart"
-          iconColor="#3D51E0"
+          iconColor="#5B6FE8"
           iconBackground="#EAEFFB"
           title="Belum ada aset"
           description="Tambahkan dompet untuk melihat komposisi dan tren kekayaanmu."
@@ -238,7 +243,7 @@ export function AssetsScreen() {
         <>
           {/* Kartu total */}
           <LinearGradient
-            colors={["#1E2A78", "#3D51E0"]}
+            colors={isDark ? [...GRADIENT_DARK] : [...GRADIENT_LIGHT]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1.2, y: 1.2 }}
             style={{ borderRadius: 24, padding: 20, ...HERO_SHADOW }}
@@ -265,8 +270,8 @@ export function AssetsScreen() {
           </LinearGradient>
 
           {/* Komposisi aset */}
-          <View className="mt-4 rounded-3xl bg-white p-5">
-            <Text className="font-sans-bold text-base text-saldio-ink">Komposisi aset</Text>
+          <View className="mt-4 rounded-3xl bg-white dark:bg-saldio-dark-card p-5">
+            <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Komposisi aset</Text>
             <View className="mt-4 flex-row items-center gap-5">
               <DonutChart
                 slices={composition.map((c) => ({
@@ -281,10 +286,10 @@ export function AssetsScreen() {
                 {composition.map((c) => (
                   <View key={c.wallet.id} className="flex-row items-center gap-2">
                     <View className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: c.color }} />
-                    <Text className="flex-1 font-sans text-xs text-saldio-soft" numberOfLines={1}>
+                    <Text className="flex-1 font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft" numberOfLines={1}>
                       {c.wallet.name}
                     </Text>
-                    <Text className="font-mono-medium text-xs text-saldio-ink">{pct(c.value)}</Text>
+                    <Text className="font-mono-medium text-xs text-saldio-ink dark:text-saldio-dark-ink">{pct(c.value)}</Text>
                   </View>
                 ))}
               </View>
@@ -292,10 +297,10 @@ export function AssetsScreen() {
           </View>
 
           {/* Tren kekayaan bersih */}
-          <View className="mt-4 rounded-3xl bg-white p-5">
+          <View className="mt-4 rounded-3xl bg-white dark:bg-saldio-dark-card p-5">
             <View className="flex-row items-center justify-between">
-              <Text className="font-sans-bold text-base text-saldio-ink">Tren kekayaan bersih</Text>
-              <Text className="font-sans text-xs text-saldio-muted">6 bulan</Text>
+              <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Tren kekayaan bersih</Text>
+              <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">6 bulan</Text>
             </View>
             <View className="mt-4">
               <TrendLine
@@ -320,7 +325,7 @@ export function AssetsScreen() {
                     params: { walletId: c.wallet.id },
                   })
                 }
-                className="flex-row items-center gap-3 rounded-2xl bg-white p-4 active:opacity-80"
+                className="flex-row items-center gap-3 rounded-2xl bg-white dark:bg-saldio-dark-card p-4 active:opacity-80"
               >
                 <WalletBadge
                   name={c.wallet.name}
@@ -328,13 +333,13 @@ export function AssetsScreen() {
                   type={c.wallet.type}
                   size={40}
                 />
-                <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink">
+                <Text className="flex-1 font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
                   {c.wallet.name}
                 </Text>
-                <Text className="font-mono-semibold text-sm text-saldio-ink">
+                <Text className="font-mono-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
                   {formatRupiah(c.value)}
                 </Text>
-                <Ionicons name="chevron-forward" size={16} color="#8A94A6" />
+                <Ionicons name="chevron-forward" size={16} color="#8892A6" />
               </Pressable>
             ))}
           </View>

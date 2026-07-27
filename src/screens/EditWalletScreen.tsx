@@ -6,6 +6,8 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { TEMPLATE_BADGES, WALLET_TEMPLATES } from "../lib/templates";
 import { useAppData } from "../state/AppDataContext";
 import type { HomeScreenProps } from "../navigation/types";
+import { useDarkColor } from "../lib/darkColors";
+import { useTheme } from '../components/ThemeProvider';
 
 function digitsOnly(s: string): string {
   return s.replace(/\D/g, "");
@@ -20,6 +22,8 @@ export function EditWalletScreen({ route, navigation }: HomeScreenProps<"EditWal
   const wallet = data.wallets.find((w) => w.id === route.params.walletId);
   const [name, setName] = useState(wallet?.name ?? "");
   const isGold = wallet?.type === "gold";
+  const cardColor = useDarkColor("card");
+  const { isDark } = useTheme();
 
   const [balanceDigits, setBalanceDigits] = useState(
     wallet?.initialBalance ? String(wallet.initialBalance) : ""
@@ -50,11 +54,11 @@ export function EditWalletScreen({ route, navigation }: HomeScreenProps<"EditWal
     <Screen>
       <ScreenHeader title="Edit Dompet" />
 
-      <View className="flex-row items-center gap-3 rounded-2xl bg-white p-4 mb-4">
+      <View className="flex-row items-center gap-3 rounded-2xl bg-white dark:bg-saldio-surface p-4 mb-4">
         <View
           className="h-11 w-11 items-center justify-center rounded-2xl"
           style={{
-            backgroundColor: TEMPLATE_BADGES[wallet.template]?.background ?? "#EDF1F7",
+            backgroundColor: TEMPLATE_BADGES[wallet.template]?.background ?? cardColor,
           }}
         >
           {wallet.type === "gold" ? (
@@ -71,29 +75,29 @@ export function EditWalletScreen({ route, navigation }: HomeScreenProps<"EditWal
           )}
         </View>
         <View className="flex-1">
-          <Text className="font-sans-semibold text-sm text-saldio-ink">{wallet.name}</Text>
-          <Text className="mt-0.5 font-sans text-xs text-saldio-muted">
+          <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">{wallet.name}</Text>
+          <Text className="mt-0.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
             {isGold ? "Dompet emas" : wallet.type === "cash" ? "Uang tunai" : "Rekening bank"}
           </Text>
         </View>
       </View>
 
-      <Text className="mb-3 font-sans-semibold text-sm text-saldio-soft">Nama dompet</Text>
-      <View className="rounded-2xl border-2 border-saldio-blue bg-white px-4 py-3">
+      <Text className="mb-3 font-sans-semibold text-sm text-saldio-soft dark:text-saldio-dark-soft">Nama dompet</Text>
+      <View className="rounded-2xl border-2 border-saldio-blue bg-white dark:bg-saldio-surface px-4 py-3">
         <TextInput
           value={name}
           onChangeText={setName}
           placeholder="Nama dompet"
-          placeholderTextColor="#8A94A6"
-          className="font-sans-semibold text-base text-saldio-ink"
+          placeholderTextColor={isDark ? '#9CA3AF' : '#8A94A6'}
+          className="font-sans-semibold text-base text-saldio-ink dark:text-saldio-dark-ink"
         />
       </View>
 
-      <Text className="mb-3 mt-6 font-sans-semibold text-sm text-saldio-soft">
+      <Text className="mb-3 mt-6 font-sans-semibold text-sm text-saldio-soft dark:text-saldio-dark-soft">
         {isGold ? "Gram awal" : "Saldo awal"}
       </Text>
-      <View className="rounded-2xl bg-white px-4 py-3">
-        <Text className="font-sans text-xs text-saldio-muted">
+      <View className="rounded-2xl bg-white dark:bg-saldio-surface px-4 py-3">
+        <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
           {isGold ? "Masukkan jumlah gram emas" : "Masukkan saldo awal"}
         </Text>
         {isGold ? (
@@ -102,19 +106,19 @@ export function EditWalletScreen({ route, navigation }: HomeScreenProps<"EditWal
             onChangeText={(v) => setGrams(v.replace(/[^0-9.,]/g, ""))}
             placeholder="0"
             keyboardType="decimal-pad"
-            placeholderTextColor="#8A94A6"
-            className="mt-1 font-mono-semibold text-base text-saldio-ink"
+            placeholderTextColor={isDark ? '#9CA3AF' : '#8A94A6'}
+            className="mt-1 font-mono-semibold text-base text-saldio-ink dark:text-saldio-dark-ink"
           />
         ) : (
           <View className="flex-row items-center">
-            <Text className="font-mono-semibold text-base text-saldio-ink">Rp</Text>
+            <Text className="font-mono-semibold text-base text-saldio-ink dark:text-saldio-dark-ink">Rp</Text>
             <TextInput
               value={withDots(balanceDigits)}
               onChangeText={(v) => setBalanceDigits(digitsOnly(v))}
               placeholder="0"
               keyboardType="number-pad"
-              placeholderTextColor="#8A94A6"
-              className="mt-0 flex-1 font-mono-semibold text-base text-saldio-ink"
+              placeholderTextColor={isDark ? '#9CA3AF' : '#8A94A6'}
+              className="mt-0 flex-1 font-mono-semibold text-base text-saldio-ink dark:text-saldio-dark-ink"
             />
           </View>
         )}

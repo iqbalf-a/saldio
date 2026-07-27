@@ -15,6 +15,7 @@ import { availableMonths, walletFeed } from "../lib/walletFeed";
 import { walletSupportsPdfImport } from "../lib/templates";
 import { categoryLabel } from "../lib/categories";
 import { useConfirm } from "../components/ConfirmModal";
+import { useTheme } from "../components/ThemeProvider";
 import { HERO_SHADOW } from "../lib/ui";
 import { useAppData } from "../state/AppDataContext";
 import type { HomeScreenProps } from "../navigation/types";
@@ -43,12 +44,12 @@ function ActionButton({
     >
       <View
         className={`h-12 w-12 items-center justify-center rounded-full ${
-          primary ? "bg-saldio-blue" : "bg-white"
+          primary ? "bg-saldio-blue" : "bg-white dark:bg-saldio-surface"
         }`}
       >
         <Ionicons name={icon as never} size={20} color={primary ? "white" : "#3D51E0"} />
       </View>
-      <Text className="mt-1.5 font-sans-medium text-xs text-saldio-soft">{label}</Text>
+      <Text className="mt-1.5 font-sans-medium text-xs text-saldio-soft dark:text-saldio-dark-soft">{label}</Text>
     </Pressable>
   );
 }
@@ -75,14 +76,14 @@ function WalletTxRow({
     <View className="flex-row items-center gap-3 py-3">
       <CategoryIcon category={category} size={40} />
       <View className="flex-1">
-        <Text className="font-sans-semibold text-sm text-saldio-ink" numberOfLines={1}>
+        <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink" numberOfLines={1}>
           {tx.note || label}
         </Text>
         <View className="mt-1 flex-row items-center gap-1.5">
-          <Text className="font-sans text-xs text-saldio-muted">{label}</Text>
+          <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">{label}</Text>
           {tx.source !== "manual" ? (
-            <View className="flex-row items-center rounded-md bg-saldio-sky px-1.5 py-0.5">
-              <Text className="font-sans-medium text-[10px] text-saldio-blue">PDF</Text>
+            <View className="flex-row items-center rounded-md bg-saldio-sky dark:bg-saldio-dark-sky px-1.5 py-0.5">
+              <Text className="font-sans-medium text-[10px] text-saldio-blue dark:text-saldio-dark-blue">PDF</Text>
             </View>
           ) : null}
         </View>
@@ -90,7 +91,7 @@ function WalletTxRow({
       <Text className={`font-mono-semibold text-[12px] ${amountColor}`}>{amountText}</Text>
       <Pressable
         onPress={() => setMenuOpen(true)}
-        className="h-8 w-8 items-center justify-center rounded-full bg-saldio-bg active:opacity-70"
+        className="h-8 w-8 items-center justify-center rounded-full bg-saldio-bg dark:bg-saldio-dark-bg active:opacity-70"
       >
         <Ionicons name="ellipsis-horizontal" size={16} color="#8A94A6" />
       </Pressable>
@@ -126,6 +127,7 @@ const DEFAULT_COLLAPSED_TOP = 260;
 
 export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"WalletDetail">) {
   const { data, deleteWallet, deleteTransaction } = useAppData();
+  const { isDark } = useTheme();
   const confirm = useConfirm();
   const wallet = data.wallets.find((w) => w.id === route.params.walletId);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -220,7 +222,7 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
         >
           {/* Kartu saldo */}
           <LinearGradient
-            colors={["#1E2A78", "#3D51E0"]}
+            colors={isDark ? ["#0F1B54", "#2A3BAA"] : ["#1E2A78", "#3D51E0"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1.2, y: 1.2 }}
             style={{ borderRadius: 24, padding: 20, ...HERO_SHADOW }}
@@ -271,7 +273,7 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
         {/* Riwayat — sheet bisa diseret ke atas untuk memenuhi layar */}
         <DraggableSheet collapsedTop={collapsedTop}>
           <View className="mb-2 mt-1 flex-row items-center justify-between px-4">
-            <Text className="font-sans-bold text-lg text-saldio-ink">Riwayat</Text>
+            <Text className="font-sans-bold text-lg text-saldio-ink dark:text-saldio-dark-ink">Riwayat</Text>
             <MonthPicker value={activeMonth} options={months} onChange={setMonth} />
           </View>
 
@@ -300,7 +302,7 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
         />
       ) : groups.length === 0 ? (
         <View className="items-center py-10">
-          <Text className="font-sans text-sm text-saldio-muted">
+          <Text className="font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
             Tidak ada transaksi di bulan ini.
           </Text>
         </View>
@@ -308,13 +310,13 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
         <View>
           {groups.map((g) => (
             <View key={g.date}>
-              <View className="flex-row items-center justify-between border-b border-saldio-border py-3">
-                <Text className="font-sans-semibold text-xs text-saldio-soft">
+              <View className="flex-row items-center justify-between border-b border-saldio-border dark:border-saldio-dark-border py-3">
+                <Text className="font-sans-semibold text-xs text-saldio-soft dark:text-saldio-dark-soft">
                   {formatDayLabel(g.date)}
                 </Text>
                 <Text
                   className={`font-mono-semibold text-xs ${
-                    g.subtotal >= 0 ? "text-saldio-green" : "text-saldio-red"
+                    g.subtotal >= 0 ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
                   }`}
                 >
                   {formatSignedRupiah(g.subtotal)}
@@ -329,8 +331,8 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
                   ? formatSignedGrams(t.type === "buy_gold" ? t.grams ?? 0 : -(t.grams ?? 0))
                   : formatSignedRupiah(isIncome ? t.amount ?? 0 : -(t.amount ?? 0));
                 const amountColor = isGoldTx
-                  ? t.type === "buy_gold" ? "text-saldio-green" : "text-saldio-red"
-                  : isIncome ? "text-saldio-green" : "text-saldio-red";
+                  ? t.type === "buy_gold" ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
+                  : isIncome ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red";
                 return (
                   <WalletTxRow
                     key={t.id}

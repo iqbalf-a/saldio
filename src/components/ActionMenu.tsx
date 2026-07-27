@@ -32,7 +32,7 @@ export function ActionMenu({ visible, onClose, items }: Props) {
                 onClose();
                 item.onPress();
               }}
-              className="flex-row items-center gap-3 rounded-2xl px-4 py-3.5 active:bg-saldio-bg dark:active:bg-saldio-dark-bg"
+              className="flex-row items-center gap-3 rounded-2xl px-4 py-3.5 active:bg-saldio-bg dark:bg-saldio-dark-bg dark:active:bg-saldio-dark-bg"
             >
               <Ionicons
                 name={item.icon as never}
@@ -50,7 +50,7 @@ export function ActionMenu({ visible, onClose, items }: Props) {
           ))}
           <Pressable
             onPress={onClose}
-            className="mt-1 items-center rounded-2xl border-t border-saldio-border dark:border-saldio-dark-border px-4 py-3.5 active:bg-saldio-bg dark:active:bg-saldio-dark-bg"
+            className="mt-1 items-center rounded-2xl border-t border-saldio-border dark:border-saldio-dark-border px-4 py-3.5 active:bg-saldio-bg dark:bg-saldio-dark-bg dark:active:bg-saldio-dark-bg"
           >
             <Text className="font-sans-semibold text-base text-saldio-soft dark:text-saldio-dark-soft">Batal</Text>
           </Pressable>

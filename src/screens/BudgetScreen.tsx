@@ -7,9 +7,11 @@ import { useAppData } from "../state/AppDataContext";
 import { allCategories } from "../lib/categories";
 import { currentYearMonth, formatRupiah } from "../lib/format";
 import type { HomeScreenProps } from "../navigation/types";
+import { useTheme } from '../components/ThemeProvider';
 
 export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
   const { data, setCategoryBudget, removeCategoryBudget } = useAppData();
+  const { isDark } = useTheme();
   const customCats = data.customCategories ?? [];
   const cats = useMemo(() => allCategories(customCats), [customCats]);
   const budgets = data.categoryBudgets ?? [];
@@ -17,7 +19,6 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [limitInput, setLimitInput] = useState("");
 
-  /** Hitung pengeluaran bulan ini per kategori. */
   const ym = currentYearMonth();
 
   const spentMap = useMemo(() => {
@@ -45,7 +46,6 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
     setLimitInput(existing ? String(existing.limit) : "");
   };
 
-  /** Kategori yang punya budget + kategori expense yang sudah dipakai tapi belum ada budget. */
   const budgetCats = cats.filter(
     (c) => c.key !== "Emas" && c.key !== "Transfer" && (budgets.some((b) => b.categoryKey === c.key) || (spentMap[c.key] ?? 0) > 0)
   );
@@ -54,34 +54,34 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
     <Screen>
       <ScreenHeader title="Budget Kategori" />
 
-      <Text className="mb-4 font-sans text-sm text-saldio-muted">
+      <Text className="mb-4 font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
         {budgets.length} budget aktif · {ym}
       </Text>
 
       {/* Form set budget */}
       {selectedCat && (
-        <View className="mb-5 rounded-2xl bg-white p-4">
-          <Text className="mb-3 font-sans-semibold text-sm text-saldio-ink">
+        <View className="mb-5 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
+          <Text className="mb-3 font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
             Budget: {cats.find((c) => c.key === selectedCat)?.label ?? selectedCat}
           </Text>
-          <Text className="mb-1.5 font-sans text-xs text-saldio-muted">Limit per bulan (Rp)</Text>
-          <View className="mb-4 rounded-xl bg-saldio-bg px-3 py-2.5">
+          <Text className="mb-1.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Limit per bulan (Rp)</Text>
+          <View className="mb-4 rounded-xl bg-saldio-bg dark:bg-saldio-dark-bg dark:border-saldio-dark-border px-3 py-2.5">
             <TextInput
               value={limitInput}
               onChangeText={setLimitInput}
               placeholder="mis. 500000"
-              placeholderTextColor="#8A94A6"
+              placeholderTextColor={isDark ? '#9CA3AF' : '#8A94A6'}
               keyboardType="numeric"
-              className="font-sans text-sm text-saldio-ink"
+              className="font-sans text-sm text-saldio-ink dark:text-saldio-dark-ink"
               autoFocus
             />
           </View>
           <View className="flex-row gap-3">
             <Pressable
               onPress={() => { setSelectedCat(null); setLimitInput(""); }}
-              className="flex-1 h-[52px] items-center justify-center rounded-full bg-saldio-border active:opacity-80"
+              className="flex-1 h-[52px] items-center justify-center rounded-full bg-saldio-border dark:bg-saldio-dark-border active:opacity-80"
             >
-              <Text className="font-sans-semibold text-base text-saldio-muted">Batal</Text>
+              <Text className="font-sans-semibold text-base text-saldio-muted dark:text-saldio-dark-muted">Batal</Text>
             </Pressable>
             <View className="flex-1">
               <PrimaryButton
@@ -95,10 +95,10 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
       )}
 
       {budgetCats.length === 0 && (
-        <View className="items-center rounded-2xl bg-white p-8">
+        <View className="items-center rounded-2xl bg-white dark:bg-saldio-dark-card p-8">
           <Ionicons name="wallet-outline" size={40} color="#D0D5DD" />
-          <Text className="mt-3 font-sans-semibold text-sm text-saldio-ink">Belum ada budget</Text>
-          <Text className="mt-1 text-center font-sans text-xs text-saldio-muted">
+          <Text className="mt-3 font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">Belum ada budget</Text>
+          <Text className="mt-1 text-center font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
             Tetapkan budget bulanan per kategori untuk mengontrol pengeluaran.
           </Text>
         </View>
@@ -113,29 +113,28 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
           const over = limit > 0 && spent > limit;
 
           return (
-            <View key={cat.key} className="rounded-2xl bg-white p-3">
+            <View key={cat.key} className="rounded-2xl bg-white dark:bg-saldio-dark-card p-3">
               <View className="flex-row items-center gap-3">
                 <View className="h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: cat.background }}>
                   <Ionicons name={cat.icon as keyof typeof Ionicons.glyphMap} size={18} color={cat.color} />
                 </View>
                 <View className="flex-1">
-                  <Text className="font-sans-semibold text-sm text-saldio-ink">{cat.label}</Text>
-                  <Text className="font-sans text-xs text-saldio-muted">
+                  <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">{cat.label}</Text>
+                  <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
                     {formatRupiah(spent)}{limit > 0 ? ` / ${formatRupiah(limit)}` : ""}
                   </Text>
                 </View>
                 {limit > 0 && (
-                  <Text className={`font-sans-bold text-sm ${over ? "text-saldio-red" : "text-saldio-blue"}`}>
+                  <Text className={`font-sans-bold text-sm ${over ? "text-saldio-red dark:text-saldio-dark-red" : "text-saldio-blue dark:text-saldio-dark-blue"}`}>
                     {Math.round(pct)}%
                   </Text>
                 )}
               </View>
 
-              {/* Progress bar */}
               {limit > 0 && (
-                <View className="mt-2 h-2 rounded-full bg-saldio-bg">
+                <View className="mt-2 h-2 rounded-full bg-saldio-bg dark:bg-saldio-dark-bg dark:border-saldio-dark-border">
                   <View
-                    className={`h-2 rounded-full ${over ? "bg-saldio-red" : "bg-saldio-blue"}`}
+                    className={`h-2 rounded-full ${over ? "bg-saldio-red dark:bg-saldio-dark-red" : "bg-saldio-blue dark:bg-saldio-dark-blue"}`}
                     style={{ width: `${pct}%` }}
                   />
                 </View>
@@ -144,16 +143,16 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
               <View className="mt-2 flex-row justify-end gap-2">
                 <Pressable
                   onPress={() => startSet(cat.key)}
-                  className="h-7 items-center justify-center rounded-lg bg-saldio-bg px-2 active:opacity-70"
+                  className="h-7 items-center justify-center rounded-lg bg-saldio-bg dark:bg-saldio-dark-bg dark:border-saldio-dark-border px-2 active:opacity-70"
                 >
-                  <Text className="font-sans text-xs text-saldio-muted">
+                  <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
                     {budget ? "Edit" : "Atur"}
                   </Text>
                 </Pressable>
                 {budget && (
                   <Pressable
                     onPress={() => removeCategoryBudget(cat.key)}
-                    className="h-7 items-center justify-center rounded-lg bg-saldio-bg px-2 active:opacity-70"
+                    className="h-7 items-center justify-center rounded-lg bg-saldio-bg dark:bg-saldio-dark-bg dark:border-saldio-dark-border px-2 active:opacity-70"
                   >
                     <Ionicons name="close" size={12} color="#E23B3B" />
                   </Pressable>

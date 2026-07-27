@@ -16,6 +16,7 @@ import { newId } from "../lib/ids";
 import { useConfirm } from "../components/ConfirmModal";
 import { useAppData } from "../state/AppDataContext";
 import type { HomeScreenProps } from "../navigation/types";
+import { useTheme } from '../components/ThemeProvider';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -41,7 +42,7 @@ function StepBar({ step }: { step: Step }) {
       {[1, 2, 3, 4].map((s) => (
         <View
           key={s}
-          className={`h-1 flex-1 rounded-full ${s <= step ? "bg-saldio-blue" : "bg-saldio-border"}`}
+          className={`h-1 flex-1 rounded-full ${s <= step ? "bg-saldio-blue" : "bg-saldio-border dark:bg-saldio-dark-border"}`}
         />
       ))}
     </View>
@@ -56,11 +57,11 @@ function StageRow({ label, state }: { label: string; state: "done" | "active" | 
       ) : state === "active" ? (
         <ActivityIndicator size={16} color="#3D51E0" />
       ) : (
-        <View className="h-[18px] w-[18px] rounded-full border-2 border-saldio-border" />
+        <View className="h-[18px] w-[18px] rounded-full border-2 border-saldio-border dark:border-saldio-dark-border" />
       )}
       <Text
         className={`font-sans-medium text-sm ${
-          state === "done" ? "text-saldio-green" : state === "active" ? "text-saldio-blue" : "text-saldio-muted"
+          state === "done" ? "text-saldio-green dark:text-saldio-dark-green" : state === "active" ? "text-saldio-blue" : "text-saldio-muted dark:text-saldio-dark-muted"
         }`}
       >
         {label}
@@ -72,6 +73,7 @@ function StageRow({ label, state }: { label: string; state: "done" | "active" | 
 export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPdf">) {
   const { data, addTransactions, deleteTransactionsByBatch } = useAppData();
   const confirm = useConfirm();
+  const { isDark } = useTheme();
   const wallet = data.wallets.find((w) => w.id === route.params.walletId);
 
   const [step, setStep] = useState<Step>(1);
@@ -220,11 +222,11 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
         <>
           <ScreenHeader title="Impor Mutasi PDF" />
           <StepBar step={1} />
-          <View className="flex-row items-center gap-3 rounded-2xl bg-white p-4">
+          <View className="flex-row items-center gap-3 rounded-2xl bg-white dark:bg-saldio-surface p-4">
             <WalletBadge name={wallet.name} template={wallet.template} type={wallet.type} size={40} />
             <View className="flex-1">
-              <Text className="font-sans-semibold text-base text-saldio-ink">{wallet.name}</Text>
-              <Text className="mt-0.5 font-sans text-xs text-saldio-muted">
+              <Text className="font-sans-semibold text-base text-saldio-ink dark:text-saldio-dark-ink">{wallet.name}</Text>
+              <Text className="mt-0.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
                 Parser mutasi {parserLabel} akan digunakan
               </Text>
             </View>
@@ -233,43 +235,43 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
 
           <Pressable
             onPress={pickFile}
-            className="mt-4 items-center rounded-3xl border-2 border-dashed border-saldio-blue/40 bg-white px-6 py-10 active:opacity-80"
+            className="mt-4 items-center rounded-3xl border-2 border-dashed border-saldio-blue/40 bg-white dark:bg-saldio-surface px-6 py-10 active:opacity-80"
           >
-            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-saldio-sky">
+            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-saldio-sky dark:bg-saldio-dark-sky">
               <Ionicons name={file ? "document-text" : "cloud-upload"} size={28} color="#3D51E0" />
             </View>
-            <Text className="mt-4 font-sans-semibold text-base text-saldio-ink">
+            <Text className="mt-4 font-sans-semibold text-base text-saldio-ink dark:text-saldio-dark-ink">
               {file ? file.name : "Pilih file PDF mutasi"}
             </Text>
-            <Text className="mt-1.5 text-center font-sans text-xs leading-4 text-saldio-muted">
+            <Text className="mt-1.5 text-center font-sans text-xs leading-4 text-saldio-muted dark:text-saldio-dark-muted">
               {file
                 ? "Ketuk untuk mengganti file"
                 : `e-Statement resmi dari aplikasi ${parserLabel}, maksimal 12 bulan terakhir`}
             </Text>
             {!file ? (
-              <View className="mt-4 rounded-full bg-saldio-sky px-5 py-2.5">
+              <View className="mt-4 rounded-full bg-saldio-sky dark:bg-saldio-dark-sky px-5 py-2.5">
                 <Text className="font-sans-semibold text-sm text-saldio-blue">Telusuri File</Text>
               </View>
             ) : null}
           </Pressable>
 
-          <View className="mt-4 flex-row items-start gap-2 rounded-2xl bg-saldio-gold-bg p-4">
+          <View className="mt-4 flex-row items-start gap-2 rounded-2xl bg-saldio-gold-bg dark:bg-saldio-dark-gold-bg p-4">
             <Ionicons name="shield-checkmark" size={16} color="#B08415" />
-            <Text className="flex-1 font-sans text-xs leading-4 text-saldio-gold-ink">
+            <Text className="flex-1 font-sans text-xs leading-4 text-saldio-gold-ink dark:text-saldio-dark-gold-ink">
               File diproses di perangkat kamu, lalu disimpan ke Google Drive milikmu. Saldio tidak
               punya server sendiri.
             </Text>
           </View>
 
           {error ? (
-            <View className="mt-4 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg p-4">
+            <View className="mt-4 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg dark:bg-saldio-dark-red-bg p-4">
               <Ionicons name="alert-circle" size={16} color="#E23B3B" />
-              <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red">{error}</Text>
+              <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red dark:text-saldio-dark-red">{error}</Text>
             </View>
           ) : null}
 
           {needPassword ? (
-            <View className="mt-4 rounded-2xl bg-white px-4 py-3">
+            <View className="mt-4 rounded-2xl bg-white dark:bg-saldio-surface px-4 py-3">
               <View className="flex-row items-center gap-1.5">
                 <Ionicons name="lock-closed" size={12} color="#3D51E0" />
                 <Text className="font-sans text-xs text-saldio-blue">Password PDF</Text>
@@ -278,10 +280,10 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Masukkan password dari bank"
-                placeholderTextColor="#8A94A6"
+                placeholderTextColor={isDark ? '#9CA3AF' : '#8A94A6'}
                 secureTextEntry
                 autoCapitalize="none"
-                className="mt-1 font-mono-medium text-base text-saldio-ink"
+                className="mt-1 font-mono-medium text-base text-saldio-ink dark:text-saldio-dark-ink"
               />
             </View>
           ) : null}
@@ -297,23 +299,23 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
         <>
           <StepBar step={2} />
           <View className="items-center py-16">
-            <View className="h-24 w-24 items-center justify-center rounded-full bg-saldio-sky">
+            <View className="h-24 w-24 items-center justify-center rounded-full bg-saldio-sky dark:bg-saldio-dark-sky">
               <ActivityIndicator size="large" color="#3D51E0" />
             </View>
-            <Text className="mt-6 font-sans-bold text-xl text-saldio-ink">Membaca mutasi…</Text>
-            <Text className="mt-2 font-sans text-sm text-saldio-muted">{file?.name}</Text>
-            <Text className="mt-1 font-sans text-xs text-saldio-muted">
+            <Text className="mt-6 font-sans-bold text-xl text-saldio-ink dark:text-saldio-dark-ink">Membaca mutasi…</Text>
+            <Text className="mt-2 font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">{file?.name}</Text>
+            <Text className="mt-1 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
               Parser {parserLabel}
               {pageCount > 0 ? ` · ${pageCount} halaman` : ""}
             </Text>
-            <View className="mt-8 self-stretch rounded-3xl bg-white p-5">
+            <View className="mt-8 self-stretch rounded-3xl bg-white dark:bg-saldio-surface p-5">
               <StageRow label="Membuka dokumen" state={stageState("open")} />
               <StageRow label={`Mengenali format ${parserLabel}`} state={stageState("format")} />
               <StageRow label="Mengekstrak transaksi…" state={stageState("extract")} />
               <StageRow label="Menebak kategori" state={stageState("categorize")} />
             </View>
             <Pressable onPress={reset} className="mt-8 active:opacity-70">
-              <Text className="font-sans-medium text-sm text-saldio-muted">Batalkan</Text>
+              <Text className="font-sans-medium text-sm text-saldio-muted dark:text-saldio-dark-muted">Batalkan</Text>
             </Pressable>
           </View>
         </>
@@ -323,7 +325,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
       {step === 3 && (
         <>
           <ScreenHeader title="Tinjau Transaksi" onBack={reset} />
-          <Text className="-mt-3 mb-4 font-sans text-sm text-saldio-muted">
+          <Text className="-mt-3 mb-4 font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
             {selectedCount} dipilih dari {rows.length} hasil ekstraksi
           </Text>
           <StepBar step={3} />
@@ -340,40 +342,40 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
                   }
                   className={`rounded-2xl p-4 active:opacity-80 ${
                     r.duplicate && !r.selected
-                      ? "border border-saldio-gold/50 bg-saldio-gold-bg"
-                      : "bg-white"
+                      ? "border border-saldio-gold/50 bg-saldio-gold-bg dark:bg-saldio-dark-gold-bg"
+                      : "bg-white dark:bg-saldio-surface"
                   }`}
                 >
                   <View className="flex-row items-center gap-3">
                     <View
                       className={`h-6 w-6 items-center justify-center rounded-md ${
-                        r.selected ? "bg-saldio-blue" : "border-2 border-saldio-border bg-white"
+                        r.selected ? "bg-saldio-blue" : "border-2 border-saldio-border dark:border-saldio-dark-border bg-white dark:bg-saldio-surface"
                       }`}
                     >
                       {r.selected ? <Ionicons name="checkmark" size={14} color="white" /> : null}
                     </View>
                     <Text
-                      className="flex-1 font-sans-semibold text-sm text-saldio-ink"
+                      className="flex-1 font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink"
                       numberOfLines={1}
                     >
                       {r.description}
                     </Text>
                     <Text
                       className={`font-mono-semibold text-sm ${
-                        r.direction === "in" ? "text-saldio-green" : "text-saldio-red"
+                        r.direction === "in" ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
                       }`}
                     >
                       {formatSignedRupiah(r.direction === "in" ? r.amount : -r.amount)}
                     </Text>
                   </View>
                   <View className="mt-2 flex-row items-center gap-2 pl-9">
-                    <Text className="font-sans text-xs text-saldio-muted">
+                    <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
                       {formatShortDate(r.date)}
                     </Text>
                     {r.duplicate ? (
                       <View className="flex-row items-center gap-1 rounded-md bg-saldio-gold/20 px-2 py-0.5">
                         <Ionicons name="warning" size={10} color="#8A6A10" />
-                        <Text className="font-sans-medium text-[10px] text-saldio-gold-ink">
+                        <Text className="font-sans-medium text-[10px] text-saldio-gold-ink dark:text-saldio-dark-gold-ink">
                           Kemungkinan duplikat
                         </Text>
                       </View>
@@ -410,36 +412,36 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
         <>
           <StepBar step={4} />
           <View className="items-center pt-12">
-            <View className="h-24 w-24 items-center justify-center rounded-full bg-saldio-green-bg">
+            <View className="h-24 w-24 items-center justify-center rounded-full bg-saldio-green-bg dark:bg-saldio-dark-green-bg">
               <Ionicons name="checkmark" size={44} color="#16A34A" />
             </View>
-            <Text className="mt-6 font-sans-bold text-2xl text-saldio-ink">
+            <Text className="mt-6 font-sans-bold text-2xl text-saldio-ink dark:text-saldio-dark-ink">
               {imported.count} transaksi diimpor
             </Text>
-            <Text className="mt-2 text-center font-sans text-sm leading-5 text-saldio-muted">
+            <Text className="mt-2 text-center font-sans text-sm leading-5 text-saldio-muted dark:text-saldio-dark-muted">
               Berhasil ditambahkan ke <Text className="font-sans-bold">{wallet.name}</Text>.
               {imported.skipped > 0 ? `\n${imported.skipped} transaksi dilewati.` : ""}
             </Text>
 
-            <View className="mt-8 self-stretch rounded-3xl bg-white p-5">
+            <View className="mt-8 self-stretch rounded-3xl bg-white dark:bg-saldio-surface p-5">
               <View className="flex-row justify-between py-1.5">
-                <Text className="font-sans text-sm text-saldio-soft">Pemasukan</Text>
-                <Text className="font-mono-semibold text-sm text-saldio-green">
+                <Text className="font-sans text-sm text-saldio-soft dark:text-saldio-dark-soft">Pemasukan</Text>
+                <Text className="font-mono-semibold text-sm text-saldio-green dark:text-saldio-dark-green">
                   {formatSignedRupiah(imported.inflow)}
                 </Text>
               </View>
               <View className="flex-row justify-between py-1.5">
-                <Text className="font-sans text-sm text-saldio-soft">Pengeluaran</Text>
-                <Text className="font-mono-semibold text-sm text-saldio-red">
+                <Text className="font-sans text-sm text-saldio-soft dark:text-saldio-dark-soft">Pengeluaran</Text>
+                <Text className="font-mono-semibold text-sm text-saldio-red dark:text-saldio-dark-red">
                   {formatSignedRupiah(-imported.outflow)}
                 </Text>
               </View>
-              <View className="my-2 h-px bg-saldio-border" />
+              <View className="my-2 h-px bg-saldio-border dark:bg-saldio-dark-border" />
               <View className="flex-row justify-between py-1.5">
-                <Text className="font-sans-semibold text-sm text-saldio-ink">
+                <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
                   Saldo {wallet.name} kini
                 </Text>
-                <Text className="font-mono-bold text-sm text-saldio-ink">
+                <Text className="font-mono-bold text-sm text-saldio-ink dark:text-saldio-dark-ink">
                   {formatRupiah(walletBalance(data, wallet))}
                 </Text>
               </View>
@@ -467,7 +469,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
                 }
                 className="mt-4 active:opacity-70"
               >
-                <Text className="font-sans-semibold text-sm text-saldio-red">Batalkan Impor Ini</Text>
+                <Text className="font-sans-semibold text-sm text-saldio-red dark:text-saldio-dark-red">Batalkan Impor Ini</Text>
               </Pressable>
             ) : null}
           </View>
@@ -485,8 +487,8 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
           className="flex-1 justify-center bg-black/40 px-8"
           onPress={() => setEditingKey(null)}
         >
-          <View className="rounded-3xl bg-white p-4">
-            <Text className="mb-2 px-2 font-sans-bold text-base text-saldio-ink">
+          <View className="rounded-3xl bg-white dark:bg-saldio-surface p-4">
+            <Text className="mb-2 px-2 font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">
               Pilih kategori
             </Text>
             {allCategories(data.customCategories ?? []).filter((c) => c.key !== "Emas").map((c) => (
@@ -498,7 +500,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
                   );
                   setEditingKey(null);
                 }}
-                className="flex-row items-center gap-3 rounded-2xl px-2 py-2.5 active:bg-saldio-bg"
+                className="flex-row items-center gap-3 rounded-2xl px-2 py-2.5 active:bg-saldio-bg dark:bg-saldio-dark-bg"
               >
                 <View
                   className="h-8 w-8 items-center justify-center rounded-lg"
@@ -506,7 +508,7 @@ export function ImportPdfScreen({ route, navigation }: HomeScreenProps<"ImportPd
                 >
                   <Ionicons name={c.icon as never} size={15} color={c.color} />
                 </View>
-                <Text className="font-sans-semibold text-sm text-saldio-ink">{c.label}</Text>
+                <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">{c.label}</Text>
               </Pressable>
             ))}
           </View>
