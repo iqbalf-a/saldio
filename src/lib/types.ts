@@ -19,6 +19,8 @@ export interface Wallet {
   totalGrams?: number;
   supportsPdfImport: boolean;
   createdAt: string;
+  /** Sertakan dompet ini di Total Aset? Default true bila undefined (dompet lama). */
+  includeInTotal?: boolean;
 }
 
 export type TransactionType = "income" | "expense" | "buy_gold" | "sell_gold";

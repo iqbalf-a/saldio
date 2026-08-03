@@ -274,11 +274,13 @@ export function AssetsScreen() {
             <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Komposisi aset</Text>
             <View className="mt-4 flex-row items-center gap-5">
               <DonutChart
-                slices={composition.map((c) => ({
-                  label: c.wallet.name,
-                  value: Math.max(c.value, 0),
-                  color: c.color,
-                }))}
+                slices={composition
+                  .filter((c) => c.wallet.includeInTotal !== false)
+                  .map((c) => ({
+                    label: c.wallet.name,
+                    value: Math.max(c.value, 0),
+                    color: c.color,
+                  }))}
                 centerTop={String(data.wallets.length)}
                 centerBottom="dompet"
               />
@@ -288,8 +290,11 @@ export function AssetsScreen() {
                     <View className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: c.color }} />
                     <Text className="flex-1 font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft" numberOfLines={1}>
                       {c.wallet.name}
+                      {c.wallet.includeInTotal === false ? "  ·  di luar total" : ""}
                     </Text>
-                    <Text className="font-mono-medium text-xs text-saldio-ink dark:text-saldio-dark-ink">{pct(c.value)}</Text>
+                    <Text className="font-mono-medium text-xs text-saldio-ink dark:text-saldio-dark-ink">
+                      {c.wallet.includeInTotal === false ? "—" : pct(c.value)}
+                    </Text>
                   </View>
                 ))}
               </View>

@@ -39,20 +39,20 @@ export function goldValue(data: AppData, wallet: Wallet): number {
 /** Total aset likuid (bank + tunai). */
 export function liquidTotal(data: AppData): number {
   return data.wallets
-    .filter((w) => w.type !== "gold")
+    .filter((w) => w.type !== "gold" && w.includeInTotal !== false)
     .reduce((sum, w) => sum + walletBalance(data, w), 0);
 }
 
 /** Total nilai emas seluruh dompet emas. */
 export function goldTotal(data: AppData): number {
   return data.wallets
-    .filter((w) => w.type === "gold")
+    .filter((w) => w.type === "gold" && w.includeInTotal !== false)
     .reduce((sum, w) => sum + goldValue(data, w), 0);
 }
 
 export function totalGoldGrams(data: AppData): number {
   const total = data.wallets
-    .filter((w) => w.type === "gold")
+    .filter((w) => w.type === "gold" && w.includeInTotal !== false)
     .reduce((sum, w) => sum + goldGrams(data, w), 0);
   return total;
 }
@@ -126,6 +126,7 @@ function netWorthUpTo(data: AppData, yearMonth: string): number {
   const cutoff = `${yearMonth}-99`;
   let total = 0;
   for (const w of data.wallets) {
+    if (w.includeInTotal === false) continue;
     if (w.type === "gold") {
       let grams = w.totalGrams ?? 0;
       let gramValue = 0;

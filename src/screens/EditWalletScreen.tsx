@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Switch, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen, ScreenHeader } from "../components/Screen";
 import { PrimaryButton } from "../components/PrimaryButton";
@@ -31,6 +31,7 @@ export function EditWalletScreen({ route, navigation }: HomeScreenProps<"EditWal
   const [grams, setGrams] = useState(
     wallet?.totalGrams ? String(wallet.totalGrams) : ""
   );
+  const [includeInTotal, setIncludeInTotal] = useState(wallet?.includeInTotal !== false);
 
   const canSubmit = name.trim().length > 0;
 
@@ -43,6 +44,7 @@ export function EditWalletScreen({ route, navigation }: HomeScreenProps<"EditWal
     if (!canSubmit) return;
     updateWallet(wallet.id, {
       name: name.trim(),
+      includeInTotal,
       ...(isGold
         ? { totalGrams: parseFloat(grams.replace(",", ".")) || 0 }
         : { initialBalance: parseInt(balanceDigits || "0", 10) }),
@@ -122,6 +124,19 @@ export function EditWalletScreen({ route, navigation }: HomeScreenProps<"EditWal
             />
           </View>
         )}
+      </View>
+
+      <View className="mt-3 flex-row items-center justify-between rounded-2xl bg-white dark:bg-saldio-surface px-4 py-3">
+        <View className="flex-1 pr-3">
+          <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
+            Masuk Total Aset
+          </Text>
+          <Text className="mt-0.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
+            Matikan untuk dompet yang sumbernya sudah dihitung di dompet lain (mis. dompet
+            pengeluaran harian), supaya tidak dobel di Total Aset.
+          </Text>
+        </View>
+        <Switch value={includeInTotal} onValueChange={setIncludeInTotal} />
       </View>
 
       <View className="mt-8">
