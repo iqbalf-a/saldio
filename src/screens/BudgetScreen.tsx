@@ -2,9 +2,13 @@ import React, { useState, useMemo } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen, ScreenHeader } from "../components/Screen";
+import { MonthPicker } from "../components/MonthPicker";
+import { DonutChart } from "../components/charts/DonutChart";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { useAppData } from "../state/AppDataContext";
-import { allCategories } from "../lib/categories";
+import { allCategories, categoryByKey } from "../lib/categories";
+import { availableMonths } from "../lib/walletFeed";
+import { categorySpendForMonth, monthTotalExpense } from "../lib/reports";
 import { currentYearMonth, formatRupiah } from "../lib/format";
 import type { HomeScreenProps } from "../navigation/types";
 import { useTheme } from '../components/ThemeProvider';
@@ -19,17 +23,46 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [limitInput, setLimitInput] = useState("");
 
-  const ym = currentYearMonth();
+  const months = useMemo(() => availableMonths(data.transactions ?? []), [data.transactions]);
+  const [ym, setYm] = useState(currentYearMonth());
 
+  const categorySpend = useMemo(
+    () => categorySpendForMonth(data.transactions ?? [], ym),
+    [data.transactions, ym]
+  );
   const spentMap = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const tx of data.transactions ?? []) {
-      if (tx.type !== "expense" || !tx.date.startsWith(ym)) continue;
-      const key = tx.category ?? "";
-      map[key] = (map[key] ?? 0) + (tx.amount ?? 0);
-    }
+    for (const c of categorySpend) map[c.categoryKey] = c.amount;
     return map;
-  }, [data.transactions ?? [], ym]);
+  }, [categorySpend]);
+
+  const donutSlices = useMemo(
+    () =>
+      categorySpend.map((c) => ({
+        label: cats.find((x) => x.key === c.categoryKey)?.label ?? c.categoryKey,
+        value: c.amount,
+        color: categoryByKey(c.categoryKey, customCats).color,
+      })),
+    [categorySpend, cats, customCats]
+  );
+  const monthTotal = useMemo(
+    () => categorySpend.reduce((sum, c) => sum + c.amount, 0),
+    [categorySpend]
+  );
+
+  const prevYm = useMemo(() => {
+    const [y, m] = ym.split("-").map(Number);
+    const d = new Date(y, m - 2, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }, [ym]);
+  const prevMonthTotal = useMemo(
+    () => monthTotalExpense(data.transactions ?? [], prevYm),
+    [data.transactions, prevYm]
+  );
+  const totalChangePct = useMemo(() => {
+    if (prevMonthTotal === 0) return null;
+    return Math.round(((monthTotal - prevMonthTotal) / prevMonthTotal) * 1000) / 10;
+  }, [monthTotal, prevMonthTotal]);
 
   const handleSave = () => {
     if (!selectedCat) return;
@@ -54,9 +87,57 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
     <Screen>
       <ScreenHeader title="Budget Kategori" />
 
-      <Text className="mb-4 font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
-        {budgets.length} budget aktif · {ym}
+      <View className="mb-4 flex-row items-center justify-between">
+        <Text className="font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
+          {budgets.length} budget aktif
+        </Text>
+        <MonthPicker value={ym} options={months} onChange={setYm} />
+      </View>
+      <Text className="mb-4 -mt-2 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
+        Limit budget berlaku sama untuk semua bulan — hanya realisasi (pengeluaran) yang berubah per bulan.
       </Text>
+
+      {donutSlices.length > 0 && (
+        <View className="mb-5 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
+          <View className="mb-3 flex-row items-center justify-between">
+            <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
+              Pengeluaran per Kategori
+            </Text>
+            {totalChangePct !== null && (
+              <Text
+                className={`font-sans text-xs ${
+                  totalChangePct > 0
+                    ? "text-saldio-red dark:text-saldio-dark-red"
+                    : "text-saldio-green dark:text-saldio-dark-green"
+                }`}
+              >
+                {totalChangePct >= 0 ? "+" : ""}
+                {String(totalChangePct).replace(".", ",")}% vs bulan lalu
+              </Text>
+            )}
+          </View>
+          <View className="flex-row items-center gap-4">
+            <DonutChart
+              slices={donutSlices}
+              centerTop={formatRupiah(monthTotal).replace("Rp", "").trim()}
+              centerBottom="total"
+            />
+            <View className="flex-1 gap-2">
+              {donutSlices.slice(0, 6).map((s, i) => (
+                <View key={i} className="flex-row items-center gap-2">
+                  <View className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: s.color }} />
+                  <Text className="flex-1 font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft" numberOfLines={1}>
+                    {s.label}
+                  </Text>
+                  <Text className="font-mono-medium text-xs text-saldio-ink dark:text-saldio-dark-ink">
+                    {formatRupiah(s.value)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* Form set budget */}
       {selectedCat && (
