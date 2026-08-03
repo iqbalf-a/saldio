@@ -9,6 +9,7 @@ import { ExpenseCalendar } from "../components/charts/ExpenseCalendar";
 import { formatDayLabel, formatRupiah, formatSignedGrams, formatSignedRupiah } from "../lib/format";
 import { badgeForWallet } from "../lib/templates";
 import { availableMonths } from "../lib/walletFeed";
+import { groupByDay } from "../lib/balances";
 import { dailyNetChange } from "../lib/reports";
 import type { Transaction } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
@@ -156,19 +157,14 @@ export function HistoryScreen({ navigation }: Nav) {
     return base;
   }, [data, activeMonth, walletFilter, search]);
 
-  const calendarScopedTxs = useMemo(() => {
-    if (walletFilter === "all") {
-      return data.transactions.filter((t) => {
-        const w = data.wallets.find((w) => w.id === t.walletId);
-        return w?.includeInTotal !== false;
-      });
-    }
-    return data.transactions.filter((t) => t.walletId === walletFilter);
-  }, [data.transactions, data.wallets, walletFilter]);
-
+  // Kalender & daftar-per-tanggal diturunkan dari `feed` yang sama (bulan +
+  // filter dompet + pencarian) agar warna sel kalender selalu konsisten
+  // dengan transaksi yang muncul saat tanggalnya diketuk. `includeInTotal`
+  // sengaja tidak dipakai di sini — itu konsep Total Aset (lihat Aset),
+  // bukan aturan tampilan Riwayat.
   const dailyTotals = useMemo(
-    () => dailyNetChange(calendarScopedTxs, activeMonth),
-    [calendarScopedTxs, activeMonth]
+    () => dailyNetChange(feed, activeMonth),
+    [feed, activeMonth]
   );
 
   const selectedDayItems = useMemo(() => {
@@ -180,24 +176,7 @@ export function HistoryScreen({ navigation }: Nav) {
     setSelectedDate(null);
   }, [activeMonth, walletFilter]);
 
-  const groups = useMemo(() => {
-    const map = new Map<string, Transaction[]>();
-    for (const t of feed) {
-      const list = map.get(t.date) ?? [];
-      list.push(t);
-      map.set(t.date, list);
-    }
-    return [...map.entries()]
-      .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([date, items]) => {
-        let subtotal = 0;
-        for (const t of items) {
-          if (t.type === "income") subtotal += t.amount ?? 0;
-          else if (t.type === "expense") subtotal -= t.amount ?? 0;
-        }
-        return { date, items, subtotal };
-      });
-  }, [feed]);
+  const groups = useMemo(() => groupByDay(feed), [feed]);
 
   const { inflow, outflow } = useMemo(() => {
     let inn = 0;

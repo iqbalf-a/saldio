@@ -1,4 +1,16 @@
+import { toISODate, toYearMonth } from "./format";
 import type { AppData, Transaction, Wallet } from "./types";
+
+/**
+ * Apakah dompet ikut dihitung di Total Aset / komposisi / kalender ringkasan.
+ * Default true bila field belum pernah diset (dompet lama sebelum fitur ini ada).
+ * Satu-satunya tempat aturan "includeInTotal===false artinya dikecualikan"
+ * didefinisikan — semua konsumen (balances, AssetsScreen, HistoryScreen) wajib
+ * memanggil ini, bukan menulis ulang `!== false` sendiri.
+ */
+export function isIncludedInTotal(wallet: Wallet): boolean {
+  return wallet.includeInTotal !== false;
+}
 
 /** Saldo dompet bank/tunai: saldo awal + pemasukan - pengeluaran. */
 export function walletBalance(data: AppData, wallet: Wallet): number {
@@ -39,20 +51,20 @@ export function goldValue(data: AppData, wallet: Wallet): number {
 /** Total aset likuid (bank + tunai). */
 export function liquidTotal(data: AppData): number {
   return data.wallets
-    .filter((w) => w.type !== "gold" && w.includeInTotal !== false)
+    .filter((w) => w.type !== "gold" && isIncludedInTotal(w))
     .reduce((sum, w) => sum + walletBalance(data, w), 0);
 }
 
 /** Total nilai emas seluruh dompet emas. */
 export function goldTotal(data: AppData): number {
   return data.wallets
-    .filter((w) => w.type === "gold" && w.includeInTotal !== false)
+    .filter((w) => w.type === "gold" && isIncludedInTotal(w))
     .reduce((sum, w) => sum + goldValue(data, w), 0);
 }
 
 export function totalGoldGrams(data: AppData): number {
   const total = data.wallets
-    .filter((w) => w.type === "gold" && w.includeInTotal !== false)
+    .filter((w) => w.type === "gold" && isIncludedInTotal(w))
     .reduce((sum, w) => sum + goldGrams(data, w), 0);
   return total;
 }
@@ -116,7 +128,7 @@ export function netWorthTrend(data: AppData, months = 6): Array<{ yearMonth: str
   const result: Array<{ yearMonth: string; value: number }> = [];
   for (let i = months - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const ym = toYearMonth(toISODate(d));
     result.push({ yearMonth: ym, value: netWorthUpTo(data, ym) });
   }
   return result;
@@ -126,7 +138,7 @@ function netWorthUpTo(data: AppData, yearMonth: string): number {
   const cutoff = `${yearMonth}-99`;
   let total = 0;
   for (const w of data.wallets) {
-    if (w.includeInTotal === false) continue;
+    if (!isIncludedInTotal(w)) continue;
     if (w.type === "gold") {
       let grams = w.totalGrams ?? 0;
       let gramValue = 0;

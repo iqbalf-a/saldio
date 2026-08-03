@@ -1,3 +1,4 @@
+import { groupByDay } from "./balances";
 import type { Transaction } from "./types";
 
 export interface CategorySpend {
@@ -25,13 +26,18 @@ export function monthTotalExpense(transactions: Transaction[], yearMonth: string
     .reduce((sum, t) => sum + (t.amount ?? 0), 0);
 }
 
-/** Net (pemasukan - pengeluaran) per hari (YYYY-MM-DD) dalam satu bulan. Emas diabaikan (tidak ada nilai Rupiah langsung). */
+/**
+ * Net (pemasukan - pengeluaran) per hari (YYYY-MM-DD) dalam satu bulan.
+ * Emas diabaikan (tidak ada nilai Rupiah langsung) — hari yang hanya berisi
+ * transaksi emas tidak masuk hasil sama sekali (bukan 0), konsisten dengan
+ * cara groupByDay membedakan "tidak ada arus kas" dari "net kas nol".
+ */
 export function dailyNetChange(transactions: Transaction[], yearMonth: string): Record<string, number> {
+  const scoped = transactions.filter((t) => t.date.startsWith(yearMonth));
   const map: Record<string, number> = {};
-  for (const t of transactions) {
-    if (!t.date.startsWith(yearMonth)) continue;
-    if (t.type === "income") map[t.date] = (map[t.date] ?? 0) + (t.amount ?? 0);
-    else if (t.type === "expense") map[t.date] = (map[t.date] ?? 0) - (t.amount ?? 0);
+  for (const g of groupByDay(scoped)) {
+    const hasCashFlow = g.items.some((t) => t.type === "income" || t.type === "expense");
+    if (hasCashFlow) map[g.date] = g.subtotal;
   }
   return map;
 }

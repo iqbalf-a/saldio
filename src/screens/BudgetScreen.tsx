@@ -9,7 +9,7 @@ import { useAppData } from "../state/AppDataContext";
 import { allCategories, categoryByKey } from "../lib/categories";
 import { availableMonths } from "../lib/walletFeed";
 import { categorySpendForMonth, monthTotalExpense } from "../lib/reports";
-import { currentYearMonth, formatRupiah } from "../lib/format";
+import { currentYearMonth, formatRupiah, toISODate, toYearMonth } from "../lib/format";
 import type { HomeScreenProps } from "../navigation/types";
 import { useTheme } from '../components/ThemeProvider';
 
@@ -52,8 +52,7 @@ export function BudgetScreen({ navigation }: HomeScreenProps<"Budget">) {
 
   const prevYm = useMemo(() => {
     const [y, m] = ym.split("-").map(Number);
-    const d = new Date(y, m - 2, 1);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    return toYearMonth(toISODate(new Date(y, m - 2, 1)));
   }, [ym]);
   const prevMonthTotal = useMemo(
     () => monthTotalExpense(data.transactions ?? [], prevYm),

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
-import { formatCompactRupiah } from "../../lib/format";
+import { formatCompactRupiah, toISODate } from "../../lib/format";
 import { useDarkColor } from "../../lib/darkColors";
 
 const WEEKDAYS_MIN = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
@@ -25,10 +25,7 @@ export function ExpenseCalendar({ yearMonth, dailyTotals, selectedDate, onSelect
   const [year, month] = yearMonth.split("-").map(Number); // month: 1-indexed
   const ink = useDarkColor("ink");
   const muted = useDarkColor("muted");
-  const todayIso = (() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  })();
+  const todayIso = toISODate(new Date());
 
   const maxAbs = useMemo(() => {
     const values = Object.values(dailyTotals).map((v) => Math.abs(v));
@@ -45,7 +42,7 @@ export function ExpenseCalendar({ yearMonth, dailyTotals, selectedDate, onSelect
   const weeks: Array<Array<number | null>> = [];
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
-  const isoOf = (day: number) => `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const isoOf = (day: number) => toISODate(new Date(year, month - 1, day));
 
   return (
     <View className="rounded-3xl bg-white dark:bg-saldio-dark-card p-4">

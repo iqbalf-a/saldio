@@ -14,6 +14,7 @@ import { currentYearMonth, formatGrams, formatRupiah, monthShortLabel, toYearMon
 import { categoryByKey } from "../lib/categories";
 import {
   goldTotal,
+  isIncludedInTotal,
   liquidTotal,
   netWorth,
   netWorthTrend,
@@ -217,6 +218,13 @@ export function AssetsScreen() {
       .map((x, i) => ({ ...x, color: DONUT_COLORS[i % DONUT_COLORS.length] }));
   }, [data]);
 
+  /** Dompet yang benar-benar tampil di donut — dipakai juga untuk hitungan di tengah,
+   * agar cincin dan label "N dompet" selalu menggambarkan himpunan yang sama. */
+  const includedComposition = useMemo(
+    () => composition.filter((c) => isIncludedInTotal(c.wallet)),
+    [composition]
+  );
+
   const trend = useMemo(() => netWorthTrend(data, 6), [data]);
 
   const pct = (value: number) => {
@@ -274,14 +282,12 @@ export function AssetsScreen() {
             <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Komposisi aset</Text>
             <View className="mt-4 flex-row items-center gap-5">
               <DonutChart
-                slices={composition
-                  .filter((c) => c.wallet.includeInTotal !== false)
-                  .map((c) => ({
-                    label: c.wallet.name,
-                    value: Math.max(c.value, 0),
-                    color: c.color,
-                  }))}
-                centerTop={String(data.wallets.length)}
+                slices={includedComposition.map((c) => ({
+                  label: c.wallet.name,
+                  value: Math.max(c.value, 0),
+                  color: c.color,
+                }))}
+                centerTop={String(includedComposition.length)}
                 centerBottom="dompet"
               />
               <View className="flex-1 gap-2.5">
@@ -290,10 +296,10 @@ export function AssetsScreen() {
                     <View className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: c.color }} />
                     <Text className="flex-1 font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft" numberOfLines={1}>
                       {c.wallet.name}
-                      {c.wallet.includeInTotal === false ? "  ·  di luar total" : ""}
+                      {!isIncludedInTotal(c.wallet) ? "  ·  di luar total" : ""}
                     </Text>
                     <Text className="font-mono-medium text-xs text-saldio-ink dark:text-saldio-dark-ink">
-                      {c.wallet.includeInTotal === false ? "—" : pct(c.value)}
+                      {!isIncludedInTotal(c.wallet) ? "—" : pct(c.value)}
                     </Text>
                   </View>
                 ))}
