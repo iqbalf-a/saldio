@@ -94,3 +94,17 @@ export function monthShortLabel(yearMonth: string): string {
   const [, m] = yearMonth.split("-").map(Number);
   return MONTHS_SHORT[m - 1];
 }
+
+/** Format ringkas untuk ruang sempit (mis. sel kalender): 8,5jt / 150rb / 500. */
+export function formatCompactRupiah(amount: number): string {
+  const sign = amount < 0 ? "-" : "";
+  const abs = Math.abs(amount);
+  if (abs >= 1_000_000) {
+    const val = Math.round((abs / 1_000_000) * 10) / 10;
+    return `${sign}${String(val).replace(".", ",")}jt`;
+  }
+  if (abs >= 1_000) {
+    return `${sign}${Math.round(abs / 1000)}rb`;
+  }
+  return `${sign}${abs}`;
+}

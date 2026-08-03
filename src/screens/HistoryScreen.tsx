@@ -1,13 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "../components/Screen";
 import { MonthPicker } from "../components/MonthPicker";
 import { CategoryIcon } from "../components/CategoryIcon";
 import { ActionMenu } from "../components/ActionMenu";
+import { ExpenseCalendar } from "../components/charts/ExpenseCalendar";
 import { formatDayLabel, formatRupiah, formatSignedGrams, formatSignedRupiah } from "../lib/format";
 import { badgeForWallet } from "../lib/templates";
 import { availableMonths } from "../lib/walletFeed";
+import { dailyNetChange } from "../lib/reports";
 import type { Transaction } from "../lib/types";
 import { useAppData } from "../state/AppDataContext";
 import { useConfirm } from "../components/ConfirmModal";
@@ -123,6 +125,8 @@ export function HistoryScreen({ navigation }: Nav) {
   const confirm = useConfirm();
   const [walletFilter, setWalletFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const muted = useDarkColor("muted");
   const ink = useDarkColor("ink");
 
@@ -150,6 +154,30 @@ export function HistoryScreen({ navigation }: Nav) {
     }
     return base;
   }, [data, activeMonth, walletFilter, search]);
+
+  const calendarScopedTxs = useMemo(() => {
+    if (walletFilter === "all") {
+      return data.transactions.filter((t) => {
+        const w = data.wallets.find((w) => w.id === t.walletId);
+        return w?.includeInTotal !== false;
+      });
+    }
+    return data.transactions.filter((t) => t.walletId === walletFilter);
+  }, [data.transactions, data.wallets, walletFilter]);
+
+  const dailyTotals = useMemo(
+    () => dailyNetChange(calendarScopedTxs, activeMonth),
+    [calendarScopedTxs, activeMonth]
+  );
+
+  const selectedDayItems = useMemo(() => {
+    if (!selectedDate) return [];
+    return feed.filter((t) => t.date === selectedDate);
+  }, [feed, selectedDate]);
+
+  useEffect(() => {
+    setSelectedDate(null);
+  }, [activeMonth, walletFilter]);
 
   const groups = useMemo(() => {
     const map = new Map<string, Transaction[]>();
@@ -189,7 +217,15 @@ export function HistoryScreen({ navigation }: Nav) {
       <View className="px-5">
         <View className="mb-4 flex-row items-center justify-between">
           <Text className="font-sans-bold text-xl text-saldio-ink dark:text-saldio-dark-ink">Riwayat Transaksi</Text>
-          <MonthPicker value={activeMonth} options={months} onChange={setMonth} />
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={() => setViewMode(viewMode === "list" ? "calendar" : "list")}
+              className="h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-saldio-dark-card active:opacity-70"
+            >
+              <Ionicons name={viewMode === "list" ? "calendar-outline" : "list-outline"} size={17} color={muted} />
+            </Pressable>
+            <MonthPicker value={activeMonth} options={months} onChange={setMonth} />
+          </View>
         </View>
       </View>
 
@@ -233,52 +269,31 @@ export function HistoryScreen({ navigation }: Nav) {
         </View>
       </View>
 
-      <View className="px-5">
-        <View className="mb-4 flex-row gap-3">
-          <View className="flex-1 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
-            <View className="flex-row items-center gap-1">
-              <Ionicons name="arrow-down" size={13} color="#16A34A" />
-              <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Masuk</Text>
-            </View>
-            <Text className="mt-1 font-mono-semibold text-sm text-saldio-green dark:text-saldio-dark-green">
-              {formatRupiah(inflow)}
-            </Text>
-          </View>
-          <View className="flex-1 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
-            <View className="flex-row items-center gap-1">
-              <Ionicons name="arrow-up" size={13} color="#E23B3B" />
-              <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Keluar</Text>
-            </View>
-            <Text className="mt-1 font-mono-semibold text-sm text-saldio-red dark:text-saldio-dark-red">
-              {formatRupiah(outflow)}
-            </Text>
-          </View>
-        </View>
-
-        {groups.length === 0 ? (
-          <View className="items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-8 py-12">
-            <Ionicons name="receipt" size={32} color={muted} />
-            <Text className="mt-4 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
-              Belum ada transaksi di bulan ini.
-            </Text>
-          </View>
-        ) : (
-          <View className="rounded-3xl bg-white dark:bg-saldio-dark-card px-4">
-            {groups.map((g) => (
-              <View key={g.date}>
-                <View className="flex-row items-center justify-between border-b border-saldio-border dark:border-saldio-dark-border py-3">
-                  <Text className="font-sans-semibold text-xs text-saldio-soft dark:text-saldio-dark-soft">
-                    {formatDayLabel(g.date)}
-                  </Text>
-                  <Text
-                    className={`font-mono-semibold text-xs ${
-                      g.subtotal >= 0 ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
-                    }`}
-                  >
-                    {formatSignedRupiah(g.subtotal)}
-                  </Text>
-                </View>
-                {g.items.map((t) => {
+      {viewMode === "calendar" ? (
+        <View className="px-5">
+          <ExpenseCalendar
+            yearMonth={activeMonth}
+            dailyTotals={dailyTotals}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+          />
+          <View className="mt-4">
+            {!selectedDate ? (
+              <View className="items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-8 py-10">
+                <Ionicons name="calendar" size={28} color={muted} />
+                <Text className="mt-3 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
+                  Ketuk salah satu tanggal untuk lihat transaksinya.
+                </Text>
+              </View>
+            ) : selectedDayItems.length === 0 ? (
+              <View className="items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-8 py-10">
+                <Text className="text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
+                  Tidak ada transaksi di tanggal ini.
+                </Text>
+              </View>
+            ) : (
+              <View className="rounded-3xl bg-white dark:bg-saldio-dark-card px-4">
+                {selectedDayItems.map((t) => {
                   const wallet = data.wallets.find((w) => w.id === t.walletId);
                   const badge = wallet ? badgeForWallet(wallet.name, wallet.template, isDark) : null;
                   const isGoldWallet = wallet?.type === "gold";
@@ -286,16 +301,14 @@ export function HistoryScreen({ navigation }: Nav) {
                     <HistoryTxRow
                       key={t.id}
                       tx={t}
-                      walletTag={
-                        walletFilter === "all"
-                          ? isGoldWallet ? "Em" : badge?.initials
-                          : undefined
-                      }
+                      walletTag={walletFilter === "all" ? (isGoldWallet ? "Em" : badge?.initials) : undefined}
                       walletTagColor={isGoldWallet ? "#B08415" : badge?.color}
-                      onEdit={() => navigation.navigate("Beranda", {
-                        screen: "AddTransaction",
-                        params: { walletId: t.walletId, transactionId: t.id },
-                      })}
+                      onEdit={() =>
+                        navigation.navigate("Beranda", {
+                          screen: "AddTransaction",
+                          params: { walletId: t.walletId, transactionId: t.id },
+                        })
+                      }
                       onDelete={() =>
                         confirm({
                           title: "Hapus transaksi?",
@@ -308,10 +321,90 @@ export function HistoryScreen({ navigation }: Nav) {
                   );
                 })}
               </View>
-            ))}
+            )}
           </View>
-        )}
-      </View>
+        </View>
+      ) : (
+        <View className="px-5">
+          <View className="mb-4 flex-row gap-3">
+            <View className="flex-1 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
+              <View className="flex-row items-center gap-1">
+                <Ionicons name="arrow-down" size={13} color="#16A34A" />
+                <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Masuk</Text>
+              </View>
+              <Text className="mt-1 font-mono-semibold text-sm text-saldio-green dark:text-saldio-dark-green">
+                {formatRupiah(inflow)}
+              </Text>
+            </View>
+            <View className="flex-1 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
+              <View className="flex-row items-center gap-1">
+                <Ionicons name="arrow-up" size={13} color="#E23B3B" />
+                <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Keluar</Text>
+              </View>
+              <Text className="mt-1 font-mono-semibold text-sm text-saldio-red dark:text-saldio-dark-red">
+                {formatRupiah(outflow)}
+              </Text>
+            </View>
+          </View>
+
+          {groups.length === 0 ? (
+            <View className="items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-8 py-12">
+              <Ionicons name="receipt" size={32} color={muted} />
+              <Text className="mt-4 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
+                Belum ada transaksi di bulan ini.
+              </Text>
+            </View>
+          ) : (
+            <View className="rounded-3xl bg-white dark:bg-saldio-dark-card px-4">
+              {groups.map((g) => (
+                <View key={g.date}>
+                  <View className="flex-row items-center justify-between border-b border-saldio-border dark:border-saldio-dark-border py-3">
+                    <Text className="font-sans-semibold text-xs text-saldio-soft dark:text-saldio-dark-soft">
+                      {formatDayLabel(g.date)}
+                    </Text>
+                    <Text
+                      className={`font-mono-semibold text-xs ${
+                        g.subtotal >= 0 ? "text-saldio-green dark:text-saldio-dark-green" : "text-saldio-red dark:text-saldio-dark-red"
+                      }`}
+                    >
+                      {formatSignedRupiah(g.subtotal)}
+                    </Text>
+                  </View>
+                  {g.items.map((t) => {
+                    const wallet = data.wallets.find((w) => w.id === t.walletId);
+                    const badge = wallet ? badgeForWallet(wallet.name, wallet.template, isDark) : null;
+                    const isGoldWallet = wallet?.type === "gold";
+                    return (
+                      <HistoryTxRow
+                        key={t.id}
+                        tx={t}
+                        walletTag={
+                          walletFilter === "all"
+                            ? isGoldWallet ? "Em" : badge?.initials
+                            : undefined
+                        }
+                        walletTagColor={isGoldWallet ? "#B08415" : badge?.color}
+                        onEdit={() => navigation.navigate("Beranda", {
+                          screen: "AddTransaction",
+                          params: { walletId: t.walletId, transactionId: t.id },
+                        })}
+                        onDelete={() =>
+                          confirm({
+                            title: "Hapus transaksi?",
+                            message: `"${t.note || categoryLabel(t.category, data.customCategories)}" akan dihapus permanen.`,
+                            confirmLabel: "Hapus",
+                            onConfirm: () => deleteTransaction(t.id),
+                          })
+                        }
+                      />
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
     </Screen>
   );
 }
