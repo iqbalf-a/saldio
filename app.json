@@ -29,7 +29,15 @@
     },
     "plugins": [
       "expo-web-browser",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Saldio butuh akses galeri untuk melampirkan foto struk.",
+          "cameraPermission": "Saldio butuh akses kamera untuk memfoto struk.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

@@ -86,6 +86,7 @@ function WalletTxRow({
               <Text className="font-sans-medium text-[10px] text-saldio-blue dark:text-saldio-dark-blue">PDF</Text>
             </View>
           ) : null}
+          {tx.receiptImage ? <Ionicons name="image" size={11} color="#8A94A6" /> : null}
         </View>
       </View>
       <Text className={`font-mono-semibold text-[12px] ${amountColor}`}>{amountText}</Text>

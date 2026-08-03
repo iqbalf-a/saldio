@@ -83,6 +83,7 @@ function HistoryTxRow({
           ) : null}
           <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">{label}</Text>
           <SourceChip source={tx.source} />
+          {tx.receiptImage ? <Ionicons name="image" size={11} color={muted} /> : null}
         </View>
       </View>
       <Text className={`font-mono-semibold text-[12px] ${amountColor}`}>{amountText}</Text>

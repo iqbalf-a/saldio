@@ -3,6 +3,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { Screen, ScreenHeader } from "../components/Screen";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { DatePickerField } from "../components/DatePickerField";
+import { ReceiptPicker } from "../components/ReceiptPicker";
 import { WalletBadge } from "../components/WalletBadge";
 import { CATEGORIES, allCategories } from "../lib/categories";
 import { toISODate } from "../lib/format";
@@ -66,6 +67,7 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
   const [category, setCategory] = useState(existingTx?.category ?? "Makanan");
   const [note, setNote] = useState(existingTx?.note ?? "");
   const [date, setDate] = useState(existingTx?.date ?? toISODate(new Date()));
+  const [receiptImage, setReceiptImage] = useState<string | undefined>(existingTx?.receiptImage);
 
   const categories = useMemo(() => allCategories(data.customCategories).filter((c) => c.key !== "Emas" && c.key !== "Transfer"), [data.customCategories]);
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
@@ -91,6 +93,7 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
           category,
           note: note.trim() || undefined,
           source: "manual" as const,
+          receiptImage,
         };
     if (isEdit && existingTx) {
       updateTransaction(existingTx.id, txData);
@@ -213,6 +216,15 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
           className="font-sans text-base text-saldio-ink dark:text-saldio-dark-ink"
         />
       </View>
+
+      {!isGold ? (
+        <>
+          <Text className="mb-2 mt-5 font-sans-semibold text-sm text-saldio-soft dark:text-saldio-dark-soft">
+            Foto Struk (opsional)
+          </Text>
+          <ReceiptPicker value={receiptImage} onChange={setReceiptImage} />
+        </>
+      ) : null}
 
       <Text className="mb-2 mt-5 font-sans-semibold text-sm text-saldio-soft dark:text-saldio-dark-soft">Tanggal</Text>
       <DatePickerField value={date} onChange={setDate} accent={isGold ? "gold" : "blue"} />

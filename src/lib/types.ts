@@ -48,6 +48,8 @@ export interface Transaction {
   source: TransactionSource;
   /** ID batch impor PDF — untuk undo per batch */
   importBatch?: string;
+  /** Foto struk/nota, data URI base64 (mis. "data:image/jpeg;base64,...") */
+  receiptImage?: string;
 }
 
 export interface GoldPriceEntry {
