@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { categoryByKey } from "../lib/categories";
 import { useAppData } from "../state/AppDataContext";
 
-export function CategoryIcon({ category, size = 44 }: { category?: string; size?: number }) {
+export function CategoryIcon({ category, size = 40 }: { category?: string; size?: number }) {
   const { data } = useAppData();
   const cat = categoryByKey(category, data.customCategories);
   return (

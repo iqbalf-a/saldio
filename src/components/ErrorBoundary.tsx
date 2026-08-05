@@ -68,7 +68,7 @@ function ErrorFallback({ error, onReset }: { error: Error | null; onReset: () =>
         Terjadi Kesalahan
       </Text>
       <Text className="mt-2 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
-        {error?.message || "Unknown error"}
+        {error?.message || "Kesalahan tidak diketahui"}
       </Text>
       <Text
         onPress={onReset}

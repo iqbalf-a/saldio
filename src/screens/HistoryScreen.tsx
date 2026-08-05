@@ -259,20 +259,20 @@ export function HistoryScreen({ navigation }: Nav) {
           />
           <View className="mt-4">
             {!selectedDate ? (
-              <View className="items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-8 py-10">
-                <Ionicons name="calendar" size={28} color={muted} />
+              <View className="items-center rounded-2xl bg-white dark:bg-saldio-dark-card px-6 py-8">
+                <Ionicons name="calendar" size={24} color={muted} />
                 <Text className="mt-3 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
                   Ketuk salah satu tanggal untuk lihat transaksinya.
                 </Text>
               </View>
             ) : selectedDayItems.length === 0 ? (
-              <View className="items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-8 py-10">
+              <View className="items-center rounded-2xl bg-white dark:bg-saldio-dark-card px-6 py-8">
                 <Text className="text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
                   Tidak ada transaksi di tanggal ini.
                 </Text>
               </View>
             ) : (
-              <View className="rounded-3xl bg-white dark:bg-saldio-dark-card px-4">
+              <View className="rounded-2xl bg-white dark:bg-saldio-dark-card px-4">
                 {selectedDayItems.map((t) => {
                   const wallet = data.wallets.find((w) => w.id === t.walletId);
                   const badge = wallet ? badgeForWallet(wallet.name, wallet.template, isDark) : null;
@@ -310,7 +310,7 @@ export function HistoryScreen({ navigation }: Nav) {
             <View className="flex-1 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
               <View className="flex-row items-center gap-1">
                 <Ionicons name="arrow-down" size={13} color="#16A34A" />
-                <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Masuk</Text>
+                <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Pemasukan</Text>
               </View>
               <Text className="mt-1 font-mono-semibold text-sm text-saldio-green dark:text-saldio-dark-green">
                 {formatRupiah(inflow)}
@@ -319,7 +319,7 @@ export function HistoryScreen({ navigation }: Nav) {
             <View className="flex-1 rounded-2xl bg-white dark:bg-saldio-dark-card p-4">
               <View className="flex-row items-center gap-1">
                 <Ionicons name="arrow-up" size={13} color="#E23B3B" />
-                <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Keluar</Text>
+                <Text className="font-sans text-xs text-saldio-soft dark:text-saldio-dark-soft">Pengeluaran</Text>
               </View>
               <Text className="mt-1 font-mono-semibold text-sm text-saldio-red dark:text-saldio-dark-red">
                 {formatRupiah(outflow)}
@@ -328,14 +328,14 @@ export function HistoryScreen({ navigation }: Nav) {
           </View>
 
           {groups.length === 0 ? (
-            <View className="items-center rounded-3xl bg-white dark:bg-saldio-dark-card px-8 py-12">
-              <Ionicons name="receipt" size={32} color={muted} />
+            <View className="items-center rounded-2xl bg-white dark:bg-saldio-dark-card px-6 py-9">
+              <Ionicons name="receipt" size={26} color={muted} />
               <Text className="mt-4 text-center font-sans text-sm text-saldio-muted dark:text-saldio-dark-muted">
                 Belum ada transaksi di bulan ini.
               </Text>
             </View>
           ) : (
-            <View className="rounded-3xl bg-white dark:bg-saldio-dark-card px-4">
+            <View className="rounded-2xl bg-white dark:bg-saldio-dark-card px-4">
               {groups.map((g) => (
                 <View key={g.date}>
                   <View className="flex-row items-center justify-between border-b border-saldio-border dark:border-saldio-dark-border py-3">

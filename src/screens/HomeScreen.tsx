@@ -94,7 +94,7 @@ export function HomeScreen() {
               <Ionicons name={hidden ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.8)" />
             </Pressable>
           </View>
-          <Text className="mt-2 font-mono-bold text-3xl text-white">{mask(formatRupiah(total))}</Text>
+          <Text className="mt-2 font-mono-bold text-xl text-white">{mask(formatRupiah(total))}</Text>
           <View className="mt-4 flex-row gap-3">
             <View className="flex-1 rounded-2xl bg-white/15 px-4 py-3.5">
               <Text className="font-sans text-xs text-white/75">Aset Likuid</Text>

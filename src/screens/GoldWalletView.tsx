@@ -134,7 +134,7 @@ export function GoldWalletView({ wallet }: { wallet: Wallet }) {
           <View>
             <Text className="font-sans text-sm text-white/80">Total emas</Text>
             <View className="mt-1 flex-row items-baseline gap-1.5">
-              <Text className="font-mono-bold text-3xl text-white">{formatGrams(grams, false)}</Text>
+              <Text className="font-mono-bold text-xl text-white">{formatGrams(grams, false)}</Text>
               <Text className="font-sans-semibold text-base text-white/80">g</Text>
             </View>
           </View>

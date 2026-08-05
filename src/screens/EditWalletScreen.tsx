@@ -129,7 +129,7 @@ export function EditWalletScreen({ route, navigation }: HomeScreenProps<"EditWal
       <View className="mt-3 flex-row items-center justify-between rounded-2xl bg-white dark:bg-saldio-surface px-4 py-3">
         <View className="flex-1 pr-3">
           <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink">
-            Masuk Total Aset
+            Hitung ke Total Aset
           </Text>
           <Text className="mt-0.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">
             Matikan untuk dompet yang sumbernya sudah dihitung di dompet lain (mis. dompet

@@ -79,7 +79,7 @@ export function BackupScreen({ navigation }: { navigation: any }) {
       URL.revokeObjectURL(url);
     } else {
       confirm({
-        title: "Copy backup?",
+        title: "Salin backup?",
         message: "Backup tersimpan di cache. Anda perlu menyalin JSON ini secara manual ke file backup.",
         confirmLabel: "Salin ke Clipboard",
         onConfirm: async () => {

@@ -61,9 +61,9 @@ export function ProfileScreen() {
     <Screen>
       <Text className="mb-4 font-sans-bold text-xl text-saldio-ink dark:text-saldio-dark-ink">Profil</Text>
 
-      <View className="flex-row items-center gap-4 rounded-3xl bg-white dark:bg-saldio-surface p-5">
-        <View className="h-14 w-14 items-center justify-center rounded-full bg-saldio-blue">
-          <Text className="font-sans-bold text-xl text-white">
+      <View className="flex-row items-center gap-4 rounded-2xl bg-white dark:bg-saldio-surface p-3.5">
+        <View className="h-10 w-10 items-center justify-center rounded-full bg-saldio-blue">
+          <Text className="font-sans-bold text-base text-white">
             {(profile?.name ?? "P").slice(0, 1).toUpperCase()}
           </Text>
         </View>
@@ -134,7 +134,7 @@ export function ProfileScreen() {
           {([
             ["light", "Light", "sunny"],
             ["dark", "Dark", "moon"],
-            ["system", "Sistem", "phone-portrait"],
+            ["system", "System", "phone-portrait"],
           ] as const).map(([mode, label, icon]) => (
             <Pressable
               key={mode}

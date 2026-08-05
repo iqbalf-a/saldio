@@ -104,8 +104,8 @@ function FinancialInsights({ data }: { data: import("../lib/types").AppData }) {
   const incomeChange = changePct(currentMonth.income, prevMonth.income);
 
   return (
-    <View className="mt-4 rounded-3xl bg-white dark:bg-saldio-dark-card p-5">
-      <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Insight Keuangan</Text>
+    <View className="mt-4 rounded-2xl bg-white dark:bg-saldio-dark-card p-3.5">
+      <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Ringkasan Keuangan</Text>
       <Text className="mt-0.5 font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">Bulan ini</Text>
 
       {/* Pemasukan vs Pengeluaran */}
@@ -257,7 +257,7 @@ export function AssetsScreen() {
             style={{ borderRadius: 24, padding: 20, ...HERO_SHADOW }}
           >
             <Text className="font-sans text-sm text-white/75">Total Aset + Emas</Text>
-            <Text className="mt-2 font-mono-bold text-3xl text-white">{formatRupiah(total)}</Text>
+            <Text className="mt-2 font-mono-bold text-xl text-white">{formatRupiah(total)}</Text>
             <View className="my-4 h-px bg-white/20" />
             <View className="flex-row justify-between">
               <View>
@@ -278,7 +278,7 @@ export function AssetsScreen() {
           </LinearGradient>
 
           {/* Komposisi aset */}
-          <View className="mt-4 rounded-3xl bg-white dark:bg-saldio-dark-card p-5">
+          <View className="mt-4 rounded-2xl bg-white dark:bg-saldio-dark-card p-3.5">
             <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Komposisi aset</Text>
             <View className="mt-4 flex-row items-center gap-5">
               <DonutChart
@@ -308,7 +308,7 @@ export function AssetsScreen() {
           </View>
 
           {/* Tren kekayaan bersih */}
-          <View className="mt-4 rounded-3xl bg-white dark:bg-saldio-dark-card p-5">
+          <View className="mt-4 rounded-2xl bg-white dark:bg-saldio-dark-card p-3.5">
             <View className="flex-row items-center justify-between">
               <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Tren kekayaan bersih</Text>
               <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">6 bulan</Text>
