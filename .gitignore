@@ -49,3 +49,6 @@ samples/e-statements/*.pdf
 # Playwright
 test-results/
 playwright-report/
+
+# Hermes/Claude local session state
+.hermes/
