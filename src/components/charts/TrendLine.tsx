@@ -11,6 +11,22 @@ interface Props {
   fill?: boolean;
 }
 
+/** Maks label yang ditampilkan berjejer — lebih dari ini akan berdesakan/tumpang tindih. */
+const MAX_VISIBLE_LABELS = 6;
+
+/** Sisakan ~MAX_VISIBLE_LABELS label yang tersebar merata (selalu memuat label
+ * pertama & terakhir), sisanya diganti string kosong — supaya jumlah/urutan
+ * elemen (dan karenanya perataan flex justify-between) tetap sama dengan titik
+ * data, hanya teksnya yang disembunyikan. */
+function thinLabels(labels: string[]): string[] {
+  if (labels.length <= MAX_VISIBLE_LABELS) return labels;
+  const step = (labels.length - 1) / (MAX_VISIBLE_LABELS - 1);
+  const keep = new Set(
+    Array.from({ length: MAX_VISIBLE_LABELS }, (_, i) => Math.round(i * step))
+  );
+  return labels.map((l, i) => (keep.has(i) ? l : ""));
+}
+
 /** Line chart sederhana (tren kekayaan / harga emas) dengan react-native-svg. */
 export function TrendLine({ values, labels, height = 110, color = "#7C5CF6", fill = true }: Props) {
   const [width, setWidth] = useState(0);
@@ -64,8 +80,8 @@ export function TrendLine({ values, labels, height = 110, color = "#7C5CF6", fil
       </View>
       {labels && labels.length > 1 ? (
         <View className="mt-1 flex-row justify-between">
-          {labels.map((l, i) => (
-            <Text key={`${l}-${i}`} className="font-sans text-[11px] text-saldio-muted dark:text-saldio-dark-muted">
+          {thinLabels(labels).map((l, i) => (
+            <Text key={i} className="font-sans text-[11px] text-saldio-muted dark:text-saldio-dark-muted">
               {l}
             </Text>
           ))}

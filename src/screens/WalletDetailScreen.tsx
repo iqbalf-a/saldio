@@ -16,7 +16,7 @@ import { walletSupportsPdfImport } from "../lib/templates";
 import { categoryLabel } from "../lib/categories";
 import { useConfirm } from "../components/ConfirmModal";
 import { useTheme } from "../components/ThemeProvider";
-import { HERO_SHADOW } from "../lib/ui";
+import { CARD_SHADOW, HERO_SHADOW } from "../lib/ui";
 import { useAppData } from "../state/AppDataContext";
 import type { HomeScreenProps } from "../navigation/types";
 import type { Transaction } from "../lib/types";
@@ -62,6 +62,9 @@ function WalletTxRow({
   amountColor,
   onEdit,
   onDelete,
+  selectMode,
+  selected,
+  onToggleSelect,
 }: {
   tx: Transaction;
   category: string | undefined;
@@ -70,10 +73,27 @@ function WalletTxRow({
   amountColor: string;
   onEdit: () => void;
   onDelete: () => void;
+  selectMode: boolean;
+  selected: boolean;
+  onToggleSelect: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <View className="flex-row items-center gap-3 py-3">
+    <Pressable
+      onPress={selectMode ? onToggleSelect : undefined}
+      className="flex-row items-center gap-3 py-3"
+    >
+      {selectMode ? (
+        <View
+          className={`h-6 w-6 items-center justify-center rounded-md ${
+            selected
+              ? "bg-saldio-blue dark:bg-saldio-dark-blue"
+              : "border-2 border-saldio-border dark:border-saldio-dark-border bg-white dark:bg-saldio-surface"
+          }`}
+        >
+          {selected ? <Ionicons name="checkmark" size={14} color="white" /> : null}
+        </View>
+      ) : null}
       <CategoryIcon category={category} size={40} />
       <View className="flex-1">
         <Text className="font-sans-semibold text-sm text-saldio-ink dark:text-saldio-dark-ink" numberOfLines={1}>
@@ -90,36 +110,40 @@ function WalletTxRow({
         </View>
       </View>
       <Text className={`font-mono-semibold text-[12px] ${amountColor}`}>{amountText}</Text>
-      <Pressable
-        onPress={() => setMenuOpen(true)}
-        className="h-8 w-8 items-center justify-center rounded-full bg-saldio-bg dark:bg-saldio-dark-bg active:opacity-70"
-      >
-        <Ionicons name="ellipsis-horizontal" size={16} color="#8A94A6" />
-      </Pressable>
-      <ActionMenu
-        visible={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        items={[
-          {
-            label: "Edit",
-            icon: "pencil",
-            onPress: () => {
-              setMenuOpen(false);
-              onEdit();
-            },
-          },
-          {
-            label: "Hapus",
-            icon: "trash",
-            destructive: true,
-            onPress: () => {
-              setMenuOpen(false);
-              onDelete();
-            },
-          },
-        ]}
-      />
-    </View>
+      {!selectMode ? (
+        <>
+          <Pressable
+            onPress={() => setMenuOpen(true)}
+            className="h-8 w-8 items-center justify-center rounded-full bg-saldio-bg dark:bg-saldio-dark-bg active:opacity-70"
+          >
+            <Ionicons name="ellipsis-horizontal" size={16} color="#8A94A6" />
+          </Pressable>
+          <ActionMenu
+            visible={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            items={[
+              {
+                label: "Edit",
+                icon: "pencil",
+                onPress: () => {
+                  setMenuOpen(false);
+                  onEdit();
+                },
+              },
+              {
+                label: "Hapus",
+                icon: "trash",
+                destructive: true,
+                onPress: () => {
+                  setMenuOpen(false);
+                  onDelete();
+                },
+              },
+            ]}
+          />
+        </>
+      ) : null}
+    </Pressable>
   );
 }
 
@@ -127,12 +151,14 @@ function WalletTxRow({
 const DEFAULT_COLLAPSED_TOP = 260;
 
 export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"WalletDetail">) {
-  const { data, deleteWallet, deleteTransaction } = useAppData();
+  const { data, deleteWallet, deleteTransaction, deleteTransactions } = useAppData();
   const { isDark } = useTheme();
   const confirm = useConfirm();
   const wallet = data.wallets.find((w) => w.id === route.params.walletId);
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsedTop, setCollapsedTop] = useState(DEFAULT_COLLAPSED_TOP);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const feed = useMemo(
     () => (wallet ? walletFeed(data, wallet.id) : []),
@@ -176,42 +202,127 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
       },
     });
 
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const visibleIds = monthFeed.map((t) => t.id);
+    const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+    setSelectedIds(allSelected ? new Set() : new Set(visibleIds));
+  };
+
+  const onBulkDelete = () => {
+    const count = selectedIds.size;
+    if (count === 0) return;
+    confirm({
+      title: `Hapus ${count} transaksi?`,
+      message: "Transaksi yang dipilih akan dihapus permanen dan tidak bisa dikembalikan. Cocok untuk membersihkan hasil impor PDF yang salah.",
+      confirmLabel: "Hapus",
+      onConfirm: () => {
+        deleteTransactions([...selectedIds]);
+        exitSelectMode();
+      },
+    });
+  };
+
   return (
     <Screen scroll={false} padded={false}>
       <View className="px-5">
-        <ScreenHeader
-          leading={<WalletBadge name={wallet.name} template={wallet.template} type={wallet.type} size={36} />}
-          title={wallet.name}
-          right={
-            <Pressable onPress={() => setMenuOpen(true)} hitSlop={8} className="active:opacity-70">
-              <Ionicons name="ellipsis-horizontal" size={20} color="#8A94A6" />
-            </Pressable>
-          }
-        />
+        {selectMode ? (
+          <ScreenHeader
+            onBack={exitSelectMode}
+            title={`${selectedIds.size} dipilih`}
+            right={
+              <View className="flex-row items-center gap-2">
+                <Pressable
+                  onPress={toggleSelectAll}
+                  hitSlop={8}
+                  style={CARD_SHADOW}
+                  className="h-9 w-9 items-center justify-center rounded-2xl bg-white dark:bg-saldio-dark-card active:opacity-70"
+                >
+                  <Ionicons name="checkmark-done" size={18} color="#3D51E0" />
+                </Pressable>
+                <Pressable
+                  onPress={onBulkDelete}
+                  disabled={selectedIds.size === 0}
+                  hitSlop={8}
+                  style={CARD_SHADOW}
+                  className={`h-9 w-9 items-center justify-center rounded-2xl active:opacity-70 ${
+                    selectedIds.size === 0
+                      ? "bg-white dark:bg-saldio-dark-card opacity-40"
+                      : "bg-saldio-red-bg dark:bg-saldio-dark-red-bg"
+                  }`}
+                >
+                  <Ionicons name="trash" size={18} color="#E23B3B" />
+                </Pressable>
+              </View>
+            }
+          />
+        ) : (
+          <>
+            <ScreenHeader
+              leading={<WalletBadge name={wallet.name} template={wallet.template} type={wallet.type} size={36} />}
+              title={wallet.name}
+              right={
+                <View className="flex-row items-center gap-2">
+                  {monthFeed.length > 0 ? (
+                    <Pressable
+                      onPress={() => setSelectMode(true)}
+                      hitSlop={8}
+                      style={CARD_SHADOW}
+                      className="h-9 items-center justify-center rounded-2xl bg-white dark:bg-saldio-dark-card px-3 active:opacity-70"
+                    >
+                      <Text className="font-sans-semibold text-xs text-saldio-blue dark:text-saldio-dark-blue">Pilih</Text>
+                    </Pressable>
+                  ) : null}
+                  <Pressable
+                    onPress={() => setMenuOpen(true)}
+                    hitSlop={8}
+                    style={CARD_SHADOW}
+                    className="h-9 w-9 items-center justify-center rounded-2xl bg-white dark:bg-saldio-dark-card active:opacity-70"
+                  >
+                    <Ionicons name="ellipsis-horizontal" size={18} color="#8A94A6" />
+                  </Pressable>
+                </View>
+              }
+            />
 
-        <ActionMenu
-          visible={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          items={[
-            {
-              label: "Edit Dompet",
-              icon: "pencil",
-              onPress: () => {
-                setMenuOpen(false);
-                navigation.navigate("EditWallet", { walletId: wallet.id });
-              },
-            },
-            {
-              label: "Hapus Dompet",
-              icon: "trash",
-              destructive: true,
-              onPress: () => {
-                setMenuOpen(false);
-                onDelete();
-              },
-            },
-          ]}
-        />
+            <ActionMenu
+              visible={menuOpen}
+              onClose={() => setMenuOpen(false)}
+              items={[
+                {
+                  label: "Edit Dompet",
+                  icon: "pencil",
+                  onPress: () => {
+                    setMenuOpen(false);
+                    navigation.navigate("EditWallet", { walletId: wallet.id });
+                  },
+                },
+                {
+                  label: "Hapus Dompet",
+                  icon: "trash",
+                  destructive: true,
+                  onPress: () => {
+                    setMenuOpen(false);
+                    onDelete();
+                  },
+                },
+              ]}
+            />
+          </>
+        )}
       </View>
 
       {/* Konten atas (kartu saldo + aksi) — tingginya diukur untuk posisi
@@ -342,6 +453,9 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
                     label={label}
                     amountText={amountText}
                     amountColor={amountColor}
+                    selectMode={selectMode}
+                    selected={selectedIds.has(t.id)}
+                    onToggleSelect={() => toggleSelect(t.id)}
                     onEdit={() => navigation.navigate("AddTransaction", { walletId: wallet.id, transactionId: t.id })}
                     onDelete={() =>
                       confirm({

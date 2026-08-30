@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,9 +8,10 @@ import { Screen } from "../components/Screen";
 import { WalletBadge } from "../components/WalletBadge";
 import { DonutChart } from "../components/charts/DonutChart";
 import { TrendLine } from "../components/charts/TrendLine";
+import { TrendPeriodPicker } from "../components/TrendPeriodPicker";
 import { EmptyState } from "../components/EmptyState";
 import { CategoryIcon } from "../components/CategoryIcon";
-import { currentYearMonth, formatGrams, formatRupiah, monthShortLabel, toYearMonth } from "../lib/format";
+import { currentYearMonth, formatGrams, formatRupiah, monthShortLabel, monthShortLabelWithYear, toYearMonth } from "../lib/format";
 import { categoryByKey } from "../lib/categories";
 import {
   goldTotal,
@@ -205,6 +206,7 @@ export function AssetsScreen() {
   const navigation = useNavigation<Nav>();
   const { data } = useAppData();
   const { isDark } = useTheme();
+  const [trendMonths, setTrendMonths] = useState(6);
 
   const total = netWorth(data);
   const liquid = liquidTotal(data);
@@ -225,7 +227,10 @@ export function AssetsScreen() {
     [composition]
   );
 
-  const trend = useMemo(() => netWorthTrend(data, 6), [data]);
+  const trend = useMemo(() => netWorthTrend(data, trendMonths), [data, trendMonths]);
+  // Sertakan tahun pada label bulan begitu rentang melewati setahun,
+  // supaya mis. "Jul" tahun ini tidak ambigu dengan "Jul" tahun lalu.
+  const trendLabelFn = trendMonths > 12 ? monthShortLabelWithYear : monthShortLabel;
 
   const pct = (value: number) => {
     if (total <= 0) return "0%";
@@ -311,12 +316,12 @@ export function AssetsScreen() {
           <View className="mt-4 rounded-2xl bg-white dark:bg-saldio-dark-card p-3.5">
             <View className="flex-row items-center justify-between">
               <Text className="font-sans-bold text-base text-saldio-ink dark:text-saldio-dark-ink">Tren kekayaan bersih</Text>
-              <Text className="font-sans text-xs text-saldio-muted dark:text-saldio-dark-muted">6 bulan</Text>
+              <TrendPeriodPicker value={trendMonths} onChange={setTrendMonths} />
             </View>
             <View className="mt-4">
               <TrendLine
                 values={trend.map((t) => t.value)}
-                labels={trend.map((t) => monthShortLabel(t.yearMonth))}
+                labels={trend.map((t) => trendLabelFn(t.yearMonth))}
                 color="#7C5CF6"
               />
             </View>

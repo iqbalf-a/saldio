@@ -95,6 +95,13 @@ export function monthShortLabel(yearMonth: string): string {
   return MONTHS_SHORT[m - 1];
 }
 
+/** "Jul'26" — dipakai saat rentang tren lebih dari setahun, agar bulan yang
+ * sama di tahun berbeda (mis. dua kali "Jul") tidak ambigu. */
+export function monthShortLabelWithYear(yearMonth: string): string {
+  const [y, m] = yearMonth.split("-").map(Number);
+  return `${MONTHS_SHORT[m - 1]}'${String(y).slice(2)}`;
+}
+
 /** Format ringkas untuk ruang sempit (mis. sel kalender): 8,5jt / 150rb / 500. */
 export function formatCompactRupiah(amount: number): string {
   const sign = amount < 0 ? "-" : "";
