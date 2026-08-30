@@ -149,7 +149,22 @@ export async function isPinVerified(): Promise<boolean> {
   return Date.now() - Number(ts) < 30 * 60 * 1000;
 }
 
-/** Tandai PIN tidak lagi terverifikasi (untuk logout). */
+/** Tandai PIN tidak lagi terverifikasi (dipakai setelah setup/ubah/nonaktifkan PIN). */
 export async function clearPinVerification(): Promise<void> {
   await AsyncStorage.removeItem(PIN_VERIFY_KEY);
+}
+
+/**
+ * Hapus SELURUH state PIN akun ini — hash, salt, status verifikasi,
+ * percobaan gagal — plus kunci enkripsi ter-cache di memori. Dipanggil
+ * saat sign-out: PIN & enkripsi Drive bersifat per-akun (sama seperti
+ * ledger dompet), jadi tidak boleh "mewarisi" ke sesi akun Google lain
+ * yang login berikutnya di perangkat/browser yang sama. Sebelumnya
+ * sign-out hanya memanggil clearPinVerification(), yang meninggalkan
+ * PIN_HASH_KEY tersimpan — akun berikutnya bisa terkunci di belakang
+ * PIN akun sebelumnya.
+ */
+export async function clearAllPinData(): Promise<void> {
+  await AsyncStorage.multiRemove([PIN_HASH_KEY, PIN_SALT_KEY, PIN_VERIFY_KEY, PIN_ATTEMPTS_KEY]);
+  clearCachedEncryptionKey();
 }

@@ -20,8 +20,10 @@ import {
   savePinHash,
   removePinHash,
   isPinEnabled,
+  isPinVerified,
   getCachedEncryptionKey,
   clearCachedEncryptionKey,
+  clearAllPinData,
 } from "../pin";
 
 const PIN_HASH_KEY = "saldio:pinHash";
@@ -90,6 +92,47 @@ describe("pin.ts — migrasi salt untuk PIN lama (Fase F.3)", () => {
     await removePinHash();
     expect(getCachedEncryptionKey()).toBeNull();
     expect(await AsyncStorage.getItem(PIN_SALT_KEY)).toBeNull();
+    expect(await isPinEnabled()).toBe(false);
+  });
+});
+
+describe("pin.ts — clearAllPinData mencegah PIN 'mewarisi' ke akun berikutnya (sign-out)", () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    clearCachedEncryptionKey();
+  });
+
+  it("menghapus hash, salt, status verifikasi, dan cached key sekaligus", async () => {
+    await savePinHash("777777");
+    await verifyPin("777777"); // tandai terverifikasi di sesi ini
+    expect(await isPinEnabled()).toBe(true);
+    expect(await isPinVerified()).toBe(true);
+    expect(getCachedEncryptionKey()).not.toBeNull();
+
+    await clearAllPinData();
+
+    // Sesi/akun berikutnya di perangkat yang sama tidak boleh mewarisi PIN ini.
+    expect(await isPinEnabled()).toBe(false);
+    expect(await isPinVerified()).toBe(false);
+    expect(getCachedEncryptionKey()).toBeNull();
+  });
+
+  it("percobaan gagal (lockout) tidak ikut ke sesi berikutnya", async () => {
+    await savePinHash("888888");
+    await verifyPin("wrong1"); // gagal sekali — mulai mengisi attempts counter
+
+    await clearAllPinData();
+
+    // PIN baru di akun berikutnya harus mulai bersih, bukan mewarisi lockout lama.
+    await savePinHash("999999");
+    const result = await verifyPin("999999");
+    expect(result.ok).toBe(true);
+    expect(result.lockoutRemaining).toBe(0);
+  });
+
+  it("aman dipanggil saat belum pernah ada PIN sama sekali (mis. akun tanpa PIN sign-out)", async () => {
+    expect(await isPinEnabled()).toBe(false);
+    await expect(clearAllPinData()).resolves.not.toThrow();
     expect(await isPinEnabled()).toBe(false);
   });
 });

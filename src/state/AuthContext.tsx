@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { loadAccessToken, loadProfile, saveAccessToken, saveLastSyncTimestamp, saveProfile } from "../lib/storage";
-import { clearPinVerification } from "../lib/pin";
+import { clearAllPinData } from "../lib/pin";
 import type { UserProfile } from "../lib/types";
 
 interface AuthState {
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     setProfile(null);
     setAccessToken(null);
-    await Promise.all([saveProfile(null), saveAccessToken(null), saveLastSyncTimestamp(null), clearPinVerification()]);
+    await Promise.all([saveProfile(null), saveAccessToken(null), saveLastSyncTimestamp(null), clearAllPinData()]);
   }, []);
 
   const isGuest = profile?.email === GUEST_PROFILE.email;
