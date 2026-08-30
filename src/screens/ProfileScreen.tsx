@@ -17,7 +17,7 @@ type Nav = BottomTabNavigationProp<MainTabsParamList>;
 export function ProfileScreen() {
   const navigation = useNavigation<Nav>();
   const { profile, accessToken, isGuest, signOut } = useAuth();
-  const { resetAll, lastSyncTimestamp, manualSync, syncError } = useAppData();
+  const { resetAll, clearLocalData, lastSyncTimestamp, manualSync, syncError } = useAppData();
   const { preference, setPreference } = useTheme();
   const confirm = useConfirm();
   const online = !!accessToken;
@@ -187,10 +187,13 @@ export function ProfileScreen() {
               title: "Keluar?",
               message: isGuest
                 ? "Data contoh Mode Tamu akan dibersihkan."
-                : "Data lokal tetap tersimpan di perangkat ini.",
+                : "Cache lokal di perangkat ini akan dibersihkan — datamu tetap aman di Google Drive dan akan dimuat ulang saat kamu masuk kembali.",
               confirmLabel: "Keluar",
               onConfirm: () => {
-                if (isGuest) resetAll();
+                // Bersihkan cache lokal sebelum signOut() — mencegah data
+                // akun ini "bocor" tampil jika akun Google lain login di
+                // perangkat/browser yang sama setelahnya.
+                clearLocalData();
                 signOut();
               },
             })

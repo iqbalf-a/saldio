@@ -52,6 +52,14 @@ interface AppDataState {
   setCategoryBudget: (categoryKey: string, limit: number) => void;
   removeCategoryBudget: (categoryKey: string) => void;
   resetAll: () => void;
+  /**
+   * Bersihkan cache LOKAL saja (tanpa upload ke Drive) — wajib dipanggil
+   * sebelum signOut() agar ledger akun yang baru saja keluar tidak
+   * "bocor" tampil di sesi akun Google lain yang login berikutnya di
+   * browser yang sama (cache `saldio:data` bersifat global, tidak
+   * terikat per-akun).
+   */
+  clearLocalData: () => void;
   /** Ganti seluruh data (dipakai Mode Tamu untuk memuat data contoh) */
   replaceAll: (next: AppData) => void;
 
@@ -569,6 +577,19 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     persist(() => EMPTY_DATA);
   }, [persist]);
 
+  const clearLocalData = useCallback(() => {
+    // Sengaja TIDAK lewat persist()/uploadToDrive — ini hanya membersihkan
+    // cache perangkat, bukan menghapus backup Drive milik akun yang masih
+    // aktif. Batalkan juga upload debounce yang mungkin masih tertunda agar
+    // tidak menimpa Drive akun lama dengan EMPTY_DATA setelah token berganti.
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    setConflictRemote(null);
+    setAuthError(false);
+    setSyncError(null);
+    setData(EMPTY_DATA);
+    saveData(EMPTY_DATA).catch(() => {});
+  }, []);
+
   const replaceAll = useCallback(
     (next: AppData) => {
       persist(() => next);
@@ -641,9 +662,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       setCategoryBudget,
       removeCategoryBudget,
       resetAll,
+      clearLocalData,
       replaceAll,
     }),
-    [data, loading, lastSyncTimestamp, authError, clearAuthError, syncError, manualSync, conflictRemote, resolveConflict, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, addCustomCategory, updateCustomCategory, removeCustomCategory, addRecurring, updateRecurring, removeRecurring, generateDueRecurring, setCategoryBudget, removeCategoryBudget, resetAll, replaceAll]
+    [data, loading, lastSyncTimestamp, authError, clearAuthError, syncError, manualSync, conflictRemote, resolveConflict, addWallet, updateWallet, addTransaction, addTransactions, updateTransaction, deleteTransaction, deleteTransactionsBySource, deleteTransactionsByBatch, addGoldPrice, deleteGoldPrice, deleteWallet, moveWallet, addCustomCategory, updateCustomCategory, removeCustomCategory, addRecurring, updateRecurring, removeRecurring, generateDueRecurring, setCategoryBudget, removeCategoryBudget, resetAll, clearLocalData, replaceAll]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
