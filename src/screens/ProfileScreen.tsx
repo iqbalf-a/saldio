@@ -8,6 +8,7 @@ import { useConfirm } from "../components/ConfirmModal";
 import { useTheme } from "../components/ThemeProvider";
 import { useAppData } from "../state/AppDataContext";
 import { useAuth } from "../state/AuthContext";
+import { useFullSignOut } from "../state/useFullSignOut";
 import type { MainTabsParamList } from "../navigation/types";
 import { isPinEnabled, clearPinVerification } from "../lib/pin";
 import { PinModal } from "../components/PinLockScreen";
@@ -16,8 +17,9 @@ type Nav = BottomTabNavigationProp<MainTabsParamList>;
 
 export function ProfileScreen() {
   const navigation = useNavigation<Nav>();
-  const { profile, accessToken, isGuest, signOut } = useAuth();
-  const { resetAll, clearLocalData, lastSyncTimestamp, manualSync, syncError } = useAppData();
+  const { profile, accessToken, isGuest } = useAuth();
+  const { resetAll, lastSyncTimestamp, manualSync, syncError, authError } = useAppData();
+  const fullSignOut = useFullSignOut();
   const { preference, setPreference } = useTheme();
   const confirm = useConfirm();
   const online = !!accessToken;
@@ -120,7 +122,24 @@ export function ProfileScreen() {
         )}
       </View>
 
-      {syncError && (
+      {authError && (
+        <View className="mt-3 gap-2 rounded-2xl bg-saldio-red-bg dark:bg-saldio-dark-red-bg p-3">
+          <View className="flex-row items-start gap-2">
+            <Ionicons name="alert-circle" size={16} color="#E23B3B" />
+            <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red dark:text-saldio-dark-red">
+              Sesi Google-mu berakhir — sinkronisasi ke Drive berhenti sampai kamu masuk lagi. Perubahan tetap aman tersimpan di perangkat ini sementara waktu.
+            </Text>
+          </View>
+          <Pressable
+            onPress={fullSignOut}
+            className="items-center rounded-xl bg-saldio-red dark:bg-saldio-dark-red py-2 active:opacity-80"
+          >
+            <Text className="font-sans-semibold text-xs text-white">Masuk Ulang</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {syncError && !authError && (
         <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-saldio-red-bg dark:bg-saldio-dark-red-bg p-3">
           <Ionicons name="warning" size={16} color="#E23B3B" />
           <Text className="flex-1 font-sans text-xs leading-4 text-saldio-red dark:text-saldio-dark-red">{syncError}</Text>
@@ -189,13 +208,7 @@ export function ProfileScreen() {
                 ? "Data contoh Mode Tamu akan dibersihkan."
                 : "Cache lokal di perangkat ini akan dibersihkan — datamu tetap aman di Google Drive dan akan dimuat ulang saat kamu masuk kembali.",
               confirmLabel: "Keluar",
-              onConfirm: () => {
-                // Bersihkan cache lokal sebelum signOut() — mencegah data
-                // akun ini "bocor" tampil jika akun Google lain login di
-                // perangkat/browser yang sama setelahnya.
-                clearLocalData();
-                signOut();
-              },
+              onConfirm: fullSignOut,
             })
           }
           className="flex-row items-center gap-3 rounded-2xl bg-white dark:bg-saldio-surface p-4 active:opacity-80"

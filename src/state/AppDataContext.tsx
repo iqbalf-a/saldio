@@ -231,8 +231,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
           try {
             await uploadToDrive(token, dataRef.current);
             persistSyncTimestamp(Date.now());
-          } catch {
-            // Offline — tidak ada yang bisa dilakukan
+          } catch (e) {
+            // Token kedaluwarsa — tandai sekarang juga (bukan cuma offline,
+            // yang memang tidak ada yang bisa dilakukan selain menunggu).
+            // Sebelumnya jalur ini menelan DriveAuthError begitu saja,
+            // beda dari dua titik upload lain yang sudah benar menandainya.
+            if (e instanceof DriveAuthError) setAuthError(true);
           }
         }
         isBackgroundUploadingRef.current = false;

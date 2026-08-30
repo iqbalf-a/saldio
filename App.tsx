@@ -17,7 +17,7 @@ import {
   GeistMono_600SemiBold,
   GeistMono_700Bold,
 } from "@expo-google-fonts/geist-mono";
-import { AuthProvider, useAuth } from "./src/state/AuthContext";
+import { AuthProvider } from "./src/state/AuthContext";
 import { AppDataProvider, useAppData } from "./src/state/AppDataContext";
 import { ConfirmProvider, useConfirm } from "./src/components/ConfirmModal";
 import { RootNavigator } from "./src/navigation/RootNavigator";
@@ -27,6 +27,7 @@ import { PinLockScreen } from "./src/components/PinLockScreen";
 import { UpdateBanner } from "./src/components/UpdateBanner";
 import { ErrorBoundary } from "./src/components/ErrorBoundary";
 import { ThemeProvider } from "./src/components/ThemeProvider";
+import { useFullSignOut } from "./src/state/useFullSignOut";
 
 const theme = {
   ...DefaultTheme,
@@ -44,7 +45,7 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
 /** Menangani token Google Drive kedaluwarsa — tampilkan modal login ulang. */
 function AuthErrorHandler() {
   const { authError, clearAuthError } = useAppData();
-  const { signOut } = useAuth();
+  const fullSignOut = useFullSignOut();
   const confirm = useConfirm();
 
   useEffect(() => {
@@ -55,11 +56,11 @@ function AuthErrorHandler() {
         confirmLabel: "Login Ulang",
         onConfirm: () => {
           clearAuthError();
-          signOut();
+          fullSignOut();
         },
       });
     }
-  }, [authError, confirm, clearAuthError, signOut]);
+  }, [authError, confirm, clearAuthError, fullSignOut]);
 
   return null;
 }

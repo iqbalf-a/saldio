@@ -50,7 +50,7 @@ const GRADIENT_DARK = ["#131B54", "#2A3BAA"] as const;
 
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
-  const { data, moveWallet } = useAppData();
+  const { data, moveWallet, authError } = useAppData();
   const { profile } = useAuth();
   const [hidden, setHidden] = useState(false);
   const [walletMenuId, setWalletMenuId] = useState<string | null>(null);
@@ -78,6 +78,14 @@ export function HomeScreen() {
             className="h-11 w-11 items-center justify-center rounded-full bg-saldio-blue active:opacity-80"
           >
             <Ionicons name="person" size={20} color="#5B6FE8" />
+            {authError ? (
+              <View
+                className="absolute right-0 top-0 h-3.5 w-3.5 items-center justify-center rounded-full bg-saldio-red"
+                style={{ borderWidth: 1.5, borderColor: "white" }}
+              >
+                <Ionicons name="alert" size={8} color="white" />
+              </View>
+            ) : null}
           </Pressable>
         </View>
 
