@@ -13,7 +13,7 @@ interface Props {
 }
 
 /** Badge inisial berwarna berbentuk lingkaran; dompet emas memakai "Em". */
-export function WalletBadge({ name, template, type, size = 44 }: Props) {
+export function WalletBadge({ name, template, type, size = 40 }: Props) {
   const { isDark } = useTheme();
   if (type === "gold") {
     return (

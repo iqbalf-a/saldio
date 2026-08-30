@@ -73,7 +73,7 @@ export function netWorth(data: AppData): number {
   return liquidTotal(data) + goldTotal(data);
 }
 
-/** Pemasukan & pengeluaran sebuah dompet (untuk header "Masuk / Keluar"). */
+/** Pemasukan & pengeluaran sebuah dompet (untuk header "Pemasukan / Pengeluaran"). */
 export function walletInOut(
   data: AppData,
   walletId: string,

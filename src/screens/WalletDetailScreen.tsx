@@ -229,19 +229,19 @@ export function WalletDetailScreen({ route, navigation }: HomeScreenProps<"Walle
             style={{ borderRadius: 24, padding: 20, ...HERO_SHADOW }}
           >
             <Text className="font-sans text-sm text-white/75">Saldo saat ini</Text>
-            <Text className="mt-2 font-mono-bold text-3xl text-white">{formatRupiah(balance)}</Text>
+            <Text className="mt-2 font-mono-bold text-xl text-white">{formatRupiah(balance)}</Text>
             {hasAny ? (
               <View className="mt-3 flex-row gap-4">
                 <View className="flex-row items-center gap-1">
                   <Ionicons name="arrow-down" size={13} color="#7EE2A8" />
                   <Text className="font-sans-medium text-xs text-white/90">
-                    Masuk {formatRupiah(inflow)}
+                    Pemasukan {formatRupiah(inflow)}
                   </Text>
                 </View>
                 <View className="flex-row items-center gap-1">
                   <Ionicons name="arrow-up" size={13} color="#FFA8A8" />
                   <Text className="font-sans-medium text-xs text-white/90">
-                    Keluar {formatRupiah(outflow)}
+                    Pengeluaran {formatRupiah(outflow)}
                   </Text>
                 </View>
               </View>
