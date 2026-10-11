@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kebijakan Privasi — Saldio</title>
+<meta name="description" content="Kebijakan privasi aplikasi Saldio: data keuangan Anda disimpan di perangkat sendiri, sinkronisasi opsional ke Google Drive pribadi. Tidak ada server, tidak ada iklan, tidak ada pelacakan.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#E6F4FE">
+<link rel="icon" href="/icon-192.png">
+<style>
+  :root {
+    --bg: #F1F4F9;
+    --card: #FFFFFF;
+    --ink: #101736;
+    --muted: #64748B;
+    --soft: #8A94A6;
+    --border: #E6EAF2;
+    --blue: #3D51E0;
+    --navy: #1E2A78;
+    --sky: #EAEFFB;
+    --green: #16A34A;
+    --green-bg: #E7F6EC;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0F1123;
+      --card: #181E36;
+      --ink: #E8ECF4;
+      --muted: #8892A6;
+      --soft: #6B7589;
+      --border: #1E2540;
+      --blue: #5B6FE8;
+      --navy: #C7D0F5;
+      --sky: #1C2541;
+      --green: #3DCE7E;
+      --green-bg: #1A3D2A;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 72px; }
+  header { margin-bottom: 28px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .brand img { width: 40px; height: 40px; border-radius: 10px; }
+  .brand span { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  h1 { font-size: 30px; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .updated { color: var(--soft); font-size: 14px; margin: 0; }
+  .tldr {
+    background: var(--sky);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin: 26px 0 32px;
+  }
+  .tldr strong { color: var(--navy); display: block; margin-bottom: 8px; font-size: 15px; }
+  .tldr ul { margin: 0; padding-left: 20px; }
+  .tldr li { margin: 5px 0; font-size: 15px; }
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 16px; }
+  h2 { font-size: 19px; letter-spacing: -0.01em; margin: 0 0 12px; }
+  h3 { font-size: 15px; margin: 20px 0 6px; color: var(--navy); }
+  p { margin: 0 0 12px; }
+  ul, ol { margin: 0 0 12px; padding-left: 22px; }
+  li { margin: 6px 0; }
+  a { color: var(--blue); }
+  code { background: var(--sky); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; font-size: 13.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .note { color: var(--muted); font-size: 14.5px; }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 15px; min-width: 460px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--soft); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pill { display: inline-block; background: var(--green-bg); color: var(--green); border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 600; }
+  footer { margin-top: 28px; text-align: center; color: var(--soft); font-size: 14px; }
+  @media (max-width: 520px) {
+    h1 { font-size: 25px; }
+    section { padding: 18px 18px; }
+    .wrap { padding: 24px 16px 56px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <img src="/icon-192.png" alt="">
+    <span>Saldio</span>
+  </div>
+  <h1>Kebijakan Privasi</h1>
+  <p class="updated">Terakhir diperbarui: 22 Agustus 2026</p>
+</header>
+
+<div class="tldr">
+  <strong>Ringkasnya</strong>
+  <ul>
+    <li>Saldio <b>tidak punya server</b>. Data keuangan Anda tersimpan di perangkat Anda sendiri.</li>
+    <li>Sinkronisasi ke Google Drive bersifat <b>opsional</b>, dan filenya masuk ke folder privat milik akun Google Anda — bukan milik kami.</li>
+    <li><b>Tidak ada</b> iklan, analytics, pelacakan, atau penjualan data.</li>
+    <li>Kami sebagai pengembang <b>tidak bisa melihat</b> catatan keuangan Anda.</li>
+  </ul>
+</div>
+
+<section>
+  <h2>1. Tentang aplikasi ini</h2>
+  <p>Saldio adalah aplikasi catatan keuangan pribadi — dompet, transaksi, aset, tabungan emas, dan anggaran. Aplikasi ini dikembangkan secara perorangan oleh Moh Iqbal Firman Ardiansyah.</p>
+  <p>Kebijakan ini menjelaskan data apa yang diproses aplikasi, di mana disimpan, dan apa yang bisa Anda kendalikan.</p>
+</section>
+
+<section>
+  <h2>2. Data yang diproses</h2>
+  <p>Semua data di bawah ini berasal dari Anda sendiri — tidak ada yang dikumpulkan diam-diam di latar belakang.</p>
+
+  <div class="tablewrap">
+  <table>
+    <thead>
+      <tr><th>Jenis data</th><th>Sifat</th><th>Disimpan di mana</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Catatan keuangan: dompet, transaksi, kategori, anggaran, transaksi berulang, aset &amp; tabungan emas, riwayat harga</td>
+        <td>Wajib (inti aplikasi)</td>
+        <td>Penyimpanan lokal perangkat</td>
+      </tr>
+      <tr>
+        <td>Foto struk</td>
+        <td>Opsional</td>
+        <td>Penyimpanan lokal perangkat</td>
+      </tr>
+      <tr>
+        <td>File PDF mutasi/rekening yang Anda impor</td>
+        <td>Opsional</td>
+        <td>Diproses di perangkat, tidak diunggah</td>
+      </tr>
+      <tr>
+        <td>PIN aplikasi</td>
+        <td>Opsional</td>
+        <td>Penyimpanan lokal perangkat (bentuk hash)</td>
+      </tr>
+      <tr>
+        <td>Profil dasar akun Google: nama, alamat email, foto profil</td>
+        <td>Opsional (hanya jika Anda login)</td>
+        <td>Penyimpanan lokal perangkat</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Foto struk</h3>
+  <p>Jika Anda melampirkan foto struk, gambar diambil dari kamera atau galeri, lalu diperkecil hingga sisi terpanjang 1280 piksel dan dikompres menjadi JPEG. Hasilnya disimpan menyatu dengan catatan transaksi Anda di perangkat. Foto tidak dikirim ke pihak mana pun.</p>
+
+  <h3>Impor PDF</h3>
+  <p>File PDF yang Anda pilih dibaca dan diurai sepenuhnya di dalam perangkat Anda. Isinya tidak diunggah ke server mana pun.</p>
+
+  <h3>PIN aplikasi</h3>
+  <p>PIN tidak disimpan dalam bentuk aslinya. Yang disimpan adalah hasil hash-nya. PIN juga dipakai untuk menurunkan kunci enkripsi data Anda. Karena kunci itu berasal dari PIN Anda, <b>PIN yang lupa tidak bisa kami pulihkan</b>.</p>
+</section>
+
+<section>
+  <h2>3. Sinkronisasi Google Drive <span class="pill">opsional</span></h2>
+  <p>Anda bisa memilih untuk login dengan akun Google agar data tersinkron antar perangkat. Jika Anda tidak login, Saldio tetap berfungsi penuh secara offline.</p>
+
+  <h3>Izin yang diminta</h3>
+  <ul>
+    <li><code>openid</code>, <code>profile</code>, <code>email</code> — untuk mengenali akun yang login dan menampilkan nama serta email Anda di aplikasi.</li>
+    <li><code>drive.appdata</code> — untuk menyimpan satu file data (<code>saldio-data.json</code>) ke folder aplikasi tersembunyi di Google Drive Anda.</li>
+  </ul>
+
+  <h3>Yang penting Anda tahu soal <code>drive.appdata</code></h3>
+  <ul>
+    <li>File disimpan di <b>appDataFolder</b> — area khusus di dalam Google Drive <b>milik Anda sendiri</b>.</li>
+    <li>Folder ini tersembunyi dari tampilan Drive biasa dan terpisah dari file-file Anda yang lain.</li>
+    <li>Izin ini <b>tidak memberi Saldio akses</b> untuk membaca dokumen, foto, atau file lain di Drive Anda. Secara teknis, Saldio hanya bisa melihat file yang dibuatnya sendiri.</li>
+    <li>Data tidak melewati server pengembang. Aplikasi berkomunikasi langsung dari perangkat Anda ke Google Drive API.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>4. Keamanan</h2>
+  <ul>
+    <li>Jika Anda mengaktifkan PIN, data akan dienkripsi dengan <b>AES-GCM 256-bit</b>. Kunci diturunkan dari PIN Anda memakai <b>PBKDF2-SHA256 dengan 100.000 iterasi</b> dan salt acak per perangkat.</li>
+    <li>Salinan yang tersimpan di Google Drive ikut terenkripsi selama PIN aktif.</li>
+    <li>Layar kunci PIN memberi jeda tunggu yang makin panjang setelah percobaan gagal berulang, untuk menghambat tebakan berturut-turut.</li>
+    <li>Koneksi ke Google Drive memakai HTTPS.</li>
+  </ul>
+  <p class="note">Tidak ada sistem yang sepenuhnya kebal. Jaga keamanan perangkat dan akun Google Anda, dan jangan bagikan PIN kepada siapa pun.</p>
+</section>
+
+<section>
+  <h2>5. Yang tidak kami lakukan</h2>
+  <ul>
+    <li>Tidak ada server milik pengembang yang menyimpan data Anda.</li>
+    <li>Tidak ada SDK analytics, pelacak perilaku, atau <i>crash reporting</i> pihak ketiga.</li>
+    <li>Tidak ada iklan dan tidak ada <i>ad network</i>.</li>
+    <li>Data Anda tidak dijual, disewakan, atau dibagikan untuk keperluan pemasaran.</li>
+    <li>Tidak ada pengumpulan lokasi, daftar kontak, maupun daftar aplikasi terpasang.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Izin perangkat</h2>
+  <ul>
+    <li><b>Kamera</b> — hanya aktif saat Anda memilih memotret struk.</li>
+    <li><b>Galeri / foto</b> — hanya aktif saat Anda memilih gambar struk dari galeri.</li>
+    <li><b>Akses berkas</b> — hanya aktif saat Anda memilih file PDF untuk diimpor atau menyimpan hasil ekspor.</li>
+  </ul>
+  <p class="note">Semua izin diminta saat dibutuhkan, dan bisa Anda tolak tanpa menghilangkan fungsi utama aplikasi.</p>
+</section>
+
+<section>
+  <h2>7. Layanan pihak ketiga</h2>
+  <p>Satu-satunya pihak ketiga yang terlibat adalah <b>Google</b>, dan hanya jika Anda memilih login untuk sinkronisasi:</p>
+  <ul>
+    <li>Google Sign-In (OAuth 2.0) — proses masuk akun</li>
+    <li>Google Drive API — penyimpanan file data di Drive Anda sendiri</li>
+  </ul>
+  <p>Penggunaan layanan tersebut tunduk pada <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Kebijakan Privasi Google</a>.</p>
+  <p class="note">Versi web Saldio dihosting di Vercel. Seperti hosting web pada umumnya, penyedia hosting dapat mencatat log akses teknis standar seperti alamat IP dan jenis peramban. Log ini tidak berisi catatan keuangan Anda dan tidak kami gunakan untuk membuat profil pengguna.</p>
+</section>
+
+<section>
+  <h2>8. Berapa lama data disimpan</h2>
+  <p>Data bertahan selama Anda menyimpannya. Kami tidak memegang salinan apa pun, sehingga tidak ada masa retensi di sisi kami. Data lokal hilang saat Anda menghapusnya atau mencopot aplikasi; salinan Drive bertahan sampai Anda menghapusnya sendiri.</p>
+</section>
+
+<section>
+  <h2>9. Hak Anda dan cara menghapus data</h2>
+
+  <h3>Mengekspor data</h3>
+  <p>Buka <b>Backup &amp; Restore</b> di aplikasi, lalu pilih <b>Export Data</b>. Anda akan mendapat file berisi seluruh catatan Anda, dan bisa mengenkripsinya dengan PIN.</p>
+
+  <h3>Menghapus data di perangkat</h3>
+  <p>Buka <b>Profil</b> → <b>Hapus semua data</b>. Seluruh dompet, transaksi, dan riwayat harga akan dihapus permanen dari perangkat tersebut.</p>
+
+  <h3>Menghapus salinan di Google Drive</h3>
+  <p class="note">Perlu diperhatikan: tombol "Hapus semua data" di atas hanya membersihkan perangkat, tidak menyentuh salinan di Drive.</p>
+  <p>Untuk menghapus salinan yang ada di Google Drive sekaligus mencabut akses Saldio:</p>
+  <ol>
+    <li>Buka <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">myaccount.google.com/permissions</a></li>
+    <li>Pilih <b>Saldio</b> pada daftar aplikasi pihak ketiga</li>
+    <li>Klik <b>Hapus akses</b> — data tersembunyi milik aplikasi ikut terhapus bersamanya</li>
+  </ol>
+  <p>Anda juga bisa mengelolanya lewat Google Drive: <b>Setelan</b> → <b>Kelola aplikasi</b> → Saldio → <b>Hapus data aplikasi tersembunyi</b>.</p>
+  <p>Kalau Anda mengalami kesulitan menghapus data, hubungi kami di alamat pada bagian 12 dan kami akan bantu memandu langkahnya.</p>
+</section>
+
+<section>
+  <h2>10. Anak-anak</h2>
+  <p>Saldio tidak ditujukan untuk anak di bawah 13 tahun dan kami tidak dengan sengaja mengumpulkan data dari mereka. Karena aplikasi tidak mengirim data ke server kami, kami juga tidak memiliki data pengguna mana pun untuk dihapus atas permintaan orang tua — penghapusan sepenuhnya dilakukan di perangkat sesuai bagian 9.</p>
+</section>
+
+<section>
+  <h2>11. Perubahan kebijakan</h2>
+  <p>Kebijakan ini dapat diperbarui bila ada fitur baru yang mengubah cara data diproses. Tanggal "terakhir diperbarui" di bagian atas halaman akan ikut berubah. Perubahan yang signifikan akan diberitahukan melalui catatan rilis aplikasi.</p>
+</section>
+
+<section>
+  <h2>12. Kontak</h2>
+  <p>Pertanyaan, keberatan, atau permintaan terkait data pribadi bisa dikirim ke:</p>
+  <p><b>Moh Iqbal Firman Ardiansyah</b><br>
+  Email: <a href="mailto:iqbalfirman.a25@gmail.com">iqbalfirman.a25@gmail.com</a><br>
+  Lokasi: Indonesia</p>
+  <p class="note">Kami berusaha menjawab dalam 7 hari kerja.</p>
+</section>
+
+<footer>
+  <p>Saldio · <a href="/">Beranda</a> · <a href="/support">Dukungan</a></p>
+</footer>
+
+</div>
+</body>
+</html>

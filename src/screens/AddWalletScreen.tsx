@@ -13,12 +13,19 @@ type Selection = WalletTemplateKey | "gold";
 
 const GRID_ORDER: WalletTemplateKey[] = ["bank_jago", "mandiri", "bca", "super_bank", "neo_bank", "custom"];
 
-function digitsOnly(s: string): string {
-  return s.replace(/\D/g, "");
+/** Format Rupiah input as user types: "1500000" → "1.500.000", "1500000,50" → "1.500.000,50" */
+function formatRupiahInput(s: string): string {
+  const cleaned = s.replace(/[^\d,]/g, "");
+  const parts = cleaned.split(",");
+  const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return parts.length > 1 ? `${integerPart},${parts[1]}` : integerPart;
 }
 
-function withDots(digits: string): string {
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+/** Parse formatted Rupiah input for storage: "1.500.000,50" → 1500000.50 */
+function parseRupiahInput(s: string): number {
+  const cleaned = s.replace(/\./g, "").replace(",", ".");
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
 }
 
 export function AddWalletScreen({ navigation }: HomeScreenProps<"AddWallet">) {
@@ -26,7 +33,7 @@ export function AddWalletScreen({ navigation }: HomeScreenProps<"AddWallet">) {
   const { isDark } = useTheme();
   const [selected, setSelected] = useState<Selection>("bank_jago");
   const [name, setName] = useState("");
-  const [balanceDigits, setBalanceDigits] = useState("");
+  const [balanceInput, setBalanceInput] = useState("");
   const [grams, setGrams] = useState("");
   const [includeInTotal, setIncludeInTotal] = useState(true);
 
@@ -51,7 +58,7 @@ export function AddWalletScreen({ navigation }: HomeScreenProps<"AddWallet">) {
             name: name.trim(),
             template: template!.key,
             type: template!.key === "custom" ? "cash" : "bank",
-            initialBalance: parseInt(balanceDigits || "0", 10),
+            initialBalance: parseRupiahInput(balanceInput),
             supportsPdfImport: template!.supportsPdfImport,
             includeInTotal,
           }
@@ -173,10 +180,10 @@ export function AddWalletScreen({ navigation }: HomeScreenProps<"AddWallet">) {
           <View className="flex-row items-center">
             <Text className="font-mono-semibold text-base text-saldio-ink dark:text-saldio-dark-ink">Rp</Text>
             <TextInput
-              value={withDots(balanceDigits)}
-              onChangeText={(v) => setBalanceDigits(digitsOnly(v))}
+              value={balanceInput}
+              onChangeText={(v) => setBalanceInput(formatRupiahInput(v))}
               placeholder="0"
-              keyboardType="number-pad"
+              keyboardType="decimal-pad"
               placeholderTextColor={isDark ? '#9CA3AF' : '#8A94A6'}
               className="mt-0 flex-1 font-mono-semibold text-base text-saldio-ink dark:text-saldio-dark-ink"
             />

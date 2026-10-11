@@ -12,11 +12,19 @@ import { useAppData } from "../state/AppDataContext";
 import type { HomeScreenProps } from "../navigation/types";
 import { useTheme } from '../components/ThemeProvider';
 
-function digitsOnly(s: string): string {
-  return s.replace(/\D/g, "");
+/** Format Rupiah input as user types: "1500000" → "1.500.000", "1500000,50" → "1.500.000,50" */
+function formatRupiahInput(s: string): string {
+  const cleaned = s.replace(/[^\d,]/g, "");
+  const parts = cleaned.split(",");
+  const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return parts.length > 1 ? `${integerPart},${parts[1]}` : integerPart;
 }
-function withDots(digits: string): string {
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+/** Parse formatted Rupiah input for storage: "1.500.000,50" → 1500000.50 */
+function parseRupiahInput(s: string): number {
+  const cleaned = s.replace(/\./g, "").replace(",", ".");
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
 }
 
 function TypeToggle({
@@ -62,7 +70,7 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
   const isGold = wallet?.type === "gold";
 
   const [txType, setTxType] = useState<string>(existingTx?.type ?? (isGold ? "buy_gold" : "expense"));
-  const [amountDigits, setAmountDigits] = useState(existingTx?.amount ? String(existingTx.amount) : "");
+  const [amountInput, setAmountInput] = useState(existingTx?.amount ? formatRupiahInput(String(existingTx.amount)) : "");
   const [grams, setGrams] = useState(existingTx?.grams ? String(existingTx.grams) : "");
   const [category, setCategory] = useState(existingTx?.category ?? "Makanan");
   const [note, setNote] = useState(existingTx?.note ?? "");
@@ -72,7 +80,7 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
   const categories = useMemo(() => allCategories(data.customCategories).filter((c) => c.key !== "Emas" && c.key !== "Transfer"), [data.customCategories]);
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
   const canSubmit =
-    !!wallet && validDate && (isGold ? parseFloat(grams.replace(",", ".")) > 0 : parseInt(amountDigits || "0", 10) > 0);
+    !!wallet && validDate && (isGold ? parseFloat(grams.replace(",", ".")) > 0 : parseRupiahInput(amountInput) > 0);
 
   const submit = () => {
     if (!canSubmit || !wallet) return;
@@ -89,7 +97,7 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
           walletId: wallet.id,
           date,
           type: (txType === "income" ? "income" : "expense") as TransactionType,
-          amount: parseInt(amountDigits, 10),
+          amount: parseRupiahInput(amountInput),
           category,
           note: note.trim() || undefined,
           source: "manual" as const,
@@ -170,10 +178,10 @@ export function AddTransactionScreen({ route, navigation }: HomeScreenProps<"Add
           <View className="flex-row items-center gap-1">
             <Text className="font-mono-semibold text-2xl text-saldio-ink dark:text-saldio-dark-ink">Rp</Text>
             <TextInput
-              value={withDots(amountDigits)}
-              onChangeText={(v) => setAmountDigits(digitsOnly(v))}
+              value={amountInput}
+              onChangeText={(v) => setAmountInput(formatRupiahInput(v))}
               placeholder="0"
-              keyboardType="number-pad"
+              keyboardType="decimal-pad"
               placeholderTextColor={isDark ? '#9CA3AF' : '#8A94A6'}
               className="flex-1 font-mono-semibold text-2xl text-saldio-ink dark:text-saldio-dark-ink"
             />

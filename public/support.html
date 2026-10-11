@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dukungan — Saldio</title>
+<meta name="description" content="Halaman dukungan Saldio: pertanyaan umum seputar sinkronisasi Google Drive, PIN, backup, dan cara menghubungi pengembang.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#E6F4FE">
+<link rel="icon" href="/icon-192.png">
+<style>
+  :root {
+    --bg: #F1F4F9;
+    --card: #FFFFFF;
+    --ink: #101736;
+    --muted: #64748B;
+    --soft: #8A94A6;
+    --border: #E6EAF2;
+    --blue: #3D51E0;
+    --navy: #1E2A78;
+    --sky: #EAEFFB;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0F1123;
+      --card: #181E36;
+      --ink: #E8ECF4;
+      --muted: #8892A6;
+      --soft: #6B7589;
+      --border: #1E2540;
+      --blue: #5B6FE8;
+      --navy: #C7D0F5;
+      --sky: #1C2541;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 72px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .brand img { width: 40px; height: 40px; border-radius: 10px; }
+  .brand span { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  h1 { font-size: 30px; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .lede { color: var(--muted); margin: 0 0 30px; }
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 16px; }
+  h2 { font-size: 19px; letter-spacing: -0.01em; margin: 0 0 14px; }
+  p { margin: 0 0 12px; }
+  ul, ol { margin: 0 0 12px; padding-left: 22px; }
+  li { margin: 6px 0; }
+  a { color: var(--blue); }
+  code { background: var(--sky); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; font-size: 13.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .note { color: var(--muted); font-size: 14.5px; }
+  details { border-top: 1px solid var(--border); padding: 12px 0; }
+  details:first-of-type { border-top: 0; padding-top: 0; }
+  details:last-of-type { padding-bottom: 0; }
+  summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--soft); font-weight: 400; font-size: 20px; line-height: 1; }
+  details[open] summary::after { content: "−"; }
+  details > *:not(summary) { margin-top: 10px; }
+  .contact { background: var(--sky); }
+  .mail { font-size: 17px; font-weight: 600; }
+  footer { margin-top: 28px; text-align: center; color: var(--soft); font-size: 14px; }
+  @media (max-width: 520px) {
+    h1 { font-size: 25px; }
+    section { padding: 18px 18px; }
+    .wrap { padding: 24px 16px 56px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="brand">
+  <img src="/icon-192.png" alt="">
+  <span>Saldio</span>
+</div>
+<h1>Dukungan</h1>
+<p class="lede">Pertanyaan yang sering muncul, dan cara menghubungi kami kalau jawabannya belum ada di sini.</p>
+
+<section>
+  <h2>Pertanyaan umum</h2>
+
+  <details>
+    <summary>Apakah harus login untuk memakai Saldio?</summary>
+    <p>Tidak. Saldio berfungsi penuh tanpa login — semua data tersimpan di perangkat Anda. Login dengan Google hanya diperlukan kalau Anda ingin data tersinkron antar perangkat.</p>
+  </details>
+
+  <details>
+    <summary>Data saya disimpan di mana?</summary>
+    <p>Di penyimpanan lokal perangkat Anda. Kalau sinkronisasi diaktifkan, satu file bernama <code>saldio-data.json</code> juga disimpan di folder aplikasi tersembunyi pada Google Drive milik akun Anda sendiri. Tidak ada server pengembang yang menyimpan data Anda. Detailnya ada di <a href="/privacy">Kebijakan Privasi</a>.</p>
+  </details>
+
+  <details>
+    <summary>Saya lupa PIN. Bisa dipulihkan?</summary>
+    <p>Sayangnya tidak bisa. Kunci enkripsi diturunkan langsung dari PIN Anda dan tidak pernah disimpan di mana pun, jadi tidak ada jalan pintas untuk memulihkannya — termasuk oleh kami.</p>
+    <p>Kalau Anda punya file ekspor yang belum terenkripsi, Anda bisa hapus data lewat <b>Profil → Hapus semua data</b>, lalu impor ulang file tersebut.</p>
+  </details>
+
+  <details>
+    <summary>Kenapa Saldio minta izin Google Drive?</summary>
+    <p>Untuk menyimpan satu file backup di area <code>appDataFolder</code> Drive Anda. Izin ini sengaja dipilih karena cakupannya paling sempit: Saldio hanya bisa melihat file yang dibuatnya sendiri, dan tidak bisa membaca dokumen, foto, atau file lain di Drive Anda.</p>
+  </details>
+
+  <details>
+    <summary>Bagaimana cara memindahkan data ke HP baru?</summary>
+    <ol>
+      <li>Cara paling mudah: login dengan akun Google yang sama di HP baru, data akan tersinkron sendiri.</li>
+      <li>Tanpa login: buka <b>Backup &amp; Restore</b> → <b>Export Data</b> di HP lama, pindahkan filenya, lalu <b>Import Data</b> di HP baru.</li>
+    </ol>
+  </details>
+
+  <details>
+    <summary>Impor PDF mutasi saya gagal terbaca. Kenapa?</summary>
+    <p>Format mutasi tiap bank berbeda-beda, dan pembacanya baru mengenali sebagian format. PDF hasil pindaian (gambar) juga belum bisa dibaca karena tidak mengandung teks.</p>
+    <p>Kalau format bank Anda belum didukung, kirimkan email ke kami dengan menyebut nama banknya. <b>Jangan lampirkan file mutasi asli</b> — cukup sebutkan banknya, nanti kami tanyakan potongan contoh yang sudah disamarkan bila diperlukan.</p>
+  </details>
+
+  <details>
+    <summary>Bagaimana cara menghapus seluruh data saya?</summary>
+    <p>Di perangkat: <b>Profil → Hapus semua data</b>.</p>
+    <p>Salinan di Google Drive terhapus terpisah, lewat <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">myaccount.google.com/permissions</a> → pilih Saldio → <b>Hapus akses</b>.</p>
+  </details>
+
+  <details>
+    <summary>Apakah Saldio berbayar atau ada iklan?</summary>
+    <p>Tidak keduanya. Saldio gratis, tanpa iklan, tanpa pembelian dalam aplikasi, dan tanpa langganan.</p>
+  </details>
+</section>
+
+<section class="contact">
+  <h2>Hubungi kami</h2>
+  <p>Untuk laporan bug, permintaan fitur, atau pertanyaan soal data pribadi:</p>
+  <p class="mail"><a href="mailto:iqbalfirman.a25@gmail.com">iqbalfirman.a25@gmail.com</a></p>
+  <p class="note">Kami berusaha menjawab dalam 7 hari kerja. Saldio dikembangkan sendirian di waktu luang, jadi mohon maaf kalau balasannya tidak selalu cepat.</p>
+  <p class="note">Kalau melaporkan bug, akan sangat membantu bila Anda menyertakan: tipe HP, versi Android/iOS, dan langkah yang memicu masalahnya. Jangan kirimkan PIN atau isi catatan keuangan Anda.</p>
+</section>
+
+<footer>
+  <p>Saldio · <a href="/">Beranda</a> · <a href="/privacy">Kebijakan Privasi</a></p>
+</footer>
+
+</div>
+</body>
+</html>
